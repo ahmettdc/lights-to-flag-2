@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\LTF.Domain\LTF.Domain.csproj" />
+    <ProjectReference Include="..\LTF.Simulation\LTF.Simulation.csproj" />
+    <ProjectReference Include="..\LTF.Content\LTF.Content.csproj" />
+  </ItemGroup>
+
+</Project>

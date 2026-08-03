@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>LightsToFlag.Core</RootNamespace>
-    <!-- Core is UI-free and must build/test on any OS (Linux CI included). -->
-  </PropertyGroup>
-
-</Project>

@@ -1,24 +1,31 @@
-## .NET
+# Build output
 bin/
 obj/
-.vs/
-*.user
-*.suo
-TestResults/
 [Dd]ebug/
 [Rr]elease/
 artifacts/
+publish/
 
-## Rider / VS Code
+# .NET / Rider / VS
+.vs/
 .idea/
-.vscode/
+*.user
+*.suo
 
-## Runtime save games (do not commit player saves).
-## Anchored to the repo root so it never swallows source folders like src/**/Saves/.
+# VS Code (keep shared settings, ignore per-user)
+.vscode/*
+!.vscode/extensions.json
+
+# Test / coverage
+TestResults/
+*.coverage
+coverage/
+
+# Player saves (written under the OS app-data folder; ignore any stray local ones)
 /Saves/
-*.save
+*.ltfsave
 
-## OS
+# OS cruft
+.DS_Store
 Thumbs.db
 desktop.ini
-.DS_Store

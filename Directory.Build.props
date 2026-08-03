@@ -1,14 +1,23 @@
 <Project>
+
+  <!--
+    Solution-wide build settings for Lights to Flag 2.
+    See ROADMAP.md section 4.2 for the invariants enforced here.
+  -->
   <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
     <!--
-      NOTE: Do NOT set InvariantGlobalization=true globally. In the WPF app it makes
-      the first TextBox throw CultureNotFoundException while resolving its "en-US"
-      culture, crashing the New Career screen. The engine already parses/formats with
-      an explicit CultureInfo.InvariantCulture, so it does not need the global switch.
+      WARNING: never set InvariantGlobalization to true.
+      In the previous version it crashed the New Career screen with a
+      CultureNotFoundException. Culture-sensitive parsing/formatting must be
+      explicit (InvariantCulture for data files, CurrentCulture for display).
     -->
   </PropertyGroup>
+
 </Project>

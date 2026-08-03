@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\LTF.Domain\LTF.Domain.csproj" />
+    <ProjectReference Include="..\LTF.Career\LTF.Career.csproj" />
+  </ItemGroup>
+
+</Project>

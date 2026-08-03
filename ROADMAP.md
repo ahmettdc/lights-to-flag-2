@@ -1,8 +1,8 @@
 # Lights to Flag 2 — Yol Haritası
 
-> **Durum:** Faz 0 / M0 bekliyor · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe
-> **Oyun arayüz dili:** İngilizce · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36),
-> tek oyunculu 1.0 + çok oyunculu co-op 2.0
+> **Durum:** Faz 0 / M0 iskelet gönderildi — CI doğrulaması bekleniyor · **Sıradaki:** M1
+> · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe · **Oyun arayüz dili:** İngilizce
+> · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36), tek oyunculu 1.0 + çok oyunculu co-op 2.0
 
 ---
 

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LTF.Content\LTF.Content.csproj" />
+    <ProjectReference Include="..\LTF.Simulation\LTF.Simulation.csproj" />
+    <ProjectReference Include="..\LTF.Career\LTF.Career.csproj" />
+  </ItemGroup>
+
+</Project>

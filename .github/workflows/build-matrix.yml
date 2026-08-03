@@ -1,0 +1,29 @@
+name: Build matrix
+
+# Proves the whole solution — including the Avalonia desktop app — compiles on
+# Windows and macOS. Tests run on Linux in ci.yml; this job is build-only.
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Build
+        run: dotnet build LightsToFlag2.sln -c Release

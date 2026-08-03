@@ -1,145 +1,76 @@
 # Lights to Flag 2
 
-A ground-up rewrite of the **Lights to Flag** F1 management / racing-simulation
-game — **.NET 8 + WPF (MVVM)**, C#, Windows single-player career mode.
+A motorsport **career simulation** — inspired by the original *Lights to Flag* —
+built ground-up in **C# / .NET 9** with an **Avalonia** UI that runs on Windows,
+macOS and Linux.
 
-The original was a compiled .NET/VB.NET WinForms app. This project is a clean
-reimplementation: mechanics are *freshly designed* (inspired by the original,
-not ported line-for-line), and the game engine is deliberately split from the UI
-so it can be built and unit-tested on any OS — including Linux CI.
+The engine is data-driven and deterministic, and is deliberately split from the UI
+so every layer — including the interface — builds and is tested on Linux CI.
+
+> **Status:** Phase 0 / M0 — solution skeleton. The engine and UI are being built
+> milestone by milestone. See [`ROADMAP.md`](ROADMAP.md) (Turkish) for the full plan
+> and [`docs/adr/`](docs/adr/) for the architecture decisions behind it.
+
+## What it is
+
+Two ways to play, chosen when you start a career:
+
+- **Driver Career** — find a seat, pick your practice programme, manage tyres and
+  strategy on race day, and climb the grid as contracts, reputation and form open
+  doors.
+- **Team Principal** — run the budget, sponsors, staff, R&D and driver transfers, and
+  call both cars' strategy from the pit wall.
+
+Online 4-player co-op (Football-Manager style) is planned as a post-1.0 phase.
 
 ## Solution layout
 
 ```
-LightsToFlag.sln
+LightsToFlag2.sln
 ├─ src/
-│  ├─ LightsToFlag.Core/   net8.0, UI-free engine (Domain / Data / … )   ← testable everywhere
-│  └─ LightsToFlag.App/    net8.0-windows, WPF shell (MVVM)              ← Windows only
-└─ tests/
-   └─ LightsToFlag.Tests/  net8.0, xUnit — references Core only          ← runs on Linux
+│  ├─ LTF.Domain/        Pure model. No I/O, no dependencies.
+│  ├─ LTF.Content/       Carset format: schema, loader, validator.
+│  ├─ LTF.Simulation/    Practice / qualifying / race. Deterministic.
+│  ├─ LTF.Career/        Season, career, economy, contracts, R&D, both modes.
+│  ├─ LTF.Persistence/   Save / load + schema migration.
+│  ├─ LTF.App/           Avalonia UI. All platforms.
+│  └─ LTF.Tools/         CLI: validator, balance sweep, tooling.
+└─ tests/                One xUnit project per engine layer + the app.
 ```
 
-- **`LightsToFlag.Core`** — domain models, carset loading, and (coming) the
-  race/qualifying/practice simulation, season & career logic, and save/load.
-  No UI or Windows dependencies; a unit test guards that invariant.
-- **`LightsToFlag.App`** — the WPF desktop shell. Targets `net8.0-windows` and
-  uses WPF, so it builds and runs **only on Windows**. It is excluded from the
-  Linux CI build via the `LightsToFlag.CI.slnf` solution filter.
-- **`LightsToFlag.Tests`** — xUnit tests for Core, runnable on any OS.
+Dependencies flow one way: `App → Career → Simulation → Content → Domain`.
 
 ## Build & test
 
-Engine + tests (any OS, no Windows needed):
+Requires the **.NET 9 SDK**. Everything builds and tests on any OS:
 
 ```bash
-dotnet test LightsToFlag.CI.slnf -c Release
+dotnet build LightsToFlag2.sln -c Release
+dotnet test  LightsToFlag2.sln -c Release
 ```
 
-Full game incl. the WPF app (Windows only):
+Run the desktop app:
 
 ```bash
-dotnet build LightsToFlag.sln -c Release
-dotnet run --project src/LightsToFlag.App
+dotnet run --project src/LTF.App
 ```
 
-CI (`.github/workflows/ci.yml`) builds and tests **Core + Tests** on
-`ubuntu-latest` using the solution filter, so the Windows-only App never blocks
-Linux CI.
+CI: `.github/workflows/ci.yml` builds and tests the **whole solution** on Linux;
+`build-matrix.yml` additionally builds it on Windows and macOS.
 
-## Carsets (game data)
+## Conventions
 
-The game is data-driven by **carsets** — folders of underscore-separated text
-files describing the series, teams, drivers, circuits and simulation tuning.
-The classic format is kept as the canonical input for compatibility with
-existing content; `LightsToFlag.Core.Data.LegacyTextCarsetLoader` parses it into
-clean immutable domain records.
+Enforced by `Directory.Build.props` and guard tests:
 
-A real carset (`carsets/F1 2019/`) ships with the repo as test data and initial
-playable content. Field schemas are documented per file:
+- `Nullable` enabled, warnings treated as errors, latest C#.
+- `Domain`, `Content`, `Simulation`, `Career` stay UI-free and I/O-free.
+- The simulation is **deterministic**: no wall-clock, no shared RNG — same seed,
+  same result, bit for bit.
+- `InvariantGlobalization` is never enabled (it crashed the previous version's
+  New Career screen with a `CultureNotFoundException`).
 
-| File | Contents |
-|------|----------|
-| `Rules.txt` | Series regulations, points formats, qualifying format |
-| `Coefficients.txt` | Global simulation tuning (27 values) |
-| `Teamdata.txt` | Teams / cars (26 fields each) |
-| `Driverdata.txt` | Race drivers (24 fields) + reserves (abbreviated rookie records) |
-| `Circuitdata.txt` | Circuits (variable-width: per-class laptimes + corner/overtaking strings) |
+## History
 
-## Roadmap
-
-Engine milestones (verifiable on Linux CI):
-
-- [x] **M0** — solution scaffold, CI, solution filter
-- [x] **M1** — Core domain model
-- [x] **M2** — legacy carset loader + real-data tests
-- [x] **M3** — seedable RNG + lap-time core
-- [x] **M4** — qualifying + practice
-- [x] **M5** — full race simulator
-- [x] **M6** — career + season + save/load (JSON)
-
-The engine is complete and runs headlessly: load a carset → build the entry list
-→ simulate a full season round-by-round (qualifying + race) → championship
-standings → season rollover (ageing, retirements, rookie promotions, seat offers)
-→ save/load as JSON. All of it is covered by deterministic unit tests (38 passing
-on Linux).
-
-UI milestones (Windows):
-
-- [x] **M7** — WPF shell (custom branded frame) + DI + main menu + new-career + load
-- [x] **M8** — race-weekend UI: practice → qualifying → **live-timing race playback** → results
-- [x] **M9** — career UI: dashboard, standings, calendar, seat offers, season rollover, save
-- [x] **M10** — dark theme + brand kit (logo, colours, fonts), app icon
-
-## The app (Windows)
-
-`LightsToFlag.App` is a WPF desktop game with a from-scratch **dark theme** built on
-the Lights to Flag 2 brand kit (Track Black / Lights Out Red palette; Saira Condensed,
-Chakra Petch and Archivo fonts bundled under `Assets/Fonts`). It has a custom branded
-window frame, a main menu, a new-career flow (pick carset + driver), a career hub
-(dashboard, championship standings, calendar, seat offers, season rollover) and a race
-weekend with **live-timing playback** (practice → qualifying → an animated lap-by-lap
-race you can speed up or skip → results).
-
-Build & run on Windows:
-
-```powershell
-dotnet build LightsToFlag.sln -c Release
-dotnet run --project src/LightsToFlag.App
-```
-
-CI: `.github/workflows/ci.yml` builds/tests the engine on Linux; `windows.yml` builds
-the full solution (incl. the WPF app) on `windows-latest`. Player saves live under
-`%AppData%/LightsToFlag/Saves`.
-
-Bundled fonts are licensed under the SIL Open Font License 1.1 (see
-`src/LightsToFlag.App/Assets/Fonts/OFL.txt`).
-
-## Download, install & auto-update
-
-Releases are built by `.github/workflows/release.yml` (triggered by pushing a
-`vX.Y.Z` tag) and published to **GitHub Releases** using
-[Velopack](https://velopack.io). Each release contains:
-
-- **`LightsToFlag-win-Setup.exe`** — the installer. Download and run it; the game
-  installs per-user and adds a Start-menu shortcut.
-- the update packages + `releases.win.json` feed the installed app reads.
-
-**Auto-update:** on launch the app checks GitHub Releases and, if a newer version
-is out, downloads it and restarts into it — no reinstall needed. To ship an
-update, bump the tag and push it:
-
-```bash
-git tag v1.0.1 && git push origin v1.0.1
-```
-
-Because this repository is **private**, the update check needs a GitHub token with
-read access to it. The token is never baked into the build — the app looks for it,
-in order, in:
-
-1. the `LTF_UPDATE_TOKEN` environment variable, or
-2. an `update-token.txt` file next to the game's `.exe`, or
-3. `%AppData%/LightsToFlag/update-token.txt`.
-
-Create a fine-grained personal access token (Contents: read-only on this repo) and
-put it in one of those. With no token the game still runs — it just skips the
-update check. (If the repo is ever made public, updates work with no token.)
+This is a from-scratch rebuild. The previous .NET 8 + WPF version is preserved in
+git history (commit `a83ebcc`); see [ADR-0001](docs/adr/0001-ground-up-rebuild.md)
+for why it was replaced.
