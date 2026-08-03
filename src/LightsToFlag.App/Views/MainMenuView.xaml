@@ -20,5 +20,10 @@
             <Button Content="CHECK FOR UPDATES" Style="{StaticResource GhostButton}"
                     Command="{Binding CheckUpdatesCommand}" FontSize="12" Padding="12,7" Margin="0,18,0,0" />
         </StackPanel>
+
+        <!-- Build version, so the player can confirm which version they're running. -->
+        <TextBlock Text="{Binding AppVersion}" Style="{StaticResource NumericText}"
+                   Foreground="{StaticResource MutedBrush}" FontSize="13"
+                   HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,18,14" />
     </Grid>
 </UserControl>

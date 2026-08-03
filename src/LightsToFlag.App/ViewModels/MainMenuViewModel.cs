@@ -23,6 +23,10 @@ public partial class MainMenuViewModel : ObservableObject
     public bool CanContinue => _session.HasCareer;
     public bool HasSaves => _session.SaveSlots().Count > 0;
 
+    /// <summary>Running build version, shown on the menu so the player can confirm updates.</summary>
+    public string AppVersion { get; } =
+        "v" + (System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?");
+
     [RelayCommand]
     private void NewCareer() => _nav.NavigateTo<NewCareerViewModel>();
 
