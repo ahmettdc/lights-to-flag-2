@@ -1,0 +1,168 @@
+<UserControl x:Class="LightsToFlag.App.Views.CareerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Background="{StaticResource TrackBlackBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Nav rail -->
+        <Border Grid.Column="0" Background="{StaticResource GarageBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <Image DockPanel.Dock="Top" Source="pack://application:,,,/Assets/Brand/logo-horizontal.png"
+                       Stretch="Uniform" Height="34" HorizontalAlignment="Left" Margin="18,20,18,6" />
+                <TextBlock DockPanel.Dock="Top" Text="{Binding SeasonLabel}" Style="{StaticResource LabelText}" Margin="26,0,0,18" />
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,16">
+                    <Button Content="SAVE" Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}" Margin="18,4" />
+                    <Button Content="MAIN MENU" Style="{StaticResource GhostButton}" Command="{Binding BackToMenuCommand}" Margin="18,4" />
+                    <TextBlock Text="{Binding Status}" Style="{StaticResource MutedText}" Margin="26,6,18,0" TextWrapping="Wrap" FontSize="12" />
+                </StackPanel>
+
+                <StackPanel>
+                    <RadioButton Content="DASHBOARD" Style="{StaticResource NavButton}" GroupName="nav"
+                                 Command="{Binding ShowDashboardCommand}"
+                                 IsChecked="{Binding Section, Mode=OneWay, Converter={StaticResource StrEqBool}, ConverterParameter=dashboard}" />
+                    <RadioButton Content="STANDINGS" Style="{StaticResource NavButton}" GroupName="nav"
+                                 Command="{Binding ShowStandingsCommand}"
+                                 IsChecked="{Binding Section, Mode=OneWay, Converter={StaticResource StrEqBool}, ConverterParameter=standings}" />
+                    <RadioButton Content="CALENDAR" Style="{StaticResource NavButton}" GroupName="nav"
+                                 Command="{Binding ShowCalendarCommand}"
+                                 IsChecked="{Binding Section, Mode=OneWay, Converter={StaticResource StrEqBool}, ConverterParameter=calendar}" />
+                    <RadioButton Content="OFFERS" Style="{StaticResource NavButton}" GroupName="nav"
+                                 Command="{Binding ShowOffersCommand}"
+                                 Visibility="{Binding HasOffers, Converter={StaticResource BoolToVis}}"
+                                 IsChecked="{Binding Section, Mode=OneWay, Converter={StaticResource StrEqBool}, ConverterParameter=offers}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Content -->
+        <Grid Grid.Column="1" Margin="36">
+            <!-- Dashboard -->
+            <Grid Visibility="{Binding Section, Converter={StaticResource StrEqVis}, ConverterParameter=dashboard}">
+                <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+                    <TextBlock Text="DASHBOARD" Style="{StaticResource DisplayText}" Margin="0,0,0,20" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="DRIVER" Style="{StaticResource LabelText}" />
+                                <TextBlock Text="{Binding PlayerName}" Style="{StaticResource H1Text}" Margin="0,4,0,2" />
+                                <TextBlock Text="{Binding PlayerTeam}" Style="{StaticResource MutedText}" />
+                                <TextBlock Text="{Binding ChampionshipStanding}" Style="{StaticResource NumericText}"
+                                           FontSize="20" Foreground="{StaticResource RedBrush}" Margin="0,14,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="NEXT RACE" Style="{StaticResource LabelText}" />
+                                <TextBlock Text="{Binding NextRaceCircuit}" Style="{StaticResource H1Text}" Margin="0,4,0,2" />
+                                <TextBlock Text="{Binding NextRaceLabel}" Style="{StaticResource MutedText}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,24,0,0">
+                        <Button Content="GO TO RACE" Style="{StaticResource PrimaryButton}" Command="{Binding GoToRaceCommand}"
+                                Visibility="{Binding SeasonComplete, Converter={StaticResource InverseBoolToVis}}" />
+                        <Button Content="ADVANCE TO NEXT SEASON" Style="{StaticResource PrimaryButton}" Command="{Binding AdvanceSeasonCommand}"
+                                Visibility="{Binding SeasonComplete, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- Standings -->
+            <Grid Visibility="{Binding Section, Converter={StaticResource StrEqVis}, ConverterParameter=standings}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="STANDINGS" Style="{StaticResource DisplayText}" Margin="0,0,0,16" />
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.4*" />
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource Card}" Padding="12">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="DRIVERS" Style="{StaticResource LabelText}" Margin="8,0,0,8" />
+                            <DataGrid ItemsSource="{Binding DriverStandings}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="POS" Binding="{Binding Position}" Width="50" />
+                                    <DataGridTextColumn Header="DRIVER" Binding="{Binding Name}" Width="*" />
+                                    <DataGridTextColumn Header="TEAM" Binding="{Binding Team}" Width="*" />
+                                    <DataGridTextColumn Header="WINS" Binding="{Binding Wins}" Width="60" />
+                                    <DataGridTextColumn Header="PTS" Binding="{Binding Points, StringFormat=0}" Width="70" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="CONSTRUCTORS" Style="{StaticResource LabelText}" Margin="8,0,0,8" />
+                            <DataGrid ItemsSource="{Binding ConstructorStandings}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="POS" Binding="{Binding Position}" Width="50" />
+                                    <DataGridTextColumn Header="TEAM" Binding="{Binding Team}" Width="*" />
+                                    <DataGridTextColumn Header="PTS" Binding="{Binding Points, StringFormat=0}" Width="70" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- Calendar -->
+            <Grid Visibility="{Binding Section, Converter={StaticResource StrEqVis}, ConverterParameter=calendar}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="CALENDAR" Style="{StaticResource DisplayText}" Margin="0,0,0,16" />
+                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12">
+                    <DataGrid ItemsSource="{Binding Calendar}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="RND" Binding="{Binding Round}" Width="60" />
+                            <DataGridTextColumn Header="CIRCUIT" Binding="{Binding Circuit}" Width="*" />
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="120" />
+                            <DataGridTextColumn Header="WINNER" Binding="{Binding Winner}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- Offers -->
+            <Grid Visibility="{Binding Section, Converter={StaticResource StrEqVis}, ConverterParameter=offers}">
+                <StackPanel MaxWidth="520" HorizontalAlignment="Left">
+                    <TextBlock Text="SEAT OFFERS" Style="{StaticResource DisplayText}" Margin="0,0,0,8" />
+                    <TextBlock Text="Choose a team for the coming season." Style="{StaticResource MutedText}" Margin="0,0,0,16" />
+                    <ItemsControl ItemsSource="{Binding Offers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Margin="0,0,0,10" Padding="16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Team}" Style="{StaticResource H2Text}" VerticalAlignment="Center" />
+                                        <Button Grid.Column="1" Content="SIGN" Style="{StaticResource PrimaryButton}"
+                                                Command="{Binding DataContext.AcceptOfferCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

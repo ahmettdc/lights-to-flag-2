@@ -85,7 +85,31 @@ on Linux).
 
 UI milestones (Windows):
 
-- [ ] **M7** — WPF shell + DI + carset picker
-- [ ] **M8** — race-weekend UI (live timing / strategy)
-- [ ] **M9** — career UI (standings / calendar / offers / saves)
-- [ ] **M10** — polish (assets, theme, balance)
+- [x] **M7** — WPF shell (custom branded frame) + DI + main menu + new-career + load
+- [x] **M8** — race-weekend UI: practice → qualifying → **live-timing race playback** → results
+- [x] **M9** — career UI: dashboard, standings, calendar, seat offers, season rollover, save
+- [x] **M10** — dark theme + brand kit (logo, colours, fonts), app icon
+
+## The app (Windows)
+
+`LightsToFlag.App` is a WPF desktop game with a from-scratch **dark theme** built on
+the Lights to Flag 2 brand kit (Track Black / Lights Out Red palette; Saira Condensed,
+Chakra Petch and Archivo fonts bundled under `Assets/Fonts`). It has a custom branded
+window frame, a main menu, a new-career flow (pick carset + driver), a career hub
+(dashboard, championship standings, calendar, seat offers, season rollover) and a race
+weekend with **live-timing playback** (practice → qualifying → an animated lap-by-lap
+race you can speed up or skip → results).
+
+Build & run on Windows:
+
+```powershell
+dotnet build LightsToFlag.sln -c Release
+dotnet run --project src/LightsToFlag.App
+```
+
+CI: `.github/workflows/ci.yml` builds/tests the engine on Linux; `windows.yml` builds
+the full solution (incl. the WPF app) on `windows-latest`. Player saves live under
+`%AppData%/LightsToFlag/Saves`.
+
+Bundled fonts are licensed under the SIL Open Font License 1.1 (see
+`src/LightsToFlag.App/Assets/Fonts/OFL.txt`).

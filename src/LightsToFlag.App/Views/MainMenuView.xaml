@@ -1,0 +1,21 @@
+<UserControl x:Class="LightsToFlag.App.Views.MainMenuView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Background="{StaticResource TrackBlackBrush}">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="360">
+            <Image Source="pack://application:,,,/Assets/Brand/logo-centred.png"
+                   Stretch="Uniform" MaxHeight="220" Margin="0,0,0,40" />
+
+            <Button Content="NEW CAREER" Style="{StaticResource PrimaryButton}"
+                    Command="{Binding NewCareerCommand}" Margin="0,0,0,12" />
+            <Button Content="CONTINUE" Style="{StaticResource GhostButton}"
+                    Command="{Binding ContinueCommand}" IsEnabled="{Binding CanContinue}" Margin="0,0,0,12" />
+            <Button Content="LOAD GAME" Style="{StaticResource GhostButton}"
+                    Command="{Binding LoadCommand}" Margin="0,0,0,12" />
+            <Button Content="ABOUT" Style="{StaticResource GhostButton}"
+                    Command="{Binding AboutCommand}" Margin="0,0,0,12" />
+            <Button Content="QUIT" Style="{StaticResource GhostButton}"
+                    Command="{Binding QuitCommand}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

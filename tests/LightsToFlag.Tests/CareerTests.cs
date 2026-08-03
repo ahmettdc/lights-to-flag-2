@@ -113,6 +113,45 @@ public class CareerTests
     }
 
     [Fact]
+    public void Accepting_an_offer_moves_the_player_and_clears_offers()
+    {
+        var carset = LoadCarset();
+        var engine = new CareerEngine();
+        var start = engine.Start(carset, playerId: "D1", seed: 1);
+        var next = engine.AdvanceToNextSeason(engine.SimulateWholeSeason(start, carset), carset);
+        Assert.NotEmpty(next.PendingOffers);
+
+        var offer = next.PendingOffers[0];
+        var after = engine.AcceptOffer(next, offer);
+
+        var player = after.Entrants.First(e => e.Id == "D1");
+        Assert.Equal(offer.TeamNumber, player.TeamNumber);
+        Assert.Empty(after.PendingOffers);
+    }
+
+    [Fact]
+    public void Interactive_round_helpers_reconcile_with_the_engine()
+    {
+        var carset = LoadCarset();
+        var engine = new CareerEngine();
+        var state = engine.Start(carset, "D1", 3);
+
+        // Reproduce what the weekend UI does, using the public helpers.
+        var roundIndex = engine.NextRoundIndex(state);
+        var circuit = engine.NextCircuit(state, carset);
+        var competitors = engine.BuildEntryList(state, carset);
+        var rng = new LightsToFlag.Core.Simulation.SeededRandom(engine.SeedForRound(state, roundIndex));
+        var grid = LightsToFlag.Core.Simulation.QualifyingSimulator.Run(competitors, circuit, carset.Coefficients, carset.Rules, rng);
+        var race = new LightsToFlag.Core.Simulation.RaceSimulator().Run(competitors, grid, circuit, carset.Coefficients, carset.Rules, rng);
+        var recorded = engine.RecordRound(state, CareerEngine.BuildRoundResult(roundIndex, circuit.Name, grid, race));
+
+        // The canonical engine path yields the same first-round winner.
+        var canonical = engine.SimulateNextRound(state, carset);
+        Assert.Equal(canonical.CompletedRounds[0].WinnerId, recorded.CompletedRounds[0].WinnerId);
+        Assert.Equal(carset.Circuits[0].Name, recorded.CompletedRounds[0].CircuitName);
+    }
+
+    [Fact]
     public void Serialized_save_is_readable_json()
     {
         var carset = LoadCarset();

@@ -1,0 +1,56 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Base: body text -->
+    <Style x:Key="BodyText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+    </Style>
+
+    <Style x:Key="MutedText" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+        <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    </Style>
+
+    <!-- Display / headings: condensed -->
+    <Style x:Key="DisplayText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontDisplay}" />
+        <Setter Property="FontWeight" Value="Black" />
+        <Setter Property="FontSize" Value="40" />
+        <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+    </Style>
+
+    <Style x:Key="H1Text" TargetType="TextBlock" BasedOn="{StaticResource DisplayText}">
+        <Setter Property="FontSize" Value="28" />
+    </Style>
+
+    <Style x:Key="H2Text" TargetType="TextBlock" BasedOn="{StaticResource DisplayText}">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- Section label: spaced small caps -->
+    <Style x:Key="LabelText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontNumeric}" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    </Style>
+
+    <!-- Numeric / telemetry -->
+    <Style x:Key="NumericText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontNumeric}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{StaticResource WhiteBrush}" />
+    </Style>
+
+    <!--
+      No global implicit TextBlock style: setting Foreground on an implicit TextBlock
+      style would override inherited foreground everywhere (e.g. button text). Instead,
+      default text colour + font are set once on the shell Window and inherit down.
+    -->
+
+</ResourceDictionary>

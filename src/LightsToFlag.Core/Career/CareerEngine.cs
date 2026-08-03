@@ -39,21 +39,25 @@ public sealed class CareerEngine
     public bool IsSeasonComplete(CareerState state, Carset carset) =>
         state.CompletedRounds.Count >= carset.Circuits.Count;
 
-    public CareerState SimulateNextRound(CareerState state, Carset carset)
+    /// <summary>The 0-based index of the round to be run next this season.</summary>
+    public int NextRoundIndex(CareerState state) => state.CompletedRounds.Count;
+
+    /// <summary>The circuit for the next round.</summary>
+    public CircuitSpec NextCircuit(CareerState state, Carset carset) =>
+        carset.Circuits[Math.Clamp(NextRoundIndex(state), 0, carset.Circuits.Count - 1)];
+
+    /// <summary>Deterministic RNG seed for a given round of the current season.</summary>
+    public int SeedForRound(CareerState state, int roundIndex) =>
+        RoundSeed(state.Seed, state.SeasonIndex, roundIndex);
+
+    /// <summary>The competitor entry list for this career (public for the interactive weekend UI).</summary>
+    public IReadOnlyList<Competitor> BuildEntryList(CareerState state, Carset carset) =>
+        BuildCompetitors(state, carset);
+
+    /// <summary>Convert a simulated race into the compact, persisted round result.</summary>
+    public static RoundResult BuildRoundResult(
+        int roundIndex, string circuitName, QualifyingResult grid, RaceClassification race)
     {
-        if (IsSeasonComplete(state, carset))
-        {
-            return state;
-        }
-
-        var roundIndex = state.CompletedRounds.Count;
-        var circuit = carset.Circuits[roundIndex];
-        var competitors = BuildCompetitors(state, carset);
-        var rng = new SeededRandom(RoundSeed(state.Seed, state.SeasonIndex, roundIndex));
-
-        var grid = QualifyingSimulator.Run(competitors, circuit, carset.Coefficients, carset.Rules, rng);
-        var race = new RaceSimulator().Run(competitors, grid, circuit, carset.Coefficients, carset.Rules, rng);
-
         var entries = race.Entries
             .Select(e => new RoundEntry
             {
@@ -65,15 +69,35 @@ public sealed class CareerEngine
             })
             .ToList();
 
-        var result = new RoundResult
+        return new RoundResult
         {
             RoundIndex = roundIndex,
-            CircuitName = circuit.Name,
+            CircuitName = circuitName,
             PolePositionId = grid.PolePosition,
             Entries = entries,
         };
+    }
 
-        return state with { CompletedRounds = state.CompletedRounds.Append(result).ToList() };
+    /// <summary>Append a completed round's result to the season.</summary>
+    public CareerState RecordRound(CareerState state, RoundResult result) =>
+        state with { CompletedRounds = state.CompletedRounds.Append(result).ToList() };
+
+    public CareerState SimulateNextRound(CareerState state, Carset carset)
+    {
+        if (IsSeasonComplete(state, carset))
+        {
+            return state;
+        }
+
+        var roundIndex = NextRoundIndex(state);
+        var circuit = carset.Circuits[roundIndex];
+        var competitors = BuildCompetitors(state, carset);
+        var rng = new SeededRandom(SeedForRound(state, roundIndex));
+
+        var grid = QualifyingSimulator.Run(competitors, circuit, carset.Coefficients, carset.Rules, rng);
+        var race = new RaceSimulator().Run(competitors, grid, circuit, carset.Coefficients, carset.Rules, rng);
+
+        return RecordRound(state, BuildRoundResult(roundIndex, circuit.Name, grid, race));
     }
 
     public CareerState SimulateWholeSeason(CareerState state, Carset carset)
@@ -198,6 +222,24 @@ public sealed class CareerEngine
             PendingOffers = offers,
             History = state.History.Append(summary).ToList(),
         };
+    }
+
+    /// <summary>
+    /// Accept a pending seat offer: move the player's entrant to that team for the
+    /// upcoming season and clear the remaining offers. No-op if there is no player.
+    /// </summary>
+    public CareerState AcceptOffer(CareerState state, TeamOffer offer)
+    {
+        if (state.PlayerId is null)
+        {
+            return state;
+        }
+
+        var entrants = state.Entrants
+            .Select(e => e.Id == state.PlayerId ? e with { TeamNumber = offer.TeamNumber } : e)
+            .ToList();
+
+        return state with { Entrants = entrants, PendingOffers = Array.Empty<TeamOffer>() };
     }
 
     private IReadOnlyList<TeamOffer> GeneratePlayerOffers(

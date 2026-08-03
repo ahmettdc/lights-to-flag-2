@@ -1,0 +1,30 @@
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  app:
+    name: Build WPF app (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Builds the whole solution INCLUDING the WPF app (net8.0-windows),
+      # which only compiles on Windows. Also runs the Core tests here.
+      - name: Restore
+        run: dotnet restore LightsToFlag.sln
+
+      - name: Build
+        run: dotnet build LightsToFlag.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test LightsToFlag.CI.slnf --configuration Release --no-build

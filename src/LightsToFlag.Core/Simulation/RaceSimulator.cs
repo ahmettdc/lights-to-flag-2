@@ -24,6 +24,37 @@ public sealed class RaceSimulator
         RulesSet rules,
         IRandom rng)
     {
+        return RunCore(competitors, grid, circuit, coeff, rules, rng, telemetry: null);
+    }
+
+    /// <summary>
+    /// Same simulation as <see cref="Run"/>, but also captures the running order at the
+    /// end of every lap so the UI can replay the race as live timing. Deterministic.
+    /// </summary>
+    public RaceTelemetry RunWithTelemetry(
+        IReadOnlyList<Competitor> competitors,
+        QualifyingResult grid,
+        CircuitSpec circuit,
+        Coefficients coeff,
+        RulesSet rules,
+        IRandom rng,
+        IReadOnlyDictionary<string, TyreCompound>? startingTyres = null)
+    {
+        var laps = new List<LapSnapshot>();
+        var final = RunCore(competitors, grid, circuit, coeff, rules, rng, telemetry: laps, startingTyres);
+        return new RaceTelemetry { Final = final, Laps = laps };
+    }
+
+    private RaceClassification RunCore(
+        IReadOnlyList<Competitor> competitors,
+        QualifyingResult grid,
+        CircuitSpec circuit,
+        Coefficients coeff,
+        RulesSet rules,
+        IRandom rng,
+        List<LapSnapshot>? telemetry,
+        IReadOnlyDictionary<string, TyreCompound>? startingTyres = null)
+    {
         var totalLaps = ResolveLaps(circuit);
         var byId = competitors.ToDictionary(c => c.Id);
 
@@ -38,7 +69,13 @@ public sealed class RaceSimulator
         for (var i = 0; i < gridOrder.Count; i++)
         {
             var competitor = byId[gridOrder[i]];
-            cars.Add(new RaceCar(competitor, i, totalLaps, PlanStops(circuit, rules, totalLaps)));
+            var car = new RaceCar(competitor, i, totalLaps, PlanStops(circuit, rules, totalLaps));
+            if (startingTyres is not null && startingTyres.TryGetValue(competitor.Id, out var tyre))
+            {
+                car.Tyre = tyre;
+            }
+
+            cars.Add(car);
         }
 
         var weather = WeatherModel.Generate(circuit, coeff, totalLaps, rng);
@@ -47,15 +84,21 @@ public sealed class RaceSimulator
         for (var lap = 1; lap <= totalLaps; lap++)
         {
             var wetness = weather[Math.Min(lap - 1, weather.Length - 1)];
-            foreach (var car in cars.Where(c => c.Running))
+            foreach (var car in cars)
             {
-                AdvanceOneLap(car, circuit, coeff, wetness, rng);
+                car.PittedThisLap = false;
+                if (car.Running)
+                {
+                    AdvanceOneLap(car, circuit, coeff, wetness, rng);
+                }
             }
 
             if (lap == safetyCarLap)
             {
                 ApplySafetyCarBunching(cars);
             }
+
+            telemetry?.Add(CaptureSnapshot(cars, lap));
         }
 
         return Classify(cars, totalLaps, rules);
@@ -72,6 +115,7 @@ public sealed class RaceSimulator
             car.Wear = 0;
             car.Tyre = NextCompound(car.Tyre);
             car.StopsDone++;
+            car.PittedThisLap = true;
         }
 
         // Switch to wet rubber if it is clearly raining and we are on slicks (reactive stop).
@@ -81,6 +125,7 @@ public sealed class RaceSimulator
             car.Wear = 0;
             car.Tyre = wetness > 0.75 ? TyreCompound.Wet : TyreCompound.Intermediate;
             car.ForcedWetStopDone = true;
+            car.PittedThisLap = true;
         }
 
         var ctx = new LapContext
@@ -121,6 +166,35 @@ public sealed class RaceSimulator
         {
             car.Retire(car.Laps, "Mechanical");
         }
+    }
+
+    private static LapSnapshot CaptureSnapshot(IReadOnlyList<RaceCar> cars, int lap)
+    {
+        var ordered = cars
+            .OrderByDescending(c => c.Running)
+            .ThenByDescending(c => c.Laps)
+            .ThenBy(c => c.TotalTime)
+            .ThenBy(c => c.Competitor.Id, StringComparer.Ordinal)
+            .ToList();
+
+        var leaderTime = ordered.Count > 0 ? ordered[0].TotalTime : 0.0;
+        var order = new List<LapStanding>(ordered.Count);
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            var car = ordered[i];
+            order.Add(new LapStanding
+            {
+                CompetitorId = car.Competitor.Id,
+                Position = i + 1,
+                GapToLeaderSeconds = Math.Max(0.0, car.TotalTime - leaderTime),
+                LapsCompleted = car.Laps,
+                Tyre = car.Tyre,
+                Status = car.Running ? FinishStatus.Finished : FinishStatus.Retired,
+                InPit = car.PittedThisLap,
+            });
+        }
+
+        return new LapSnapshot { Lap = lap, Order = order };
     }
 
     private static void ApplySafetyCarBunching(IReadOnlyList<RaceCar> cars)
@@ -277,6 +351,7 @@ public sealed class RaceSimulator
         public HashSet<int> StopLaps { get; }
         public int StopsDone { get; set; }
         public bool ForcedWetStopDone { get; set; }
+        public bool PittedThisLap { get; set; }
         public string? RetirementReason { get; private set; }
 
         public void Retire(int lap, string reason)
