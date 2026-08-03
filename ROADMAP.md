@@ -130,6 +130,24 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | **Gerekçe** | Kullanıcı isteği. Avalonia (ADR-0002) zaten Win+Mac'i tek yığınla verir; Linux'ta derlenebilmesi ücretsiz bir test kazancıdır, yayın sözü değil. |
 | **Sonuç** | CI: Windows + macOS artık ürünün çalışması gereken platformlar olduğu için orada da **test edilir** (yalnızca derlenmez); Linux hızlı tezgâh olarak kalır. Paketleme (M32) yalnızca Windows + macOS; Linux AppImage yok. |
 
+### ADR-0010 — Regülasyon & Yönetişim (FIA)
+
+| | |
+|---|---|
+| **Karar** | Canlı bir regülasyon/yönetişim katmanı: yönetişim organı kuralları koyar, sezon içi uyumu denetler, sezon sonu değiştirir. Kapsam **teknik + sportif + finansal**; ceza hem **araca** hem **takıma**. |
+| **Kontrol** | **FIA (sistem) yönetir + Patron modunda oyuncu oy/lobi yapar** (F1 Komisyonu tarzı). |
+| **İhlal** | İki kaynak: oyuncunun **bilinçli risk alması** (sınırı zorlama) + **AI/sistem olayları**. İtiraz süreci var. |
+| **Evrim** | Sezon sonu kural değişikliği; hazırlıksız takımlar yeni sezona **performans cezasıyla** başlar (Ar-Ge ile `Readiness`). |
+| **Dağılım** | Kesişen sistem: M7 (on-track ceza), M11/M13 (uyum+finans), M14 (hazırlık), M17 (lobi), M18 (değişiklik+geriye düşme), M22 (arayüz). Ayrıntı: `docs/adr/0010`. |
+
+### ADR-0011 — Takvim-tabanlı kariyer (FM tarzı)
+
+| | |
+|---|---|
+| **Karar** | Kariyer **oyun-içi takvim üzerinde gün gün** ilerler (FM modeli): oyun tarihi + tarihli olay takvimi + **"Devam"** ile sonraki olaya kadar hızlı geçme. Round-index (v1) yerine tarih-güdümlü. |
+| **Determinizm** | Oyun tarihi bir oyun durumudur, duvar saati değil (`DateTime.Now` yok — §4.2). Kayıt tarihi + olay kuyruğunu birebir saklar. |
+| **Dağılım** | Ağırlıkla M11 (saat+takvim+Continue); M12/M14/M15 (zaman-planlı); M18 (transfer+devir); M21 (Continue+gelen kutusu+takvim). Ayrıntı: `docs/adr/0011`. |
+
 ---
 
 ## 3. Ürün vizyonu
@@ -161,6 +179,8 @@ iddiası derinlik:
 | Kurallar | Carset alanlarının çoğu okunuyor ama kullanılmıyor | Hepsi motorda karşılık buluyor |
 | Ekonomi | Yok | Sponsor, bütçe, maaş, ödül parası |
 | Gelişim | Yok | Sezon içi Ar-Ge, test günleri, tesisler |
+| Zaman | Round-index ("sıradaki yarış") | **Takvim-tabanlı, gün gün** (FM tarzı Continue) |
+| Regülasyon | Statik | **Canlı FIA katmanı:** sezon-içi ihlal→ceza, sezon-sonu kural değişikliği→hazırlıksız geriler |
 | Tarih | Sadece şampiyon adı | Kalıcı rekorlar, şeref listesi, profiller |
 | Öğrenme | Yok | Rehberli öğretici + sözlük |
 
@@ -239,7 +259,7 @@ parçaları gösterir.
 |---|---|---|
 | **M0** | Sıfırlama + iskelet | Eski `src/`, `tests/`, `carsets/`, `.sln`, `.slnf` silinir. Yeni çözüm iskeleti, .NET 9, `Directory.Build.props`, `.editorconfig`, CI (Linux + Windows + macOS'ta **build + test**; Linux tezgâh, Win+Mac hedef platform), `docs/adr/` klasörü, **`README.md` İngilizce yeniden yazılır** (v1'i anlatan mevcut metin geçersiz kalacak). |
 | **M1** ✅ | Domain modeli | Pilot, takım, pist, kural seti, katsayılar — **artı v1'de olmayanlar:** personel (Technical Director/Chief Aerodynamicist/Chief Strategist/Race Engineer), sözleşme ve maddeleri, finansal kalemler, araç bileşenleri (motor/şanzıman/fren) ve kullanım kotaları, sponsor, tesis, itibar/moral. Hepsi değişmez `record`. Attribute kelime dağarcığı UI mockup'ıyla hizalı. `LTF.Domain` + testler + mimari koruma testi; CI yeşil. |
-| **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). **İki içerik akışı:** (1) yayınla gelen **kurgusal** örnek carset (10 takım, 20 pilot, ~24 pist) — isimler mockup'tan (Talon Racing, Kuro Dynamics…; Mateo Ferreira, Idris Whitlock…), **gerçek 2024/2025 verisiyle kalibre** (statsf1.com referans: takvim, pist özellikleri, performans sıralaması, puanlama). (2) Gerçek isimli **2024/2025 sezonu ayrı bir mod** olarak `content/mods/` altında — **yayınla dağıtılmaz** (ADR-0007). Görseller SVG yer tutucu. **Format baştan mod katmanlamasına (overlay) hazır** (bkz. ADR-0007; özellik Faz 4'te). |
+| **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). **İki içerik akışı:** (1) yayınla gelen **kurgusal** örnek carset (10 takım, 20 pilot, ~24 pist) — isimler mockup'tan (Talon Racing, Kuro Dynamics…; Mateo Ferreira, Idris Whitlock…), **gerçek 2024/2025 verisiyle kalibre** (statsf1.com referans: takvim, pist özellikleri, performans sıralaması, puanlama). (2) Gerçek isimli **2024/2025 sezonu ayrı bir mod** olarak `content/mods/` altında — **yayınla dağıtılmaz** (ADR-0007). Görseller SVG yer tutucu. **Format baştan ileriye dönük hazır:** mod katmanlaması/overlay (ADR-0007), her round/olay için **`date` alanı** (takvim-tabanlı kariyer, ADR-0011) ve opsiyonel **`regulations` bloğu** (başlangıç kuralları + yönetişim sıkılığı, ADR-0010). Bu üç kanca formatta yer tutar; ilgili özellikler Faz 1–4'te gelir. |
 
 ### Faz 1 — Yarış derinliği · M3–M10 ← *1. öncelik*
 
@@ -249,7 +269,7 @@ parçaları gösterir.
 | **M4** ⬛ | Lastik · yakıt · hava | Lastik: bileşim, aşınma eğrisi, sıcaklık penceresi, graining, **performans uçurumu (cliff)**. Yakıt: yük cezası, tüketim. Hava: dinamik değişim, pist ıslaklığı, slick↔ara↔yağmur **geçiş noktaları**, kuruyan pist. |
 | **M5** ⬛ | Güvenilirlik + olaylar | Bileşen bazlı arıza (motor/şanzıman/fren/hidrolik), pilot hatası, çarpışma, spin. **Güvenlik aracı, VSC ve kırmızı bayrak** — tam prosedürleriyle (pit yolu kapanması, tur turlama, yeniden start). |
 | **M6** ⬛ | Trafik ve geçiş | Kirli hava (dirty air), slipstream/DRS bölgeleri, blokaj, turlanan araçlar, gerçek geçiş mücadelesi (bir tur boyunca süren düellolar). |
-| **M7** ⬛ | Pit + strateji + cezalar | Pit stop süre dağılımı, güvensiz bırakma, yakıt ikmali (kural açıksa). Her rakip için **strateji planı** (undercut/overcut yapabilen). Ceza sistemi: stop-go, drive-through, süre cezası, grid cezası, hatalı start, pist limitleri, sarı bayrak ihlali. |
+| **M7** ⬛ | Pit + strateji + cezalar | Pit stop süre dağılımı, güvensiz bırakma, yakıt ikmali (kural açıksa). Her rakip için **strateji planı** (undercut/overcut yapabilen). Ceza sistemi: stop-go, drive-through, süre cezası, grid cezası, hatalı start, pist limitleri, sarı bayrak ihlali. **Regülasyon sisteminin on-track yaptırım yüzeyi** (ADR-0010): regülasyon ihlali → uygun yarış cezası. |
 | **M8** | Seans biçimleri | Sıralama: eleme usulü **Q1/Q2/Q3**, tek turlu, tek seans, sprint shootout. Antrenman: oyuncu programı seçer (kurulum çalışması / lastik denemesi / yarış simülasyonu) ve seçim yarışa yansır. |
 | **M9** ⬛ | Yarış biçimleri ve kural sadakati | Sprint hafta sonu, ters grid, süreli yarış, **çok sınıflı yarış**, başarı balastı, ikincil puan tablosu, pol/en hızlı tur/lider tur puanları, motor-şanzıman **tahsis kotaları** ve aşım cezaları, playoff ("chase") formatı, paylaşımlı pit boksu. |
 | **M10** ⬛ | Determinizm + denge aracı | Altın dosya testleri (aynı tohum → aynı sonuç, bit bit). **`LTF.Tools sweep`**: 1000 sezon başsız simüle eder, şampiyonluk dağılımı / galibiyet yayılımı / terk oranı / güvenlik aracı sıklığı / ortalama pit sayısı raporlar. Katsayılar bu rapora bakarak ayarlanır. |
@@ -268,16 +288,35 @@ parçaları gösterir.
 
 ### Faz 2 — Kariyer ve yönetim katmanı · M11–M18 ← *2. öncelik*
 
+> Bu faz iki kesişen sistem taşır (aşağıda ayrı blokta): **Takvim-tabanlı kariyer**
+> (ADR-0011, gün gün ilerleme) ve **Regülasyon & Yönetişim** (ADR-0010). İkisi de tek
+> milestone değil; parçaları aşağıdaki kilometre taşlarına dağılmıştır.
+
 | | Kilometre taşı | İçerik |
 |---|---|---|
-| **M11** ⬛ | Dünya durumu + sezon motoru | Kalıcı dünya: takımlar, pilotlar, personel, sözleşmeler, takvim. Sezon simülasyonu, puan durumları, **kalıcı tarih ve rekorlar** (v1 yalnızca şampiyon adını saklıyordu: her yarış sonucu, her rekor, her pilot istatistiği tutulur). |
-| **M12** ⬛ | Sözleşmeler ve insan ilişkileri | Pazarlık mekaniği, sözleşme maddeleri (performans primi, çıkış maddesi, 1. pilot statüsü), itibar, moral, takım arkadaşı rekabeti, takım-pilot ilişkisi. |
-| **M13** ⬛ | Ekonomi | Sponsorlar (hedefli anlaşmalar, bonuslar), ödül parası, TV geliri, maaşlar, parça/seyahat gideri, kaza maliyeti, isteğe bağlı **bütçe tavanı**. |
-| **M14** ⬛ | Ar-Ge ve personel | Gelişim programları (aerodinamik / motor / şasi / güvenilirlik), kaynak dağıtımı, tesis yükseltmeleri (rüzgâr tüneli, simülatör), personel işe alımı ve yetenekleri. Sezon içi gelişimin **simülasyonda gerçekten hissedilmesi** (Faz 1'e bağlanır). |
-| **M15** | Test ve bileşen yönetimi | Test günleri, sezon içi güncellemelerin devreye alınması, bileşen tahsis takibi ve grid cezaları. |
-| **M16** ⬛ | **Pilot Kariyeri modu** | Uçtan uca: koltuk arayışı, sezon hedefleri, hafta sonu kararları, yarış içi strateji tercihleri, sezon değerlendirmesi, kariyer ilerleyişi. |
-| **M17** ⬛ | **Takım Patronu modu** | Uçtan uca: pit duvarından iki araç yönetimi, transfer kararları, bütçe planlaması, yönetim kurulu hedefleri ve kovulma riski. |
-| **M18** ⬛ | Sezon devri | Yaşlanma, gelişim/gerileme eğrileri, emeklilik, **yeni nesil pilot üretimi (regen)**, transfer piyasası (yapay zekâ takımları da hamle yapar), sezonlar arası kural değişiklikleri. |
+| **M11** ⬛ | Dünya durumu + **takvim-tabanlı** sezon motoru | Kalıcı dünya (takımlar, pilotlar, personel, sözleşmeler). **Oyun-içi takvim + oyun saati** (ADR-0011): tarihe çakılı olay kuyruğu (`SeasonCalendar`, `CalendarEvent`), `AdvanceDay()` / `ContinueToNextEvent()` — "Devam" ile bir sonraki olaya kadar günleri deterministik ilerletme. Puan durumları, **kalıcı tarih ve rekorlar** (v1 yalnızca şampiyon adını saklıyordu). Sezon boyu **uyum durumu + ihlal/ceza kayıtları** (ADR-0010) burada tutulur. |
+| **M12** ⬛ | Sözleşmeler ve insan ilişkileri | Pazarlık mekaniği, sözleşme maddeleri (performans primi, çıkış maddesi, 1. pilot statüsü), itibar, moral, takım arkadaşı rekabeti. **Takvime bağlı son tarihler** (teklif/pencere kapanışı — ADR-0011). |
+| **M13** ⬛ | Ekonomi | Sponsorlar (hedefli anlaşmalar, bonuslar), ödül parası, TV geliri, maaşlar, parça/seyahat gideri, kaza maliyeti, isteğe bağlı **bütçe tavanı**. **Bütçe tavanı yaptırımı** (ADR-0010): aşım tespiti → para cezası / puan silme / aero-test kısıtı. |
+| **M14** ⬛ | Ar-Ge ve personel | Gelişim programları (aerodinamik / motor / şasi / güvenilirlik), kaynak dağıtımı, tesis yükseltmeleri (rüzgâr tüneli, simülatör), personel işe alımı. Sezon içi gelişim **simülasyonda gerçekten hissedilir** (Faz 1'e bağlanır). **"Regülasyon hazırlığı" programı** (ADR-0010): yaklaşan kurallara `Readiness` için kaynak ayırma. İlerleme **takvime göre günlük/haftalık** işler (ADR-0011). |
+| **M15** | Test ve bileşen yönetimi | **Takvimdeki test günleri**, sezon içi güncellemelerin devreye alınması, bileşen tahsis takibi ve grid cezaları. |
+| **M16** ⬛ | **Pilot Kariyeri modu** | Uçtan uca: koltuk arayışı, sezon hedefleri, hafta sonu kararları, yarış içi strateji tercihleri, sezon değerlendirmesi. Zaman çizgisi gün gün akar (ADR-0011). |
+| **M17** ⬛ | **Takım Patronu modu** | Uçtan uca: pit duvarından iki araç yönetimi, transfer, bütçe, yönetim kurulu hedefleri ve kovulma riski. **Regülasyon politik katmanı** (ADR-0010): önerilen kural değişikliklerinde **oy/lobi**. |
+| **M18** ⬛ | Sezon devri | Yaşlanma, gelişim/gerileme eğrileri, emeklilik, **yeni nesil pilot üretimi (regen)**, **transfer penceresi** (belirli tarihlerde; AI takımlar da hamle yapar). **Regülasyon değişikliklerini uygula + hazırlıksız takımları geriye düşür** (Readiness'e göre performans cezası — ADR-0010). |
+
+#### Alt-sistem A — Takvim-tabanlı kariyer (ADR-0011)
+Football Manager tarzı gün-gün zaman çizgisi. Oyun tarihi bir oyun durumudur (determinizm
+korunur, `DateTime.Now` yok). **M11** temeli kurar (oyun saati, `SeasonCalendar`,
+Continue/AdvanceDay); zaman-planlı sistemler M12 (sözleşme son tarihleri), M14 (Ar-Ge
+ilerleme), M15 (test günleri), M18 (transfer/devir); arayüzü M21 (Continue + tarihli gelen
+kutusu + takvim); kalıcılığı M31.
+
+#### Alt-sistem B — Regülasyon & Yönetişim / FIA (ADR-0010)
+Üç sütun: **(1) aktif kurallar** (teknik/sportif/finansal + `GoverningBody` denetim
+sıkılığı) — domain M11 zamanında genişletilir; **(2) sezon içi uyum & yaptırım** —
+ihlal iki kaynaktan (oyuncunun bilinçli riski + AI olayları), ceza araç+takım, on-track
+M7, teknik/finansal M11/M13, itiraz süreci; **(3) evrim & hazırlık** — sezon sonu kural
+değişikliği, `Readiness` (M14), hazırlıksız geriye düşer (M18); **politik katman** patron
+modunda oy/lobi (M17); arayüz M22. Carset formatı opsiyonel `regulations` bloğu taşır (M2).
 
 ### Faz 3 — Arayüz · M19–M25 — *Avalonia, oyun dili İngilizce*
 
@@ -285,8 +324,8 @@ parçaları gösterir.
 |---|---|---|
 | **M19** ⬛ | Kabuk + marka kiti | Navigasyon, tema sistemi. **Marka kiti hazır** (`design/`): palet (Track Black/Lights Out Red/Flag White), SVG logo, fontlar (Saira Condensed/Chakra Petch/Archivo). Yerelleştirme altyapısı (ileride TR dil paketi). **Görsel tasarım kullanıcının Claude Design mockup'ından gelir** (`design/mockups/ui.dc.html`); HTML/CSS doğrudan kullanılmaz, Avalonia'ya birebir çevrilir (ADR-0002). Faz 3 ekranları (M20–M25) bu mockup'ı takip eder. |
 | **M20** | Menü + kariyer başlatma | Ana menü, yeni kariyer akışı (**mod seçimi**: Driver / Team Principal), carset seçimi, kayıt-yükleme ekranı. |
-| **M21** ⬛ | Kariyer merkezi | Pano, takvim, puan durumu, takım/pilot listeleri, **gelen kutusu / haber akışı** (sözleşme teklifleri, yönetim kurulu mesajları, basın). |
-| **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (ağırlıklı olarak Patron modu; Pilot modunda kısıtlı görünüm). |
+| **M21** ⬛ | Kariyer merkezi | Pano, **takvim + FM tarzı "Devam" (Continue)** butonu (ADR-0011: tarihli olaylara kadar ilerlet), puan durumu, takım/pilot listeleri, **tarihli gelen kutusu / haber akışı** (sözleşme teklifleri, yönetim kurulu mesajları, regülasyon duyuruları, basın). |
+| **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (ağırlıklı Patron modu; Pilot modunda kısıtlı). **Regülasyon & Uyum ekranı** (ADR-0010): aktif kurallar, kendi uyum/risk durumun, bekleyen değişiklikler, `Readiness` + Patron modunda **oylama** arayüzü. |
 | **M23** ⬛ | Yarış hafta sonu | Canlı zamanlama kulesi, **pist haritası**, sektör renkleri ve delta'lar, strateji paneli (pit çağrısı, bileşim seçimi), telsiz mesajları, hız kontrolü / atlama / tekrar. |
 | **M24** ⬛ | **İstatistik ve rekorlar** | Pilot ve takım profilleri, sezon istatistikleri, **tüm zamanların rekorları**, şeref listesi (hall of fame), kafa kafaya karşılaştırma, kariyer grafikleri, pist rekorları. |
 | **M25** | **Öğretici** | Rehberli ilk hafta sonu, bağlama duyarlı ipuçları, terimler sözlüğü (undercut, graining, VSC…), yeni oyuncu için "önerilen ayar" profili. |
@@ -343,6 +382,11 @@ yeşil.
 sonuna kadar oynanabiliyor · ekonomi kendi kendini dengeliyor (takımlar toplu iflas
 etmiyor, para birikip anlamsızlaşmıyor) · Ar-Ge yatırımı süpürme raporunda ölçülebilir
 performans farkı yaratıyor · kayıt/yükleme durumu bit bit koruyor.
+Ayrıca (ADR-0011) tam bir sezon **gün gün ilerleyerek** (tarihli olaylar üzerinden)
+oynanabiliyor ve kayıt güncel tarihi + olay kuyruğunu birebir koruyor. (ADR-0010) bir
+regülasyon ihlali doğru cezayı **araç+takıma** veriyor; sezon-içi bütçe aşımı para+puan
+cezası doğuruyor; sezon-sonu kural değişikliği hazırlıksız (AI) takımın yeni-sezon araç
+derecesini süpürmede ölçülebilir düşürüyor; Patron modunda oyuncu bir oylamayı etkileyebiliyor.
 
 **Faz 3 bitti:** Arayüzden hiç konsola düşmeden tam bir sezon oynanabiliyor · headless
 arayüz testleri her ekranı açıp kapatıyor · öğretici yeni bir oyuncuyu ilk yarışın

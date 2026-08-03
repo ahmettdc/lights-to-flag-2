@@ -14,3 +14,5 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0007](0007-mod-system-licensed-content.md) | Mod sistemi ve lisanslı içerik |
 | [0008](0008-multiplayer-coop.md) | Çok oyunculu co-op (online), 1.0 sonrası |
 | [0009](0009-target-platforms.md) | Hedef platformlar: Windows + macOS (Linux CI-only) |
+| [0010](0010-regulations-governance.md) | Regülasyon & Yönetişim (FIA) |
+| [0011](0011-calendar-driven-career.md) | Takvim-tabanlı kariyer (FM tarzı) |
