@@ -1,0 +1,43 @@
+using LTF.Domain.Management;
+using LTF.Domain.Racing;
+
+namespace LTF.Domain;
+
+/// <summary>
+/// Aggregate root: everything a playable championship is made of. This is the immutable,
+/// engine-facing value the content loader (M2) produces from a carset folder and that the
+/// simulation and career layers read. Referenced entities are linked by id.
+/// </summary>
+public sealed record Carset
+{
+    /// <summary>Stable identifier (the carset folder name, e.g. "global-prix").</summary>
+    public required string Id { get; init; }
+
+    /// <summary>Display name, e.g. "Global Prix Series".</summary>
+    public required string Name { get; init; }
+
+    /// <summary>Content schema version, bumped when the on-disk format changes.</summary>
+    public int SchemaVersion { get; init; } = 1;
+
+    public required RulesSet Rules { get; init; }
+    public BalanceCoefficients Balance { get; init; } = new();
+
+    public required IReadOnlyList<Team> Teams { get; init; }
+
+    /// <summary>Full race drivers filling the teams' seats.</summary>
+    public required IReadOnlyList<Driver> Drivers { get; init; }
+
+    public required IReadOnlyList<Circuit> Circuits { get; init; }
+
+    /// <summary>Tyre range the series brings (soft → wet).</summary>
+    public IReadOnlyList<TyreSpec> Tyres { get; init; } = [];
+
+    /// <summary>Reserve / rookie pool promoted into seats at season rollover.</summary>
+    public IReadOnlyList<Driver> Reserves { get; init; } = [];
+
+    /// <summary>Free-agent staff available to hire.</summary>
+    public IReadOnlyList<Staff> StaffPool { get; init; } = [];
+
+    /// <summary>Sponsors available to sign.</summary>
+    public IReadOnlyList<Sponsor> SponsorPool { get; init; } = [];
+}
