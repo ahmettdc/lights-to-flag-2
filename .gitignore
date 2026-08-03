@@ -1,0 +1,23 @@
+## .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+TestResults/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+## Rider / VS Code
+.idea/
+.vscode/
+
+## Runtime save games (do not commit player saves)
+Saves/
+*.save
+
+## OS
+Thumbs.db
+desktop.ini
+.DS_Store

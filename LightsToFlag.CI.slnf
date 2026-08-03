@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "LightsToFlag.sln",
+    "projects": [
+      "src\\LightsToFlag.Core\\LightsToFlag.Core.csproj",
+      "tests\\LightsToFlag.Tests\\LightsToFlag.Tests.csproj"
+    ]
+  }
+}

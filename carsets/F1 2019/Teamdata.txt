@@ -1,0 +1,10 @@
+Aston Martin_Red Bull Racing_Honda_RB15_Honda RA619H_1_Pirelli_8_9_7 _8_7_10_7_7_9_Milton Keynes, UK  _Christian Horner  _Australia, 2005   _281_61_61_65_4596_4_4_
+    _McLaren    _Renault_MCL34_Renault E-Tech 19_1_Pirelli_6_7_7_6_7_6_5_6_6_Woking, UK         _Zak Brown_Monaco, 1966      _861_182_155_155_5297_12_8 _
+Scuderia     _Ferrari    __SF90_Ferrari 064_1_Pirelli_8_6_10_6_9_7_7_10_10_Maranello, Italy   _Mattia Binotto_Monaco, 1950      _987_237_225_251_6075_15_16_
+AMG Petronas _Mercedes   _F1      _F1 W10 EQ Power+_Mercedes M10 EQ Power+_1_Pirelli_9_10_9 _9_10_9_9_9_10_Brackley, UK       _Toto Wolf_France, 1954      _204_97_109_71_4900_7_5_
+             _Renault F1 Team__R.S. 19_Renault E-Tech 19_1_Pirelli_6_6_8_5_6_5_6_6_6_Enstone, UK        _Cyril Abiteboul_Great Britain, 1977_380_35_51_31_1572_2_2_
+SportPesa_Racing Point_F1 Team_RP19_BWT Mercedes_1_Pirelli_4_4_8_6_7_6_5_3_5 _Silverstone, UK    _Vijay Mallya      _Australia, 2008   _15_0  _0_0_46_0 _0 _
+             _Alfa Romeo_Racing_C38_Ferrari 064      _1_Pirelli_6_5_9_5_6_5_6_6_6_Hinwil, Switzerland_Frederic Vasseur_South Africa, 1993_125_10_12_14_85_2_0 _
+Scuderia_Toro Rosso _Honda_STR14_Honda RA619H_1_Pirelli_6_5_7_7_7_6_5_6_5_Faenza, Italy      _Franz Tost        _Bahrain, 2006     _262_1  _1  _1_469_0 _0 _
+ROKiT_Williams Racing_ _FW42_Mercedes M10 EQ Power+_1_Pirelli_2_2_9_2_2_1_3_1_3_Oxford, UK         _Claire Williams_Argentina, 1978   _725_114_128_133_3555_7 _9 _
+             _Haas_F1 Team_VF-19_Ferrari 064_1_Pirelli_5_4_8_1_5_4_3_5_4_Norfolk, UK        _Tony Fernandes    _Australia, 2012_0_0_0_0_0_0_0_

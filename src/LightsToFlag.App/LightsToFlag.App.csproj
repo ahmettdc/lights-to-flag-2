@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WPF desktop shell. Windows-only: this project targets net8.0-windows and uses WPF,
+    so it builds and runs ONLY on Windows. It is deliberately excluded from the Linux CI
+    solution filter (LightsToFlag.CI.slnf). Build it from Visual Studio / `dotnet build`
+    on a Windows machine.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>LightsToFlag.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LightsToFlag.Core\LightsToFlag.Core.csproj" />
+  </ItemGroup>
+
+</Project>

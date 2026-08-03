@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  core:
+    name: Build & test Core (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Only Core + Tests are built here — the WPF App (net8.0-windows) is excluded
+      # via the solution filter so nothing Windows-only is touched on Linux.
+      - name: Restore
+        run: dotnet restore LightsToFlag.CI.slnf
+
+      - name: Build
+        run: dotnet build LightsToFlag.CI.slnf --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test LightsToFlag.CI.slnf --configuration Release --no-build --verbosity normal
