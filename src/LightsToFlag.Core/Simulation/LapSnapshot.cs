@@ -23,6 +23,9 @@ public sealed record LapSnapshot
     public required int Lap { get; init; }
     public required IReadOnlyList<LapStanding> Order { get; init; }
 
+    /// <summary>Notable events that happened on this lap, for race commentary.</summary>
+    public IReadOnlyList<RaceEvent> Events { get; init; } = Array.Empty<RaceEvent>();
+
     public string LeaderId => Order.Count > 0 ? Order[0].CompetitorId : string.Empty;
 }
 

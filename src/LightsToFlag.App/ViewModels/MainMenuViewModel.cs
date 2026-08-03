@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,11 +11,13 @@ public partial class MainMenuViewModel : ObservableObject
 {
     private readonly INavigationService _nav;
     private readonly GameSession _session;
+    private readonly UpdateService _updates;
 
-    public MainMenuViewModel(INavigationService nav, GameSession session)
+    public MainMenuViewModel(INavigationService nav, GameSession session, UpdateService updates)
     {
         _nav = nav;
         _session = session;
+        _updates = updates;
     }
 
     public bool CanContinue => _session.HasCareer;
@@ -40,4 +43,7 @@ public partial class MainMenuViewModel : ObservableObject
 
     [RelayCommand]
     private void Quit() => Application.Current.Shutdown();
+
+    [RelayCommand]
+    private async Task CheckUpdates() => await _updates.CheckAndReportAsync();
 }

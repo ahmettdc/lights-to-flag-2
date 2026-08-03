@@ -71,41 +71,78 @@
 
                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="SPEED" Style="{StaticResource LabelText}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                            <Slider Minimum="0.5" Maximum="4" Value="{Binding Speed}" Width="140" VerticalAlignment="Center" Margin="0,0,16,0" />
+                            <Slider Minimum="0.5" Maximum="4" Value="{Binding Speed}" Width="120" VerticalAlignment="Center" Margin="0,0,16,0" />
+                            <Button Content="NEXT LAP" Style="{StaticResource PrimaryButton}" Command="{Binding NextLapCommand}" Margin="0,0,10,0" />
                             <Button Content="PLAY / PAUSE" Style="{StaticResource GhostButton}" Command="{Binding TogglePlayCommand}" Margin="0,0,10,0" />
-                            <Button Content="SKIP TO END" Style="{StaticResource GhostButton}" Command="{Binding SkipToEndCommand}" />
+                            <Button Content="SKIP" Style="{StaticResource GhostButton}" Command="{Binding SkipToEndCommand}" />
                         </StackPanel>
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="1" Style="{StaticResource Card}" Padding="12">
-                    <DataGrid ItemsSource="{Binding Live}">
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="Background" Value="Transparent" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsPlayer}" Value="True">
-                                        <Setter Property="Background" Value="#22FF3B2F" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.RowStyle>
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="POS" Binding="{Binding Position}" Width="55" />
-                            <DataGridTemplateColumn Header="TYRE" Width="60">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Ellipse Width="12" Height="12" HorizontalAlignment="Center"
-                                                 Fill="{Binding Tyre, Converter={StaticResource TyreBrush}}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="DRIVER" Binding="{Binding Name}" Width="*" />
-                            <DataGridTextColumn Header="GAP" Binding="{Binding Gap}" Width="120" />
-                            <DataGridTextColumn Header="" Binding="{Binding Status}" Width="70" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Border>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.7*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Live timing -->
+                    <Border Grid.Column="0" Style="{StaticResource Card}" Padding="12">
+                        <DataGrid ItemsSource="{Binding Live}">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPlayer}" Value="True">
+                                            <Setter Property="Background" Value="#22FF3B2F" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="POS" Binding="{Binding Position}" Width="55" />
+                                <DataGridTemplateColumn Header="TYRE" Width="60">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Ellipse Width="12" Height="12" HorizontalAlignment="Center"
+                                                     Fill="{Binding Tyre, Converter={StaticResource TyreBrush}}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="DRIVER" Binding="{Binding Name}" Width="*" />
+                                <DataGridTextColumn Header="GAP" Binding="{Binding Gap}" Width="110" />
+                                <DataGridTextColumn Header="" Binding="{Binding Status}" Width="60" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- Commentary feed -->
+                    <Border Grid.Column="2" Style="{StaticResource Card}" Padding="12">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="COMMENTARY" Style="{StaticResource LabelText}" Margin="4,0,0,10" />
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Commentary}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="0,3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Background="{StaticResource GarageHiBrush}" CornerRadius="4"
+                                                        Padding="6,1" Margin="0,0,8,0" VerticalAlignment="Top">
+                                                    <TextBlock Text="{Binding Lap}" FontFamily="{StaticResource FontNumeric}"
+                                                               FontSize="11" Foreground="{StaticResource MutedBrush}" />
+                                                </Border>
+                                                <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" FontSize="13" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+                </Grid>
             </Grid>
 
             <!-- RESULTS -->

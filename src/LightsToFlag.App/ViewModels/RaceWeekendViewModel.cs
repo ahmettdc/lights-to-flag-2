@@ -13,6 +13,7 @@ namespace LightsToFlag.App.ViewModels;
 
 public sealed record LiveRow(int Position, string Name, string Gap, TyreCompound Tyre, bool InPit, string Status, bool IsPlayer);
 public sealed record ResultRow(int Position, string Name, string Team, string Status, double Points, bool FastestLap, bool IsPlayer);
+public sealed record CommentaryRow(int Lap, string Text, string Kind);
 
 /// <summary>
 /// Runs the player's race weekend interactively: practice → qualifying → race with
@@ -37,6 +38,7 @@ public partial class RaceWeekendViewModel : ObservableObject
     private RaceTelemetry? _telemetry;
     private DispatcherTimer? _timer;
     private int _lapIndex;
+    private int _commentaryThroughLap;
 
     public RaceWeekendViewModel(GameSession session, INavigationService nav)
     {
@@ -60,6 +62,7 @@ public partial class RaceWeekendViewModel : ObservableObject
     }
 
     public ObservableCollection<LiveRow> Live { get; } = new();
+    public ObservableCollection<CommentaryRow> Commentary { get; } = new();
     public ObservableCollection<ResultRow> Results { get; } = new();
     public IReadOnlyList<TyreCompound> TyreChoices { get; } = new[] { TyreCompound.Soft, TyreCompound.Hard };
 
@@ -127,6 +130,8 @@ public partial class RaceWeekendViewModel : ObservableObject
 
         TotalLaps = _telemetry.Final.TotalLaps;
         _lapIndex = 0;
+        _commentaryThroughLap = 0;
+        Commentary.Clear();
         Stage = "race";
         RenderLap(0);
         StartTimer();
@@ -187,6 +192,57 @@ public partial class RaceWeekendViewModel : ObservableObject
             var status = row.InPit ? "PIT" : row.Status == FinishStatus.Retired ? "OUT" : "";
             Live.Add(new LiveRow(row.Position, name, gap, row.Tyre, row.InPit, status, row.CompetitorId == _playerId));
         }
+
+        AppendCommentaryThrough(snap.Lap);
+    }
+
+    /// <summary>Reveal commentary for every lap up to <paramref name="throughLap"/> (forward-only).</summary>
+    private void AppendCommentaryThrough(int throughLap)
+    {
+        if (_telemetry is null)
+        {
+            return;
+        }
+
+        for (var lap = _commentaryThroughLap + 1; lap <= throughLap && lap <= _telemetry.Laps.Count; lap++)
+        {
+            foreach (var ev in _telemetry.Laps[lap - 1].Events)
+            {
+                var (text, kind) = FormatEvent(ev);
+                if (text.Length > 0)
+                {
+                    Commentary.Insert(0, new CommentaryRow(lap, text, kind)); // newest on top
+                }
+            }
+        }
+
+        _commentaryThroughLap = System.Math.Max(_commentaryThroughLap, throughLap);
+    }
+
+    private (string Text, string Kind) FormatEvent(RaceEvent ev)
+    {
+        string Name(string? id) => id is null ? "" : _names.GetValueOrDefault(id, id);
+
+        return ev.Kind switch
+        {
+            RaceEventKind.Start => ("Lights out — the race is underway!", "flag"),
+            RaceEventKind.Overtake => ($"{Name(ev.PrimaryId)} passes {Name(ev.SecondaryId)} for P{ev.Position}", "overtake"),
+            RaceEventKind.Pit => ($"{Name(ev.PrimaryId)} pits", "pit"),
+            RaceEventKind.Retirement => ($"{Name(ev.PrimaryId)} retires ({ev.Note})", "retire"),
+            RaceEventKind.FastestLap => ($"Fastest lap: {Name(ev.PrimaryId)} ({FormatLapTime(ev.LapTimeSeconds)})", "fastest"),
+            RaceEventKind.SafetyCar => ("Safety car deployed", "sc"),
+            RaceEventKind.RainStarted => ("Rain begins to fall", "weather"),
+            RaceEventKind.RainStopped => ("The track is drying out", "weather"),
+            RaceEventKind.Finish => ($"Chequered flag — {Name(ev.PrimaryId)} wins!", "flag"),
+            _ => ("", ""),
+        };
+    }
+
+    private static string FormatLapTime(double seconds)
+    {
+        var minutes = (int)(seconds / 60);
+        var rest = seconds - minutes * 60;
+        return $"{minutes}:{rest:00.000}";
     }
 
     [RelayCommand]
@@ -207,6 +263,28 @@ public partial class RaceWeekendViewModel : ObservableObject
             StartTimer();
             IsPlaying = true;
         }
+    }
+
+    [RelayCommand]
+    private void NextLap()
+    {
+        if (_telemetry is null)
+        {
+            return;
+        }
+
+        // Manual stepping pauses auto-play.
+        _timer?.Stop();
+        IsPlaying = false;
+
+        if (_lapIndex + 1 >= _telemetry.Laps.Count)
+        {
+            FinishRace();
+            return;
+        }
+
+        _lapIndex++;
+        RenderLap(_lapIndex);
     }
 
     [RelayCommand]

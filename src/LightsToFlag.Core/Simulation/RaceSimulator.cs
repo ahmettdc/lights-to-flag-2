@@ -81,6 +81,13 @@ public sealed class RaceSimulator
         var weather = WeatherModel.Generate(circuit, coeff, totalLaps, rng);
         var safetyCarLap = RollSafetyCarLap(circuit, coeff, totalLaps, rng);
 
+        // Cross-lap state used to derive commentary events (only tracked when recording telemetry).
+        var prevPositions = new Dictionary<string, int>();
+        var wasRunning = new HashSet<string>(cars.Select(c => c.Competitor.Id));
+        var prevWetness = 0.0;
+        var bestLapSoFar = double.MaxValue;
+        string? fastestHolder = null;
+
         for (var lap = 1; lap <= totalLaps; lap++)
         {
             var wetness = weather[Math.Min(lap - 1, weather.Length - 1)];
@@ -98,7 +105,16 @@ public sealed class RaceSimulator
                 ApplySafetyCarBunching(cars);
             }
 
-            telemetry?.Add(CaptureSnapshot(cars, lap));
+            if (telemetry is not null)
+            {
+                var snap = CaptureSnapshot(cars, lap);
+                var events = BuildLapEvents(
+                    cars, snap, lap, totalLaps, wetness, prevWetness, lap == safetyCarLap,
+                    prevPositions, wasRunning, ref bestLapSoFar, ref fastestHolder);
+                telemetry.Add(snap with { Events = events });
+            }
+
+            prevWetness = wetness;
         }
 
         return Classify(cars, totalLaps, rules);
@@ -195,6 +211,154 @@ public sealed class RaceSimulator
         }
 
         return new LapSnapshot { Lap = lap, Order = order };
+    }
+
+    private static IReadOnlyList<RaceEvent> BuildLapEvents(
+        IReadOnlyList<RaceCar> cars,
+        LapSnapshot snap,
+        int lap,
+        int totalLaps,
+        double wetness,
+        double prevWetness,
+        bool safetyCarThisLap,
+        Dictionary<string, int> prevPositions,
+        HashSet<string> wasRunning,
+        ref double bestLapSoFar,
+        ref string? fastestHolder)
+    {
+        var events = new List<RaceEvent>();
+        var carById = cars.ToDictionary(c => c.Competitor.Id);
+
+        if (lap == 1)
+        {
+            events.Add(new RaceEvent { Lap = lap, Kind = RaceEventKind.Start });
+        }
+
+        // Retirements: cars that were running last lap and are now out.
+        foreach (var o in snap.Order)
+        {
+            if (o.Status == FinishStatus.Retired && wasRunning.Contains(o.CompetitorId))
+            {
+                var reason = carById.TryGetValue(o.CompetitorId, out var car) ? car.RetirementReason : null;
+                events.Add(new RaceEvent { Lap = lap, Kind = RaceEventKind.Retirement, PrimaryId = o.CompetitorId, Note = reason });
+            }
+        }
+
+        wasRunning.Clear();
+        foreach (var o in snap.Order)
+        {
+            if (o.Status == FinishStatus.Finished)
+            {
+                wasRunning.Add(o.CompetitorId);
+            }
+        }
+
+        // Pit stops this lap.
+        foreach (var o in snap.Order)
+        {
+            if (o.InPit)
+            {
+                events.Add(new RaceEvent { Lap = lap, Kind = RaceEventKind.Pit, PrimaryId = o.CompetitorId });
+            }
+        }
+
+        // Fastest lap: announce only when a different driver takes over the overall fastest lap.
+        var best = double.MaxValue;
+        string? holder = null;
+        foreach (var car in cars)
+        {
+            if (car.BestLap < best)
+            {
+                best = car.BestLap;
+                holder = car.Competitor.Id;
+            }
+        }
+
+        if (holder is not null && best < bestLapSoFar)
+        {
+            bestLapSoFar = best;
+            if (holder != fastestHolder)
+            {
+                fastestHolder = holder;
+                events.Add(new RaceEvent { Lap = lap, Kind = RaceEventKind.FastestLap, PrimaryId = holder, LapTimeSeconds = best });
+            }
+        }
+
+        if (safetyCarThisLap)
+        {
+            events.Add(new RaceEvent { Lap = lap, Kind = RaceEventKind.SafetyCar });
+        }
+
+        if (prevWetness < 0.3 && wetness >= 0.3)
+        {
+            events.Add(new RaceEvent { Lap = lap, Kind = RaceEventKind.RainStarted });
+        }
+        else if (prevWetness >= 0.3 && wetness < 0.3)
+        {
+            events.Add(new RaceEvent { Lap = lap, Kind = RaceEventKind.RainStopped });
+        }
+
+        // Overtakes: running cars that gained position on the previous lap.
+        if (prevPositions.Count > 0)
+        {
+            var overtakes = new List<RaceEvent>();
+            foreach (var o in snap.Order)
+            {
+                if (o.Status != FinishStatus.Finished || !prevPositions.TryGetValue(o.CompetitorId, out var prevP) || o.Position >= prevP)
+                {
+                    continue;
+                }
+
+                string? passed = null;
+                var passedPrev = -1;
+                foreach (var r in snap.Order)
+                {
+                    if (r.CompetitorId == o.CompetitorId || r.Status != FinishStatus.Finished
+                        || !prevPositions.TryGetValue(r.CompetitorId, out var rPrev))
+                    {
+                        continue;
+                    }
+
+                    // r was ahead last lap but is behind now → o passed r; keep the nearest (was just ahead).
+                    if (rPrev < prevP && r.Position > o.Position && rPrev > passedPrev)
+                    {
+                        passedPrev = rPrev;
+                        passed = r.CompetitorId;
+                    }
+                }
+
+                if (passed is not null)
+                {
+                    overtakes.Add(new RaceEvent
+                    {
+                        Lap = lap,
+                        Kind = RaceEventKind.Overtake,
+                        PrimaryId = o.CompetitorId,
+                        SecondaryId = passed,
+                        Position = o.Position,
+                    });
+                }
+            }
+
+            // Keep the few most significant (nearest the front) to avoid noise.
+            foreach (var ev in overtakes.OrderBy(e => e.Position).Take(3))
+            {
+                events.Add(ev);
+            }
+        }
+
+        prevPositions.Clear();
+        foreach (var o in snap.Order)
+        {
+            prevPositions[o.CompetitorId] = o.Position;
+        }
+
+        if (lap == totalLaps && snap.Order.Count > 0)
+        {
+            events.Add(new RaceEvent { Lap = lap, Kind = RaceEventKind.Finish, PrimaryId = snap.Order[0].CompetitorId });
+        }
+
+        return events;
     }
 
     private static void ApplySafetyCarBunching(IReadOnlyList<RaceCar> cars)
