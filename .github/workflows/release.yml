@@ -1,11 +1,19 @@
 name: Release
 
-# Push a version tag (e.g. v1.0.0) to build the Windows installer and publish a
-# GitHub Release. Velopack turns the published app into a Setup.exe plus the
-# update feed the app reads to update itself.
+# Two ways to cut a release:
+#  - push a tag like v1.0.0, or
+#  - run this workflow manually (Actions → Release → Run workflow) with a version.
+# Velopack turns the published app into a Setup.exe plus the update feed the app
+# reads to update itself, and publishes them to a GitHub Release (creating the tag).
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, e.g. 1.0.0'
+        required: true
+        default: '1.0.0'
 
 permissions:
   contents: write
@@ -22,12 +30,17 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Derive version from tag
+      - name: Determine version and tag
         id: ver
         shell: pwsh
         run: |
-          $v = "${{ github.ref_name }}".TrimStart('v')
-          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $version = "${{ github.event.inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}".TrimStart('v')
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "tag=v$version"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Install Velopack CLI
         shell: pwsh
@@ -41,5 +54,5 @@ jobs:
       - name: Pack with Velopack
         run: vpk pack -u LightsToFlag -v ${{ steps.ver.outputs.version }} -p publish -e LightsToFlag.App.exe --packTitle "Lights to Flag 2" --icon src/LightsToFlag.App/app.ico
 
-      - name: Upload to GitHub Release
-        run: vpk upload github --repoUrl https://github.com/ahmettdc/lights-to-flag-2 --publish --releaseName "Lights to Flag 2 ${{ github.ref_name }}" --tag ${{ github.ref_name }} --token ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish GitHub Release
+        run: vpk upload github --repoUrl https://github.com/ahmettdc/lights-to-flag-2 --publish --releaseName "Lights to Flag 2 ${{ steps.ver.outputs.tag }}" --tag ${{ steps.ver.outputs.tag }} --token ${{ secrets.GITHUB_TOKEN }}
