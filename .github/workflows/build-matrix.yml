@@ -1,7 +1,7 @@
 name: Build matrix
 
-# Proves the whole solution — including the Avalonia desktop app — compiles on
-# Windows and macOS. Tests run on Linux in ci.yml; this job is build-only.
+# Windows and macOS are the product's ship targets, so they must not just compile
+# but actually pass the tests here. Linux is covered (faster) in ci.yml.
 
 on:
   push:
@@ -10,8 +10,8 @@ on:
     branches: [main]
 
 jobs:
-  build:
-    name: Build (${{ matrix.os }})
+  build-test:
+    name: Build & test (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -25,5 +25,11 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
+      - name: Restore
+        run: dotnet restore LightsToFlag2.sln
+
       - name: Build
-        run: dotnet build LightsToFlag2.sln -c Release
+        run: dotnet build LightsToFlag2.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test LightsToFlag2.sln -c Release --no-build --verbosity normal

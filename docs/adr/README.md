@@ -13,3 +13,4 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0006](0006-doc-turkish-game-english.md) | Belge Türkçe, oyun İngilizce |
 | [0007](0007-mod-system-licensed-content.md) | Mod sistemi ve lisanslı içerik |
 | [0008](0008-multiplayer-coop.md) | Çok oyunculu co-op (online), 1.0 sonrası |
+| [0009](0009-target-platforms.md) | Hedef platformlar: Windows + macOS (Linux CI-only) |

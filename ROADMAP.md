@@ -1,8 +1,8 @@
 # Lights to Flag 2 — Yol Haritası
 
-> **Durum:** Faz 0 / M0 ✅ tamam (iskelet üç platformda yeşil CI) · **Sıradaki:** M1 (Domain modeli)
+> **Durum:** Faz 0 / M0 ✅ tamam (iskelet CI'da yeşil: Windows + macOS + Linux) · **Sıradaki:** M1 (Domain modeli)
 > · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe · **Oyun arayüz dili:** İngilizce
-> · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36), tek oyunculu 1.0 + çok oyunculu co-op 2.0
+> · **Hedef platform:** Windows + macOS (Linux: yalnızca CI) · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36), tek oyunculu 1.0 + çok oyunculu co-op 2.0
 
 ---
 
@@ -66,10 +66,10 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | | |
 |---|---|
 | **Karar** | Arayüz **Avalonia UI** (11.x) ile yazılır; hedef çatı **.NET 9**. |
-| **Gerekçe** | Aynı C# bilgisi, ama üç platformda çalışır. Kritik kazanç: **tüm çözüm — arayüz dahil — Linux CI'da derlenir** ve `Avalonia.Headless` ile arayüz testleri koşar. v1'de arayüz CI'da hiç test edilmiyordu. |
+| **Gerekçe** | Aynı C# bilgisi. **Ürün hedefi Windows + macOS** (ADR-0009); Linux ayrıca CI/geliştirme tezgâhı. Kritik kazanç: **tüm çözüm — arayüz dahil — Linux CI'da derlenir** ve `Avalonia.Headless` ile arayüz testleri koşar. v1'de arayüz CI'da hiç test edilmiyordu. |
 | **Feda edilen** | WPF'in olgun kontrol/tema ekosistemi ve hazır üçüncü parti bileşenler. Bazı kontroller elle yazılacak. |
 | **Alternatifler** | WPF (Windows'a hapsolmak), Electron/TypeScript (motoru C#'tan taşımak), Godot (yönetim ekranları/tablolar için zahmetli). |
-| **Tasarım kaynağı** | Arayüzün **görsel tasarımı kullanıcının Claude Design mockup'larından** gelir (HTML/CSS çıktı). Bu çıktı **doğrudan kullanılmaz**; tasarım referansı (mockup) olarak alınıp **Avalonia'ya birebir çevrilir**. Tasarım kullanıcının, uygulama bizim. Blazor Hybrid (HTML'i doğrudan kullanmak) değerlendirildi ve reddedildi — tek .NET yığını, üç platform ve arayüzün Linux CI'da headless test edilmesi kazançları korunuyor. |
+| **Tasarım kaynağı** | Arayüzün **görsel tasarımı kullanıcının Claude Design mockup'larından** gelir (HTML/CSS çıktı). Bu çıktı **doğrudan kullanılmaz**; tasarım referansı (mockup) olarak alınıp **Avalonia'ya birebir çevrilir**. Tasarım kullanıcının, uygulama bizim. Blazor Hybrid (HTML'i doğrudan kullanmak) değerlendirildi ve reddedildi — tek .NET yığını, Windows + macOS ve arayüzün Linux CI'da headless test edilmesi kazançları korunuyor. |
 
 ### ADR-0003 — Her şey sıfır: içerik ve marka dahil
 
@@ -121,6 +121,14 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | **Yerleşim** | Yol haritasının **en sonu, ayrı faz (Faz 6)**. Tek oyunculu oyun (Faz 0–5) tamamlanıp **1.0** çıkmadan başlanmaz. |
 | **Gerekçe** | Ağ ve senkronizasyon, tek oyunculu oyunun tüm sistemleri oturduktan sonra en düşük riskle eklenir. Deterministik motor (ADR-0002/4.2) burada büyük avantaj: paylaşılacak durum küçük, senkronizasyon doğal. |
 | **Feda edilen** | Çok oyunculu 1.0'da yok; 2.0 hedefi. |
+
+### ADR-0009 — Hedef platformlar: Windows + macOS
+
+| | |
+|---|---|
+| **Karar** | Ürün **Windows ve macOS**'ta yayınlanır. **Linux bir dağıtım hedefi değildir**; yalnızca CI/geliştirme tezgâhı. |
+| **Gerekçe** | Kullanıcı isteği. Avalonia (ADR-0002) zaten Win+Mac'i tek yığınla verir; Linux'ta derlenebilmesi ücretsiz bir test kazancıdır, yayın sözü değil. |
+| **Sonuç** | CI: Windows + macOS artık ürünün çalışması gereken platformlar olduğu için orada da **test edilir** (yalnızca derlenmez); Linux hızlı tezgâh olarak kalır. Paketleme (M32) yalnızca Windows + macOS; Linux AppImage yok. |
 
 ---
 
@@ -229,7 +237,7 @@ parçaları gösterir.
 
 | | Kilometre taşı | İçerik |
 |---|---|---|
-| **M0** | Sıfırlama + iskelet | Eski `src/`, `tests/`, `carsets/`, `.sln`, `.slnf` silinir. Yeni çözüm iskeleti, .NET 9, `Directory.Build.props`, `.editorconfig`, üç platformlu CI (Linux tam çözüm + Windows + macOS derleme), `docs/adr/` klasörü, **`README.md` İngilizce yeniden yazılır** (v1'i anlatan mevcut metin geçersiz kalacak). |
+| **M0** | Sıfırlama + iskelet | Eski `src/`, `tests/`, `carsets/`, `.sln`, `.slnf` silinir. Yeni çözüm iskeleti, .NET 9, `Directory.Build.props`, `.editorconfig`, CI (Linux + Windows + macOS'ta **build + test**; Linux tezgâh, Win+Mac hedef platform), `docs/adr/` klasörü, **`README.md` İngilizce yeniden yazılır** (v1'i anlatan mevcut metin geçersiz kalacak). |
 | **M1** ⬛ | Domain modeli | Pilot, takım, pist, kural seti, katsayılar — **artı v1'de olmayanlar:** personel (tasarımcı/mühendis/mekanik), sözleşme ve maddeleri, finansal kalemler, araç bileşenleri (motor/şanzıman/fren) ve kullanım kotaları, sponsor, tesis, itibar/moral. Hepsi `sealed record`, değişmez (immutable). |
 | **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). **"Global Prix Series"**: 10 kurgusal takım, 20 pilot, 20 pist elle yazılır (üretici betikle iskelet + elle dengeleme). Görseller SVG yer tutucu. **Format baştan mod katmanlamasına (overlay) hazır tasarlanır** — bir mod, temel carset'in üstüne isim/görsel/ayar bindirebilsin (bkz. ADR-0007; özellik Faz 4'te). |
 
@@ -301,7 +309,7 @@ modları** (M27) → **birleşik-mod kariyeri** (M28).
 |---|---|---|
 | **M30** | Ses ve erişilebilirlik | Menü/yarış sesleri, geçiş animasyonları, klavye navigasyonu, kontrast ve arayüz ölçekleme. |
 | **M31** | Sağlamlık | Performans profillemesi (uzun kariyerlerde kayıt boyutu ve simülasyon hızı), **kayıt şeması göçü**, çökme kaydı ve raporlama. |
-| **M32** | Paketleme | Windows (Velopack, otomatik güncelleme), Linux (AppImage), macOS (.app + notarization notları). |
+| **M32** | Paketleme | Windows (Velopack, otomatik güncelleme) + macOS (.app/dmg + notarization notları). Linux dağıtım hedefi değil (ADR-0009). |
 | **M33** | **1.0 — tek oyunculu** | Kapalı beta, geri bildirim turu, son denge geçişi, sürüm notları. Tek oyunculu oyun burada tamamlanır. |
 
 ### Faz 6 — Çok oyunculu co-op (online) · M34–M36 — *1.0 sonrası, hedef 2.0*
@@ -322,8 +330,8 @@ tamamlanmadan başlanmaz. Deterministik motor sayesinde paylaşılacak durum kü
 Bir faz, aşağıdaki kriterleri **kanıtlanabilir** şekilde karşılamadan sonraki faza
 geçilmez.
 
-**Faz 0 bitti:** `dotnet build` ve `dotnet test` üç platformda da yeşil · örnek carset
-doğrulayıcıdan geçiyor · README yeni mimariyi doğru anlatıyor.
+**Faz 0 bitti:** `dotnet build` ve `dotnet test` Linux + Windows + macOS CI'da yeşil ·
+örnek carset doğrulayıcıdan geçiyor · README yeni mimariyi doğru anlatıyor.
 
 **Faz 1 bitti:** Carset formatındaki **her kural alanının** motorda karşılığı var
 (bir test bunu denetler) · aynı tohum bit bit aynı sonucu üretiyor (altın dosya) ·
@@ -345,8 +353,8 @@ sonuna götürüyor · istatistik ekranları 10 sezonluk kariyerde doğru veri g
 biniyor (isim/görsel değişiyor, oyun bozulmuyor) · birleşik-mod kariyeri birden çok
 seriyi tek şampiyonada koşturabiliyor.
 
-**Faz 5 bitti (1.0):** Üç platformda kurulup çalışıyor · eski kayıtlar yeni sürümde
-açılıyor · sürüm notları yazılı. Tek oyunculu oyun tamam.
+**Faz 5 bitti (1.0):** Windows ve macOS'ta kurulup çalışıyor (her ikisinde CI testleri
+yeşil) · eski kayıtlar yeni sürümde açılıyor · sürüm notları yazılı. Tek oyunculu oyun tamam.
 
 **Faz 6 bitti (2.0):** 4 oyuncu aynı çevrimiçi kariyeri baştan sona oynayabiliyor ·
 oyuncular arası durum bit bit tutarlı (aynı tohum + aynı kararlar → aynı sonuç) · bir
@@ -399,8 +407,9 @@ Sıradaki iş **M0 — sıfırlama ve iskelet**. Somut adımlar:
 - `.editorconfig`
 - `.github/workflows/ci.yml`: **tam çözüm** Linux'ta derlenir ve test edilir
   (artık filtreye gerek yok — Avalonia'nın kazancı bu)
-- `.github/workflows/build-matrix.yml`: Windows + macOS derleme doğrulaması
-- `docs/adr/0001-*.md` … `0008-*.md`: Bölüm 2'deki sekiz karar ayrı dosyalara taşınır
+- `.github/workflows/build-matrix.yml`: Windows + macOS'ta **build + test** (ürün hedef
+  platformları; ADR-0009)
+- `docs/adr/0001-*.md` … `0009-*.md`: Bölüm 2'deki dokuz karar ayrı dosyalara taşınır
 - `README.md`: İngilizce, sıfırdan yazılır (mevcut metin v1'i anlatıyor, geçersiz kalacak)
 
 **Doğrulama:**

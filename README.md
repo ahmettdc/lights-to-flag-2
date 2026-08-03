@@ -1,11 +1,12 @@
 # Lights to Flag 2
 
 A motorsport **career simulation** — inspired by the original *Lights to Flag* —
-built ground-up in **C# / .NET 9** with an **Avalonia** UI that runs on Windows,
-macOS and Linux.
+built ground-up in **C# / .NET 9** with an **Avalonia** UI. It ships for **Windows and
+macOS**; Linux is used as a CI/build harness, not a release target.
 
-The engine is data-driven and deterministic, and is deliberately split from the UI
-so every layer — including the interface — builds and is tested on Linux CI.
+The engine is data-driven and deterministic, and is deliberately split from the UI so
+every layer — including the interface — builds and is tested on CI (Linux, plus Windows
+and macOS, the ship targets).
 
 > **Status:** Phase 0 / M0 — solution skeleton. The engine and UI are being built
 > milestone by milestone. See [`ROADMAP.md`](ROADMAP.md) (Turkish) for the full plan
@@ -55,8 +56,9 @@ Run the desktop app:
 dotnet run --project src/LTF.App
 ```
 
-CI: `.github/workflows/ci.yml` builds and tests the **whole solution** on Linux;
-`build-matrix.yml` additionally builds it on Windows and macOS.
+CI: `.github/workflows/ci.yml` builds and tests the **whole solution** on Linux (fast
+harness); `build-matrix.yml` builds and tests it on **Windows and macOS**, the ship
+targets.
 
 ## Conventions
 
