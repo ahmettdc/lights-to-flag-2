@@ -33,6 +33,7 @@ public partial class App : Application
 
         // App services
         services.AddSingleton<CarsetCatalog>();
+        services.AddSingleton<UpdateService>();
         services.AddSingleton<GameSession>();
         services.AddSingleton<ShellViewModel>();
         services.AddSingleton<INavigationService, NavigationService>();
@@ -53,5 +54,8 @@ public partial class App : Application
 
         _services.GetRequiredService<INavigationService>().NavigateTo<MainMenuViewModel>();
         shell.Show();
+
+        // Check for updates in the background; never blocks or crashes the UI.
+        _ = _services.GetRequiredService<UpdateService>().CheckAndApplyAsync();
     }
 }

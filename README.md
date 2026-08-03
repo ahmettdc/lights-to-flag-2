@@ -113,3 +113,33 @@ the full solution (incl. the WPF app) on `windows-latest`. Player saves live und
 
 Bundled fonts are licensed under the SIL Open Font License 1.1 (see
 `src/LightsToFlag.App/Assets/Fonts/OFL.txt`).
+
+## Download, install & auto-update
+
+Releases are built by `.github/workflows/release.yml` (triggered by pushing a
+`vX.Y.Z` tag) and published to **GitHub Releases** using
+[Velopack](https://velopack.io). Each release contains:
+
+- **`LightsToFlag-win-Setup.exe`** — the installer. Download and run it; the game
+  installs per-user and adds a Start-menu shortcut.
+- the update packages + `releases.win.json` feed the installed app reads.
+
+**Auto-update:** on launch the app checks GitHub Releases and, if a newer version
+is out, downloads it and restarts into it — no reinstall needed. To ship an
+update, bump the tag and push it:
+
+```bash
+git tag v1.0.1 && git push origin v1.0.1
+```
+
+Because this repository is **private**, the update check needs a GitHub token with
+read access to it. The token is never baked into the build — the app looks for it,
+in order, in:
+
+1. the `LTF_UPDATE_TOKEN` environment variable, or
+2. an `update-token.txt` file next to the game's `.exe`, or
+3. `%AppData%/LightsToFlag/update-token.txt`.
+
+Create a fine-grained personal access token (Contents: read-only on this repo) and
+put it in one of those. With no token the game still runs — it just skips the
+update check. (If the repo is ever made public, updates work with no token.)

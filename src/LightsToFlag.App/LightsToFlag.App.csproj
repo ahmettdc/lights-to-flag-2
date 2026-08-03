@@ -3,7 +3,8 @@
   <!--
     WPF desktop shell. Windows-only: targets net8.0-windows and uses WPF, so it
     builds and runs ONLY on Windows. Excluded from the Linux CI solution filter
-    (LightsToFlag.CI.slnf); the windows.yml workflow builds it on windows-latest.
+    (LightsToFlag.CI.slnf); the windows.yml workflow builds it on windows-latest,
+    and release.yml packages it into a Velopack Setup.exe.
   -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -12,15 +13,25 @@
     <RootNamespace>LightsToFlag.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>app.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <!-- Velopack requires an explicit entry point that runs before WPF starts. -->
+    <StartupObject>LightsToFlag.App.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Velopack" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LightsToFlag.Core\LightsToFlag.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Custom Main lives in Program.cs, so App.xaml is a Page (no generated Main). -->
+  <ItemGroup>
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
   </ItemGroup>
 
   <!-- Fonts and brand images ship inside the assembly as WPF resources. -->

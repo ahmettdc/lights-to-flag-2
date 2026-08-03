@@ -1,0 +1,45 @@
+name: Release
+
+# Push a version tag (e.g. v1.0.0) to build the Windows installer and publish a
+# GitHub Release. Velopack turns the published app into a Setup.exe plus the
+# update feed the app reads to update itself.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build installer & publish release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Derive version from tag
+        id: ver
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Install Velopack CLI
+        shell: pwsh
+        run: |
+          dotnet tool install -g vpk --version 1.2.0
+          "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Publish (self-contained win-x64)
+        run: dotnet publish src/LightsToFlag.App/LightsToFlag.App.csproj -c Release -r win-x64 --self-contained true -o publish
+
+      - name: Pack with Velopack
+        run: vpk pack -u LightsToFlag -v ${{ steps.ver.outputs.version }} -p publish -e LightsToFlag.App.exe --packTitle "Lights to Flag 2" --icon src/LightsToFlag.App/app.ico
+
+      - name: Upload to GitHub Release
+        run: vpk upload github --repoUrl https://github.com/ahmettdc/lights-to-flag-2 --publish --releaseName "Lights to Flag 2 ${{ github.ref_name }}" --tag ${{ github.ref_name }} --token ${{ secrets.GITHUB_TOKEN }}
