@@ -30,3 +30,8 @@ Bu, M19'un (tema + marka) risklerini büyük ölçüde düşürür.
 Kurgusal içerik korunuyor. UI mockup'ındaki kurgusal takım/pilot isimleri M2'nin örnek
 carset'inde yeniden kullanılacak (Talon Racing, Kuro Dynamics, Kestrel Racing, Sable GP,
 Nordwind, Aurelia Corse, Marchetti Corse; Mateo Ferreira, Idris Whitlock, Freya Nilsen…).
+
+**Kalibrasyon (güncelleme):** İsimler kurgusal kalır ama örnek carset gerçek **2024/2025**
+verisiyle (statsf1.com referans) kalibre edilir — gerçekçi takvim, pist özellikleri,
+performans sıralaması ve puan sistemi. Gerçek isimli sezon ayrı bir mod olarak dağıtılmaz
+(bkz. ADR-0007).

@@ -1,6 +1,6 @@
 # Lights to Flag 2 — Yol Haritası
 
-> **Durum:** Faz 0 / M0 ✅ · **M1 devam ediyor** (Domain modeli) · Marka kiti + UI mockup teslim alındı (`design/`)
+> **Durum:** Faz 0 / M0 ✅ · M1 ✅ (Domain modeli, CI yeşil) · **Sıradaki: M2** (içerik formatı + örnek carset) · Marka kiti + UI mockup teslim alındı (`design/`)
 > · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe · **Oyun arayüz dili:** İngilizce
 > · **Hedef platform:** Windows + macOS (Linux: yalnızca CI) · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36), tek oyunculu 1.0 + çok oyunculu co-op 2.0
 
@@ -238,8 +238,8 @@ parçaları gösterir.
 | | Kilometre taşı | İçerik |
 |---|---|---|
 | **M0** | Sıfırlama + iskelet | Eski `src/`, `tests/`, `carsets/`, `.sln`, `.slnf` silinir. Yeni çözüm iskeleti, .NET 9, `Directory.Build.props`, `.editorconfig`, CI (Linux + Windows + macOS'ta **build + test**; Linux tezgâh, Win+Mac hedef platform), `docs/adr/` klasörü, **`README.md` İngilizce yeniden yazılır** (v1'i anlatan mevcut metin geçersiz kalacak). |
-| **M1** ⬛ | Domain modeli | Pilot, takım, pist, kural seti, katsayılar — **artı v1'de olmayanlar:** personel (tasarımcı/mühendis/mekanik), sözleşme ve maddeleri, finansal kalemler, araç bileşenleri (motor/şanzıman/fren) ve kullanım kotaları, sponsor, tesis, itibar/moral. Hepsi `sealed record`, değişmez (immutable). |
-| **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). Kurgusal örnek carset (10 takım, 20 pilot, 20 pist) — **isimler UI mockup'ından** (Talon Racing, Kuro Dynamics, Kestrel Racing, Sable GP, Nordwind, Aurelia Corse…; Mateo Ferreira, Idris Whitlock, Freya Nilsen…). Üretici betikle iskelet + elle dengeleme. Görseller SVG yer tutucu. **Format baştan mod katmanlamasına (overlay) hazır tasarlanır** — bir mod, temel carset'in üstüne isim/görsel/ayar bindirebilsin (bkz. ADR-0007; özellik Faz 4'te). |
+| **M1** ✅ | Domain modeli | Pilot, takım, pist, kural seti, katsayılar — **artı v1'de olmayanlar:** personel (Technical Director/Chief Aerodynamicist/Chief Strategist/Race Engineer), sözleşme ve maddeleri, finansal kalemler, araç bileşenleri (motor/şanzıman/fren) ve kullanım kotaları, sponsor, tesis, itibar/moral. Hepsi değişmez `record`. Attribute kelime dağarcığı UI mockup'ıyla hizalı. `LTF.Domain` + testler + mimari koruma testi; CI yeşil. |
+| **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). **İki içerik akışı:** (1) yayınla gelen **kurgusal** örnek carset (10 takım, 20 pilot, ~24 pist) — isimler mockup'tan (Talon Racing, Kuro Dynamics…; Mateo Ferreira, Idris Whitlock…), **gerçek 2024/2025 verisiyle kalibre** (statsf1.com referans: takvim, pist özellikleri, performans sıralaması, puanlama). (2) Gerçek isimli **2024/2025 sezonu ayrı bir mod** olarak `content/mods/` altında — **yayınla dağıtılmaz** (ADR-0007). Görseller SVG yer tutucu. **Format baştan mod katmanlamasına (overlay) hazır** (bkz. ADR-0007; özellik Faz 4'te). |
 
 ### Faz 1 — Yarış derinliği · M3–M10 ← *1. öncelik*
 
