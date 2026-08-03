@@ -1,15 +1,16 @@
 # Lights to Flag 2 — Yol Haritası
 
 > **Durum:** Faz 0 / M0 bekliyor · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe
-> **Oyun arayüz dili:** İngilizce
+> **Oyun arayüz dili:** İngilizce · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36),
+> tek oyunculu 1.0 + çok oyunculu co-op 2.0
 
 ---
 
 ## 1. Bu belge ne?
 
 Bu belge, **Lights to Flag 1**'den ilham alan yeni bir F1 yönetim/yarış oyununun —
-**Lights to Flag 2** — sıfırdan inşa planıdır. Sırayla uygulanacak 5 faz ve 33
-kilometre taşından oluşur.
+**Lights to Flag 2** — sıfırdan inşa planıdır. Sırayla uygulanacak 7 faz (0–6) ve 37
+kilometre taşından (M0–M36) oluşur.
 
 Belgeyi şöyle okuyun: **Bölüm 2** neden böyle yaptığımızı, **Bölüm 4** neyi inşa
 ettiğimizi, **Bölüm 5** hangi sırayla yaptığımızı anlatır. Sadece "sırada ne var?"
@@ -68,6 +69,7 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | **Gerekçe** | Aynı C# bilgisi, ama üç platformda çalışır. Kritik kazanç: **tüm çözüm — arayüz dahil — Linux CI'da derlenir** ve `Avalonia.Headless` ile arayüz testleri koşar. v1'de arayüz CI'da hiç test edilmiyordu. |
 | **Feda edilen** | WPF'in olgun kontrol/tema ekosistemi ve hazır üçüncü parti bileşenler. Bazı kontroller elle yazılacak. |
 | **Alternatifler** | WPF (Windows'a hapsolmak), Electron/TypeScript (motoru C#'tan taşımak), Godot (yönetim ekranları/tablolar için zahmetli). |
+| **Tasarım kaynağı** | Arayüzün **görsel tasarımı kullanıcının Claude Design mockup'larından** gelir (HTML/CSS çıktı). Bu çıktı **doğrudan kullanılmaz**; tasarım referansı (mockup) olarak alınıp **Avalonia'ya birebir çevrilir**. Tasarım kullanıcının, uygulama bizim. Blazor Hybrid (HTML'i doğrudan kullanmak) değerlendirildi ve reddedildi — tek .NET yığını, üç platform ve arayüzün Linux CI'da headless test edilmesi kazançları korunuyor. |
 
 ### ADR-0003 — Her şey sıfır: içerik ve marka dahil
 
@@ -102,6 +104,24 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | **Gerekçe** | Kullanıcının tercihi. Oyunun İngilizce olması dağıtım ve topluluk açısından da doğru. |
 | **Not** | Yerelleştirme altyapısı (M19) baştan kurulur ki Türkçe dil paketi ileride bir çeviri dosyası eklemekten ibaret olsun. |
 
+### ADR-0007 — Mod sistemi ve lisanslı içerik
+
+| | |
+|---|---|
+| **Karar** | İçerik üç aşamada ilerler: (1) **kurgusal** carset (varsayılan, oyunla gelir) → (2) **lisanslı içerikli modlar** (gerçek takım/pilot isimleri) → (3) **birden çok modu bir arada koşturan kariyer sezonu**. |
+| **Gerekçe** | Kullanıcının açık isteği. Kurgusal temel oyunu güvenle dağıtılabilir kılar; lisanslı içerik ayrı bir katman olarak eklenir. |
+| **Lisans sınırı** | Gerçek isimli içerik yalnızca **kullanıcı modu** olarak var olur; ana dağıtıma **dahil edilmez**. Bu, telif/lisans riskini oyunun kendisinden ayırır (ADR-0003 ile aynı mantık). |
+| **Teknik sonuç** | İçerik formatı **M2'den itibaren katmanlamaya (overlay/layering) hazır** tasarlanır: bir mod, temel carset'in üstüne isim/görsel/ayar bindirebilmeli. Mod sistemi özelliğinin kendisi Faz 4'te (M27–M28) gelir. |
+
+### ADR-0008 — Çok oyunculu co-op (online), 1.0 sonrası
+
+| | |
+|---|---|
+| **Karar** | Football Manager tarzı, **4 oyuncuya kadar çevrimiçi ortak kariyer**: her oyuncu bir takım yönetir, sezon birlikte ilerler. |
+| **Yerleşim** | Yol haritasının **en sonu, ayrı faz (Faz 6)**. Tek oyunculu oyun (Faz 0–5) tamamlanıp **1.0** çıkmadan başlanmaz. |
+| **Gerekçe** | Ağ ve senkronizasyon, tek oyunculu oyunun tüm sistemleri oturduktan sonra en düşük riskle eklenir. Deterministik motor (ADR-0002/4.2) burada büyük avantaj: paylaşılacak durum küçük, senkronizasyon doğal. |
+| **Feda edilen** | Çok oyunculu 1.0'da yok; 2.0 hedefi. |
+
 ---
 
 ## 3. Ürün vizyonu
@@ -118,6 +138,10 @@ rekabet, itibarınız ve moraliniz hangi kapıların açılacağını belirler.
 **Takım Patronu (Team Principal)** — Bütçe, sponsorlar, personel, Ar-Ge programları ve
 pilot transferleri sizin. Yarış günü iki aracın stratejisini pit duvarından
 yönetirsiniz. Yönetim kurulunun hedefleri var ve sabrı sonsuz değil.
+
+**İleride (2.0): Çok oyunculu co-op** — Football Manager tarzı, 4 oyuncuya kadar
+çevrimiçi ortak kariyer: her oyuncu bir takımın patronu olur, aynı şampiyonayı
+birlikte yaşar. Tek oyunculu 1.0'dan sonra, ayrı bir faz olarak gelir (bkz. Faz 6).
 
 **v1'e göre fark nerede?** v1 "yarışı simüle et, puanı yaz" seviyesindeydi. LTF2'nin
 iddiası derinlik:
@@ -207,7 +231,7 @@ parçaları gösterir.
 |---|---|---|
 | **M0** | Sıfırlama + iskelet | Eski `src/`, `tests/`, `carsets/`, `.sln`, `.slnf` silinir. Yeni çözüm iskeleti, .NET 9, `Directory.Build.props`, `.editorconfig`, üç platformlu CI (Linux tam çözüm + Windows + macOS derleme), `docs/adr/` klasörü, **`README.md` İngilizce yeniden yazılır** (v1'i anlatan mevcut metin geçersiz kalacak). |
 | **M1** ⬛ | Domain modeli | Pilot, takım, pist, kural seti, katsayılar — **artı v1'de olmayanlar:** personel (tasarımcı/mühendis/mekanik), sözleşme ve maddeleri, finansal kalemler, araç bileşenleri (motor/şanzıman/fren) ve kullanım kotaları, sponsor, tesis, itibar/moral. Hepsi `sealed record`, değişmez (immutable). |
-| **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). **"Global Prix Series"**: 10 kurgusal takım, 20 pilot, 20 pist elle yazılır (üretici betikle iskelet + elle dengeleme). Görseller SVG yer tutucu. |
+| **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). **"Global Prix Series"**: 10 kurgusal takım, 20 pilot, 20 pist elle yazılır (üretici betikle iskelet + elle dengeleme). Görseller SVG yer tutucu. **Format baştan mod katmanlamasına (overlay) hazır tasarlanır** — bir mod, temel carset'in üstüne isim/görsel/ayar bindirebilsin (bkz. ADR-0007; özellik Faz 4'te). |
 
 ### Faz 1 — Yarış derinliği · M3–M10 ← *1. öncelik*
 
@@ -251,7 +275,7 @@ parçaları gösterir.
 
 | | Kilometre taşı | İçerik |
 |---|---|---|
-| **M19** ⬛ | Kabuk + yeni marka kiti | Navigasyon, tema sistemi, **yeni palet**, **SVG logo**, yeni OFL font seçimi, yerelleştirme altyapısı (ileride Türkçe dil paketi eklenebilsin diye). |
+| **M19** ⬛ | Kabuk + yeni marka kiti | Navigasyon, tema sistemi, **yeni palet**, **SVG logo**, yeni OFL font seçimi, yerelleştirme altyapısı (ileride Türkçe dil paketi eklenebilsin diye). **Görsel tasarım kullanıcının Claude Design mockup'larından gelir**; HTML/CSS çıktı doğrudan kullanılmaz, tasarım referans alınıp Avalonia'ya birebir çevrilir (bkz. ADR-0002). Tüm Faz 3 ekranları (M20–M25) bu mockup'ları takip eder. |
 | **M20** | Menü + kariyer başlatma | Ana menü, yeni kariyer akışı (**mod seçimi**: Driver / Team Principal), carset seçimi, kayıt-yükleme ekranı. |
 | **M21** ⬛ | Kariyer merkezi | Pano, takvim, puan durumu, takım/pilot listeleri, **gelen kutusu / haber akışı** (sözleşme teklifleri, yönetim kurulu mesajları, basın). |
 | **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (ağırlıklı olarak Patron modu; Pilot modunda kısıtlı görünüm). |
@@ -259,22 +283,37 @@ parçaları gösterir.
 | **M24** ⬛ | **İstatistik ve rekorlar** | Pilot ve takım profilleri, sezon istatistikleri, **tüm zamanların rekorları**, şeref listesi (hall of fame), kafa kafaya karşılaştırma, kariyer grafikleri, pist rekorları. |
 | **M25** | **Öğretici** | Rehberli ilk hafta sonu, bağlama duyarlı ipuçları, terimler sözlüğü (undercut, graining, VSC…), yeni oyuncu için "önerilen ayar" profili. |
 
-### Faz 4 — İçerik ve araçlar · M26–M28 ← *3. öncelik*
+### Faz 4 — İçerik ve araçlar · M26–M29 ← *3. öncelik*
+
+İçerik hattı (ADR-0007): kurgusal (M2, hazır) → **mod sistemi + lisanslı kullanıcı
+modları** (M27) → **birleşik-mod kariyeri** (M28).
 
 | | Kilometre taşı | İçerik |
 |---|---|---|
 | **M26** ⬛ | Carset editörü | Avalonia tabanlı editör: takım/pilot/pist/kural düzenleme, canlı doğrulama, önizleme, yeni carset oluşturma sihirbazı. |
-| **M27** | Yeni carsetler | En az iki carset daha — biri **çok sınıflı** bir seri (M9'daki çok sınıf desteğini gerçek içerikle sınamak için). İsteğe bağlı: eski LTF metin formatından içe aktarıcı (topluluk içeriği için). |
-| **M28** | Modlama dokümantasyonu | Şema referansı, örneklerle carset yazma kılavuzu, denge ipuçları. |
+| **M27** ⬛ | Mod sistemi + lisanslı modlar | **Katmanlama/overlay motoru**: bir mod temel carset'in üstüne isim/görsel/ayar bindirir; yükleme sırası, çakışma çözümü, mod paketleme/kurma. Böylece **lisanslı içerikli kullanıcı modları** (gerçek takım/pilot isimleri) mümkün olur — bunlar **kullanıcı içeriğidir, oyunla dağıtılmaz** (ADR-0007). |
+| **M28** ⬛ | Birleşik-mod kariyer sezonu | Birden çok mod/seriyi **tek bir şampiyonada bir arada** koşturan kariyer sezonu (kullanıcının açık isteği). Farklı içerik paketlerinin aynı takvim/puanlama altında birleştirilmesi, sınıflandırma ve çakışma kuralları. Faz 1'in çok-sınıf motoruna (M9) dayanır. |
+| **M29** | Yeni carsetler + modlama dokümanı | En az iki carset daha — biri **çok sınıflı** bir seri (M9'u gerçek içerikle sınamak için). Şema referansı, carset/mod yazma kılavuzu, denge ipuçları. İsteğe bağlı: eski LTF metin formatından içe aktarıcı. |
 
-### Faz 5 — Cila ve dağıtım · M29–M32
+### Faz 5 — Cila ve dağıtım · M30–M33
 
 | | Kilometre taşı | İçerik |
 |---|---|---|
-| **M29** | Ses ve erişilebilirlik | Menü/yarış sesleri, geçiş animasyonları, klavye navigasyonu, kontrast ve arayüz ölçekleme. |
-| **M30** | Sağlamlık | Performans profillemesi (uzun kariyerlerde kayıt boyutu ve simülasyon hızı), **kayıt şeması göçü**, çökme kaydı ve raporlama. |
-| **M31** | Paketleme | Windows (Velopack, otomatik güncelleme), Linux (AppImage), macOS (.app + notarization notları). |
-| **M32** | 1.0 | Kapalı beta, geri bildirim turu, son denge geçişi, sürüm notları. |
+| **M30** | Ses ve erişilebilirlik | Menü/yarış sesleri, geçiş animasyonları, klavye navigasyonu, kontrast ve arayüz ölçekleme. |
+| **M31** | Sağlamlık | Performans profillemesi (uzun kariyerlerde kayıt boyutu ve simülasyon hızı), **kayıt şeması göçü**, çökme kaydı ve raporlama. |
+| **M32** | Paketleme | Windows (Velopack, otomatik güncelleme), Linux (AppImage), macOS (.app + notarization notları). |
+| **M33** | **1.0 — tek oyunculu** | Kapalı beta, geri bildirim turu, son denge geçişi, sürüm notları. Tek oyunculu oyun burada tamamlanır. |
+
+### Faz 6 — Çok oyunculu co-op (online) · M34–M36 — *1.0 sonrası, hedef 2.0*
+
+FM tarzı, 4 oyuncuya kadar çevrimiçi ortak kariyer (ADR-0008). Tek oyunculu 1.0
+tamamlanmadan başlanmaz. Deterministik motor sayesinde paylaşılacak durum küçük.
+
+| | Kilometre taşı | İçerik |
+|---|---|---|
+| **M34** ⬛ | Ağ temeli | Host/istemci modeli, ortak dünya durumu senkronizasyonu, lobi, kimlik/oturum, bağlantı yönetimi. Belirleyici simülasyon → yalnızca kararlar ve tohum senkronize edilir, sonuç her yerde aynı çıkar. |
+| **M35** ⬛ | Co-op kariyer | 4 oyuncuya kadar, her biri bir takım yönetir; sezon/tur senkronizasyonu, ortak takvim, eşzamanlı yarış günü akışı, oyuncular arası pazarlık/transfer. |
+| **M36** ⬛ | Çok oyunculu cila | Yeniden bağlanma, host göçü (host düşerse oyun sürsün), izleyici modu, sohbet, senkron kayıt/yükleme. Hedef: **2.0**. |
 
 ---
 
@@ -302,10 +341,16 @@ arayüz testleri her ekranı açıp kapatıyor · öğretici yeni bir oyuncuyu i
 sonuna götürüyor · istatistik ekranları 10 sezonluk kariyerde doğru veri gösteriyor.
 
 **Faz 4 bitti:** Editörle sıfırdan yazılmış bir carset oyunda sorunsuz oynanıyor ·
-çok sınıflı carset doğru sonuç üretiyor.
+çok sınıflı carset doğru sonuç üretiyor · bir mod, temel carset'in üstüne katman olarak
+biniyor (isim/görsel değişiyor, oyun bozulmuyor) · birleşik-mod kariyeri birden çok
+seriyi tek şampiyonada koşturabiliyor.
 
-**Faz 5 bitti:** Üç platformda kurulup çalışıyor · eski kayıtlar yeni sürümde açılıyor ·
-sürüm notları yazılı.
+**Faz 5 bitti (1.0):** Üç platformda kurulup çalışıyor · eski kayıtlar yeni sürümde
+açılıyor · sürüm notları yazılı. Tek oyunculu oyun tamam.
+
+**Faz 6 bitti (2.0):** 4 oyuncu aynı çevrimiçi kariyeri baştan sona oynayabiliyor ·
+oyuncular arası durum bit bit tutarlı (aynı tohum + aynı kararlar → aynı sonuç) · bir
+oyuncu düşüp yeniden bağlandığında oyun bozulmuyor.
 
 ---
 
@@ -319,6 +364,8 @@ sürüm notları yazılı.
 | **İçerik yükü** | 20 pisti elle yazmanın sıkıcılığı, M2'nin takılması | Üretici betikle iskelet üretilir, elle sadece dengelenir. Görseller SVG yer tutucu — sanat işi Faz 5'e ertelenir. |
 | **Determinizmin sessizce bozulması** | Testler bazen geçip bazen kalması | Koruma testleri M3'te kurulur ve **hiç gevşetilmez**. Altın dosyalar M10'da sabitlenir. |
 | **Çift modun ikiye katlaması** | M16/M17'nin tahmin edilenden uzun sürmesi | Ortak dünya durumu M11'de doğru kurulursa mod farkı yalnızca karar yüzeyidir. M11 aceleye getirilmez. |
+| **Ağ/senkron karmaşıklığı (Faz 6)** | Oyuncular arası durum sapması (desync), host düşünce oyunun ölmesi | Faz 6 tek oyunculu 1.0 oturmadan başlamaz. Deterministik motor sayesinde tam durum değil yalnızca kararlar+tohum senkronize edilir; desync bir testle yakalanır (aynı girdi → aynı durum). |
+| **Lisanslı mod dağıtımı** | Gerçek isimli içeriğin oyunla dağıtılıp telif riski doğurması | Lisanslı içerik yalnızca kullanıcı modu; ana dağıtıma asla girmez (ADR-0007). |
 | **v1'in geri özlenmesi** | "Keşke silmeseydik" | v1 `a83ebcc` commit'inde duruyor; formüllere bakmak için `git show` yeterli. |
 
 ---
@@ -353,7 +400,7 @@ Sıradaki iş **M0 — sıfırlama ve iskelet**. Somut adımlar:
 - `.github/workflows/ci.yml`: **tam çözüm** Linux'ta derlenir ve test edilir
   (artık filtreye gerek yok — Avalonia'nın kazancı bu)
 - `.github/workflows/build-matrix.yml`: Windows + macOS derleme doğrulaması
-- `docs/adr/0001-*.md` … `0006-*.md`: Bölüm 2'deki kararlar ayrı dosyalara taşınır
+- `docs/adr/0001-*.md` … `0008-*.md`: Bölüm 2'deki sekiz karar ayrı dosyalara taşınır
 - `README.md`: İngilizce, sıfırdan yazılır (mevcut metin v1'i anlatıyor, geçersiz kalacak)
 
 **Doğrulama:**
