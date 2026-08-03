@@ -72,10 +72,16 @@ Engine milestones (verifiable on Linux CI):
 - [x] **M0** — solution scaffold, CI, solution filter
 - [x] **M1** — Core domain model
 - [x] **M2** — legacy carset loader + real-data tests
-- [ ] **M3** — seedable RNG + lap-time core
-- [ ] **M4** — qualifying + practice
-- [ ] **M5** — full race simulator
-- [ ] **M6** — career + season + save/load (JSON)
+- [x] **M3** — seedable RNG + lap-time core
+- [x] **M4** — qualifying + practice
+- [x] **M5** — full race simulator
+- [x] **M6** — career + season + save/load (JSON)
+
+The engine is complete and runs headlessly: load a carset → build the entry list
+→ simulate a full season round-by-round (qualifying + race) → championship
+standings → season rollover (ageing, retirements, rookie promotions, seat offers)
+→ save/load as JSON. All of it is covered by deterministic unit tests (38 passing
+on Linux).
 
 UI milestones (Windows):
 

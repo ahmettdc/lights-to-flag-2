@@ -13,8 +13,9 @@ artifacts/
 .idea/
 .vscode/
 
-## Runtime save games (do not commit player saves)
-Saves/
+## Runtime save games (do not commit player saves).
+## Anchored to the repo root so it never swallows source folders like src/**/Saves/.
+/Saves/
 *.save
 
 ## OS
