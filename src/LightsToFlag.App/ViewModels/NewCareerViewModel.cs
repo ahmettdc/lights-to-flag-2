@@ -29,6 +29,11 @@ public partial class NewCareerViewModel : ObservableObject
 
         SelectedCarset = Carsets.Count > 0 ? Carsets[0] : null;
         Seed = 2024;
+
+        if (Carsets.Count == 0)
+        {
+            Error = "No carsets found. Expected a 'carsets' folder next to the game.";
+        }
     }
 
     public ObservableCollection<CarsetInfo> Carsets { get; } = new();

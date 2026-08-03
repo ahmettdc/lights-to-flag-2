@@ -20,6 +20,9 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Surface any unhandled exception instead of silently closing the window.
+        CrashLogger.Install(this);
+
         var services = new ServiceCollection();
 
         var savesRoot = Path.Combine(
