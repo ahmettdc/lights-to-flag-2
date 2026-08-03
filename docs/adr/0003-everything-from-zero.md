@@ -13,10 +13,20 @@ klasöründe 107 gerçek pilot fotoğrafı ve gerçek takım/pilot/sponsor isiml
 lisans durumu belirsizdi. Kurgusal içerik bu riski tümden kaldırır ve oyunu
 dağıtılabilir kılar.
 
-## Dürüst not
-Font "yazmak" gerçekçi değil. Yapılacak: yeni bir **OFL lisanslı font seti seçmek**
-(v1'in Saira Condensed / Chakra Petch / Archivo üçlüsü kullanılmaz). Logo ve palet
-sıfırdan üretilir (SVG).
+## Marka kiti geldi (güncelleme)
+Kullanıcı marka kitini ve UI mockup'ını **Claude Design**'da hazırlayıp teslim etti
+(bkz. `design/`). Kilitlenen kimlik:
+- **Palet:** Track Black `#08090B`, Garage `#14171C`, Lights Out Red `#FF3B2F`,
+  Flag White `#F2F4F6`.
+- **Tipografi:** **Saira Condensed 900 / Chakra Petch 700 / Archivo 500** — hepsi
+  Google Fonts (OFL, ticari kullanıma açık). *Not: bunlar isim olarak v1'in fontlarıyla
+  aynı; erken taslakta "kullanılmayacak" denmişti ama marka kararı kullanıcıya ait ve
+  bu fontlar ücretsiz/OFL olduğu için sorun yok — kullanılacaklar.*
+- **Logo:** 5 ışık + "LIGHTS TO FLAG 2" lockup; SVG kaynak `design/brand/`.
+
+Bu, M19'un (tema + marka) risklerini büyük ölçüde düşürür.
 
 ## Sonuç
-İlk oynanabilir içerik: **"Global Prix Series"** — 10 kurgusal takım, 20 pilot, 20 pist.
+Kurgusal içerik korunuyor. UI mockup'ındaki kurgusal takım/pilot isimleri M2'nin örnek
+carset'inde yeniden kullanılacak (Talon Racing, Kuro Dynamics, Kestrel Racing, Sable GP,
+Nordwind, Aurelia Corse, Marchetti Corse; Mateo Ferreira, Idris Whitlock, Freya Nilsen…).

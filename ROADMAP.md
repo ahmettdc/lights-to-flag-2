@@ -1,6 +1,6 @@
 # Lights to Flag 2 — Yol Haritası
 
-> **Durum:** Faz 0 / M0 ✅ tamam (iskelet CI'da yeşil: Windows + macOS + Linux) · **Sıradaki:** M1 (Domain modeli)
+> **Durum:** Faz 0 / M0 ✅ · **M1 devam ediyor** (Domain modeli) · Marka kiti + UI mockup teslim alındı (`design/`)
 > · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe · **Oyun arayüz dili:** İngilizce
 > · **Hedef platform:** Windows + macOS (Linux: yalnızca CI) · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36), tek oyunculu 1.0 + çok oyunculu co-op 2.0
 
@@ -239,7 +239,7 @@ parçaları gösterir.
 |---|---|---|
 | **M0** | Sıfırlama + iskelet | Eski `src/`, `tests/`, `carsets/`, `.sln`, `.slnf` silinir. Yeni çözüm iskeleti, .NET 9, `Directory.Build.props`, `.editorconfig`, CI (Linux + Windows + macOS'ta **build + test**; Linux tezgâh, Win+Mac hedef platform), `docs/adr/` klasörü, **`README.md` İngilizce yeniden yazılır** (v1'i anlatan mevcut metin geçersiz kalacak). |
 | **M1** ⬛ | Domain modeli | Pilot, takım, pist, kural seti, katsayılar — **artı v1'de olmayanlar:** personel (tasarımcı/mühendis/mekanik), sözleşme ve maddeleri, finansal kalemler, araç bileşenleri (motor/şanzıman/fren) ve kullanım kotaları, sponsor, tesis, itibar/moral. Hepsi `sealed record`, değişmez (immutable). |
-| **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). **"Global Prix Series"**: 10 kurgusal takım, 20 pilot, 20 pist elle yazılır (üretici betikle iskelet + elle dengeleme). Görseller SVG yer tutucu. **Format baştan mod katmanlamasına (overlay) hazır tasarlanır** — bir mod, temel carset'in üstüne isim/görsel/ayar bindirebilsin (bkz. ADR-0007; özellik Faz 4'te). |
+| **M2** ⬛ | İçerik formatı + ilk carset | JSON şeması + yükleyici + **doğrulayıcı** (hatalı carset'i anlamlı mesajla reddeder). Kurgusal örnek carset (10 takım, 20 pilot, 20 pist) — **isimler UI mockup'ından** (Talon Racing, Kuro Dynamics, Kestrel Racing, Sable GP, Nordwind, Aurelia Corse…; Mateo Ferreira, Idris Whitlock, Freya Nilsen…). Üretici betikle iskelet + elle dengeleme. Görseller SVG yer tutucu. **Format baştan mod katmanlamasına (overlay) hazır tasarlanır** — bir mod, temel carset'in üstüne isim/görsel/ayar bindirebilsin (bkz. ADR-0007; özellik Faz 4'te). |
 
 ### Faz 1 — Yarış derinliği · M3–M10 ← *1. öncelik*
 
@@ -283,7 +283,7 @@ parçaları gösterir.
 
 | | Kilometre taşı | İçerik |
 |---|---|---|
-| **M19** ⬛ | Kabuk + yeni marka kiti | Navigasyon, tema sistemi, **yeni palet**, **SVG logo**, yeni OFL font seçimi, yerelleştirme altyapısı (ileride Türkçe dil paketi eklenebilsin diye). **Görsel tasarım kullanıcının Claude Design mockup'larından gelir**; HTML/CSS çıktı doğrudan kullanılmaz, tasarım referans alınıp Avalonia'ya birebir çevrilir (bkz. ADR-0002). Tüm Faz 3 ekranları (M20–M25) bu mockup'ları takip eder. |
+| **M19** ⬛ | Kabuk + marka kiti | Navigasyon, tema sistemi. **Marka kiti hazır** (`design/`): palet (Track Black/Lights Out Red/Flag White), SVG logo, fontlar (Saira Condensed/Chakra Petch/Archivo). Yerelleştirme altyapısı (ileride TR dil paketi). **Görsel tasarım kullanıcının Claude Design mockup'ından gelir** (`design/mockups/ui.dc.html`); HTML/CSS doğrudan kullanılmaz, Avalonia'ya birebir çevrilir (ADR-0002). Faz 3 ekranları (M20–M25) bu mockup'ı takip eder. |
 | **M20** | Menü + kariyer başlatma | Ana menü, yeni kariyer akışı (**mod seçimi**: Driver / Team Principal), carset seçimi, kayıt-yükleme ekranı. |
 | **M21** ⬛ | Kariyer merkezi | Pano, takvim, puan durumu, takım/pilot listeleri, **gelen kutusu / haber akışı** (sözleşme teklifleri, yönetim kurulu mesajları, basın). |
 | **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (ağırlıklı olarak Patron modu; Pilot modunda kısıtlı görünüm). |
