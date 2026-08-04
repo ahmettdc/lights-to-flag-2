@@ -2,6 +2,7 @@
 // the tool reads carset files and hands their text to the I/O-free LTF.Content loader.
 
 using LTF.Content;
+using LTF.Domain;
 
 if (args.Length == 0)
 {
