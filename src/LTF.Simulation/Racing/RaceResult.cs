@@ -1,0 +1,30 @@
+namespace LTF.Simulation.Racing;
+
+/// <summary>One competitor's line in the final result.</summary>
+public sealed record RaceClassificationEntry
+{
+    public required int Position { get; init; }
+    public required string CompetitorId { get; init; }
+    public required FinishStatus Status { get; init; }
+    public string? RetirementReason { get; init; }
+
+    public required int Laps { get; init; }
+    public required double TotalTime { get; init; }
+    public required double GapToLeader { get; init; }
+    public required double BestLap { get; init; }
+    public required int Points { get; init; }
+}
+
+/// <summary>The outcome of a race: the classification, the fastest lap, and the telemetry.</summary>
+public sealed record RaceResult
+{
+    public required IReadOnlyList<RaceClassificationEntry> Classification { get; init; }
+    public required RaceTelemetry Telemetry { get; init; }
+
+    public string? FastestLapCompetitorId { get; init; }
+    public double FastestLapTime { get; init; }
+
+    /// <summary>The winner's competitor id, or null if nobody was classified.</summary>
+    public string? WinnerId =>
+        Classification.Count > 0 ? Classification[0].CompetitorId : null;
+}
