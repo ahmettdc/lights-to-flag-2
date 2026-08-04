@@ -28,6 +28,10 @@ public static class RaceSimulator
     private const double DriverErrorCrashShare = 0.12;
     private const double CollisionHeavyShare = 0.20;
 
+    // Representative top speed (kph): a base plus a power-unit-scaled span, weighted by track power.
+    private const double BaseTopSpeedKph = 300.0;
+    private const double TopSpeedSpanKph = 40.0;
+
     private static readonly ComponentKind[] Components = Enum.GetValues<ComponentKind>();
 
     public static RaceResult Run(
@@ -46,7 +50,8 @@ public static class RaceSimulator
                 grid[i], gridPosition: i + 1, rng: paceRng,
                 reliabilityRng: paceRng.Fork(ReliabilitySalt), incidentRng: paceRng.Fork(IncidentSalt),
                 tyre: TyreState.Fresh(startingCompound), fuel: 1.0,
-                health: ComponentHealth.Fresh(), mode: EngineMode.Standard));
+                health: ComponentHealth.Fresh(), mode: EngineMode.Standard,
+                topSpeed: TopSpeedFor(grid[i].Car, circuit)));
         }
 
         var snapshots = new List<LapSnapshot>(laps);
@@ -79,8 +84,11 @@ public static class RaceSimulator
                 if (neutralized)
                 {
                     // Circulating behind the safety car: a slow, uniform lap, no racing.
-                    car.TotalTime += NeutralizedLapTime(circuit, balance);
+                    var neutralLap = NeutralizedLapTime(circuit, balance);
+                    car.TotalTime += neutralLap;
                     car.LapsCompleted = lap;
+                    car.LastLap = neutralLap;
+                    car.LastSectors = EvenSectors(neutralLap);
                     car.Fuel = FuelModel.Burn(car.Fuel, laps);
                     continue;
                 }
@@ -94,7 +102,8 @@ public static class RaceSimulator
 
                 // Pace first: draws happen up front so the pace stream is identical whatever
                 // the reliability and incident models do this lap.
-                var lapTime = LapTimeModel.Simulate(circuit, car.Competitor, balance, conditions, car.Rng).Total
+                var sectors = LapTimeModel.Simulate(circuit, car.Competitor, balance, conditions, car.Rng);
+                var lapTime = sectors.Total
                               + EngineModes.PaceDelta(car.Mode, balance)
                               + LimpPenalty(car.Health, balance);
 
@@ -126,6 +135,8 @@ public static class RaceSimulator
 
                 car.TotalTime += lapTime;
                 car.LapsCompleted = lap;
+                car.LastLap = sectors.Total;
+                car.LastSectors = sectors;
                 if (lapTime < car.BestLap)
                 {
                     car.BestLap = lapTime;
@@ -401,6 +412,12 @@ public static class RaceSimulator
     private static double NeutralizedLapTime(Circuit circuit, BalanceCoefficients balance) =>
         circuit.BaseLapTimeSeconds * balance.NeutralizationPaceFactor;
 
+    private static double TopSpeedFor(Car car, Circuit circuit) =>
+        BaseTopSpeedKph + (car.PowerUnit.Normalized * TopSpeedSpanKph * (0.6 + (0.4 * circuit.PowerSensitivity.Normalized)));
+
+    private static SectorTimes EvenSectors(double total) =>
+        new(total * 0.34, total * 0.33, total * 0.33);
+
     /// <summary>Resume racing. A VSC kept the gaps, so nothing changes. A safety car bunches the
     /// field nose to tail (lapped cars unlap); a red flag does the same and grants fresh tyres.</summary>
     private static void ApplyRestart(
@@ -479,11 +496,29 @@ public static class RaceSimulator
             .ToList();
 
         var leaderTime = running.Count > 0 ? running[0].TotalTime : 0.0;
-        var order = new List<LapStanding>(running.Count);
+        var order = new List<CarLapSample>(running.Count);
         for (var i = 0; i < running.Count; i++)
         {
             var c = running[i];
-            order.Add(new LapStanding(c.Id, i + 1, c.TotalTime, c.TotalTime - leaderTime));
+            var intervalAhead = i == 0 ? 0.0 : c.TotalTime - running[i - 1].TotalTime;
+            order.Add(new CarLapSample
+            {
+                CompetitorId = c.Id,
+                Position = i + 1,
+                Laps = c.LapsCompleted,
+                TotalTime = c.TotalTime,
+                GapToLeader = c.TotalTime - leaderTime,
+                IntervalAhead = intervalAhead,
+                LastLap = c.LastLap,
+                Sector1 = c.LastSectors.Sector1,
+                Sector2 = c.LastSectors.Sector2,
+                Sector3 = c.LastSectors.Sector3,
+                TyreCompound = c.Tyre.Compound,
+                TyreAge = c.Tyre.Age,
+                TyreWear = c.Tyre.Wear,
+                Fuel = c.Fuel,
+                EngineMode = c.Mode,
+            });
         }
 
         return new LapSnapshot { Lap = lap, Order = order, State = state };
@@ -531,6 +566,7 @@ public static class RaceSimulator
                 TotalTime = c.TotalTime,
                 GapToLeader = c.TotalTime - leaderTime,
                 BestLap = c.BestLap < double.MaxValue ? c.BestLap : 0.0,
+                TopSpeed = c.TopSpeed,
                 Points = points,
             });
         }

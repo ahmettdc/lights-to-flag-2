@@ -12,6 +12,10 @@ public sealed record RaceClassificationEntry
     public required double TotalTime { get; init; }
     public required double GapToLeader { get; init; }
     public required double BestLap { get; init; }
+
+    /// <summary>Representative top speed reached (kph), from power unit and circuit character.</summary>
+    public required double TopSpeed { get; init; }
+
     public required int Points { get; init; }
 }
 

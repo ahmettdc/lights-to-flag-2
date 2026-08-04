@@ -1,4 +1,6 @@
 using System.Linq;
+using System.Text;
+using LTF.Domain.Common;
 using LTF.Simulation.Racing;
 using Xunit;
 
@@ -320,5 +322,84 @@ public class RaceSimulatorTests
             a.Telemetry.Laps.Select(s => (s.Lap, s.State)),
             b.Telemetry.Laps.Select(s => (s.Lap, s.State)));
         Assert.Contains(a.Telemetry.Laps, s => s.State != NeutralizationState.Green);
+    }
+
+    // ---- Telemetry detail (M5e) -------------------------------------------
+
+    [Fact]
+    public void Telemetry_samples_carry_sectors_tyres_and_fuel()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
+
+        Assert.All(result.Telemetry.Laps, s => Assert.All(s.Order, o =>
+        {
+            Assert.Equal(o.LastLap, o.Sector1 + o.Sector2 + o.Sector3, 6); // sectors sum to the lap
+            Assert.Equal(TyreCompound.Medium, o.TyreCompound);
+            Assert.True(o.Fuel <= 1.0);
+            Assert.True(o.IntervalAhead >= 0.0);
+        }));
+    }
+
+    [Fact]
+    public void Top_speed_is_recorded()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
+
+        Assert.All(result.Classification, e => Assert.True(e.TopSpeed > 0.0));
+    }
+
+    [Fact]
+    public void The_full_telemetry_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        // Full balance: reliability, incidents and neutralisations all live. The whole rich
+        // telemetry + event log + classification must reproduce bit for bit — an in-process
+        // "golden" (a checked-in golden file waits until local execution is available).
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
+    private static string Digest(RaceResult r)
+    {
+        var sb = new StringBuilder();
+        foreach (var e in r.Classification)
+        {
+            sb.Append(e.Position).Append('|').Append(e.CompetitorId).Append('|').Append(e.Status)
+              .Append('|').Append(e.Laps).Append('|').Append(e.TotalTime.ToString("R"))
+              .Append('|').Append(e.TopSpeed.ToString("R")).Append('|').Append(e.Points).Append(';');
+        }
+
+        foreach (var ev in r.Events)
+        {
+            sb.Append(ev.Kind).Append('|').Append(ev.Lap).Append('|').Append(ev.CompetitorId)
+              .Append('|').Append(ev.OtherCompetitorId ?? "-").Append('|').Append(ev.Description).Append(';');
+        }
+
+        foreach (var s in r.Telemetry.Laps)
+        {
+            sb.Append('L').Append(s.Lap).Append('#').Append(s.State).Append(':');
+            foreach (var o in s.Order)
+            {
+                sb.Append(o.Position).Append(',').Append(o.CompetitorId).Append(',')
+                  .Append(o.TotalTime.ToString("R")).Append(',').Append(o.IntervalAhead.ToString("R")).Append(',')
+                  .Append(o.LastLap.ToString("R")).Append(',')
+                  .Append(o.Sector1.ToString("R")).Append(',').Append(o.Sector2.ToString("R")).Append(',')
+                  .Append(o.Sector3.ToString("R")).Append(',')
+                  .Append(o.TyreCompound).Append(',').Append(o.TyreWear.ToString("R")).Append(',')
+                  .Append(o.Fuel.ToString("R")).Append(',').Append(o.EngineMode).Append('|');
+            }
+        }
+
+        return sb.ToString();
     }
 }

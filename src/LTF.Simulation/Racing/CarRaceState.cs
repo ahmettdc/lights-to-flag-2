@@ -1,3 +1,5 @@
+using LTF.Simulation.Laps;
+
 namespace LTF.Simulation.Racing;
 
 /// <summary>
@@ -9,7 +11,7 @@ internal sealed class CarRaceState
 {
     public CarRaceState(
         Competitor competitor, int gridPosition, IRandom rng, IRandom reliabilityRng, IRandom incidentRng,
-        TyreState tyre, double fuel, ComponentHealth health, EngineMode mode)
+        TyreState tyre, double fuel, ComponentHealth health, EngineMode mode, double topSpeed)
     {
         Competitor = competitor;
         GridPosition = gridPosition;
@@ -20,6 +22,7 @@ internal sealed class CarRaceState
         Fuel = fuel;
         Health = health;
         Mode = mode;
+        TopSpeed = topSpeed;
     }
 
     public Competitor Competitor { get; }
@@ -51,6 +54,13 @@ internal sealed class CarRaceState
     public double TotalTime { get; set; }
     public int LapsCompleted { get; set; }
     public double BestLap { get; set; } = double.MaxValue;
+
+    /// <summary>The most recent lap time and its sector split (telemetry, M5e).</summary>
+    public double LastLap { get; set; }
+    public SectorTimes LastSectors { get; set; }
+
+    /// <summary>Representative top speed (kph), fixed for this car on this circuit.</summary>
+    public double TopSpeed { get; }
 
     public bool Running { get; set; } = true;
     public FinishStatus Status { get; set; } = FinishStatus.Finished;
