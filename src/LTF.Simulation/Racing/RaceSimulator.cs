@@ -17,6 +17,7 @@ public static class RaceSimulator
     private const long ReliabilitySalt = 0x5245_4C49; // "RELI"
     private const long IncidentSalt = 0x494E_4344;    // "INCD"
     private const long RaceControlSalt = 0x5241_4345; // "RACE"
+    private const long TrafficSalt = 0x5452_4143;     // "TRAC"
 
     // Below this health the weakest component starts costing lap time (limp mode).
     private const double LimpThreshold = 0.30;
@@ -32,6 +33,11 @@ public static class RaceSimulator
     private const double BaseTopSpeedKph = 300.0;
     private const double TopSpeedSpanKph = 40.0;
 
+    // Overtaking: pace advantage saturates at this many seconds/lap; the epsilon avoids
+    // battling over pure lap-to-lap noise.
+    private const double PaceAdvantageScale = 1.5;
+    private const double PaceEpsilon = 0.05;
+
     private static readonly ComponentKind[] Components = Enum.GetValues<ComponentKind>();
 
     public static RaceResult Run(
@@ -40,6 +46,7 @@ public static class RaceSimulator
     {
         var baseRng = new DeterministicRandom(seed);
         var raceControlRng = baseRng.Fork(RaceControlSalt);
+        var trafficRng = baseRng.Fork(TrafficSalt);
         var laps = circuit.Laps;
 
         var cars = new List<CarRaceState>(grid.Count);
@@ -144,6 +151,12 @@ public static class RaceSimulator
 
                 car.Tyre = TyreModel.Advance(car.Tyre, circuit, car.Competitor.Driver.Attributes, balance);
                 car.Fuel = FuelModel.Burn(car.Fuel, laps);
+            }
+
+            // Traffic: cars in each other's wake battle for position (skipped under neutralisation).
+            if (!neutralized)
+            {
+                ResolveTraffic(cars, circuit, balance, trafficRng, lap, events);
             }
 
             // Decide the next state before snapshotting, so a restart's bunching is captured now.
@@ -417,6 +430,68 @@ public static class RaceSimulator
 
     private static SectorTimes EvenSectors(double total) =>
         new(total * 0.34, total * 0.33, total * 0.33);
+
+    // ---- Traffic & overtaking (M6) ---------------------------------------
+
+    /// <summary>Resolve dirty air and overtaking for the running order this lap. A car within
+    /// combat range of the car ahead loses time in its wake; a genuinely faster car rolls to
+    /// pass — success moves it ahead and logs the overtake, failure leaves it held up. Skipped
+    /// under neutralisation and when traffic is disabled (combat threshold 0).</summary>
+    private static void ResolveTraffic(
+        List<CarRaceState> cars, Circuit circuit, BalanceCoefficients balance, IRandom rng, int lap, List<RaceEvent> events)
+    {
+        if (balance.CombatThresholdSeconds <= 0.0)
+        {
+            return;
+        }
+
+        var order = cars
+            .Where(c => c.Running)
+            .OrderByDescending(c => c.LapsCompleted)
+            .ThenBy(c => c.TotalTime)
+            .ToList();
+
+        for (var i = 1; i < order.Count; i++)
+        {
+            var follower = order[i];
+            var leader = order[i - 1];
+            if (follower.TotalTime - leader.TotalTime > balance.CombatThresholdSeconds)
+            {
+                continue;
+            }
+
+            // In the wake: anyone loses a little; a genuinely faster car also tries to pass.
+            if (follower.LastLap >= leader.LastLap - PaceEpsilon)
+            {
+                follower.TotalTime += balance.DirtyAirLossSeconds * 0.5;
+                continue;
+            }
+
+            if (rng.NextDouble() < OvertakeChance(follower, leader, circuit, balance))
+            {
+                follower.TotalTime = leader.TotalTime - balance.PassMarginSeconds;
+                events.Add(new RaceEvent
+                {
+                    Kind = RaceEventKind.Overtake, Lap = lap, CompetitorId = follower.Id,
+                    OtherCompetitorId = leader.Id, Description = "Overtake",
+                });
+            }
+            else
+            {
+                follower.TotalTime += balance.DirtyAirLossSeconds;
+            }
+        }
+    }
+
+    private static double OvertakeChance(
+        CarRaceState follower, CarRaceState leader, Circuit circuit, BalanceCoefficients balance)
+    {
+        var paceAdvantage = Math.Clamp((leader.LastLap - follower.LastLap) / PaceAdvantageScale, 0.0, 1.0);
+        var attack = 0.5 + follower.Competitor.Driver.Attributes.Racecraft.Normalized;
+        var defence = 1.5 - leader.Competitor.Driver.Attributes.Racecraft.Normalized;
+        var slipstream = 1.0 + balance.SlipstreamBoost;
+        return balance.OvertakeBaseChance * circuit.Overtaking.Normalized * paceAdvantage * attack * defence * slipstream;
+    }
 
     /// <summary>Resume racing. A VSC kept the gaps, so nothing changes. A safety car bunches the
     /// field nose to tail (lapped cars unlap); a red flag does the same and grants fresh tyres.</summary>

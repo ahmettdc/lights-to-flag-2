@@ -95,4 +95,16 @@ public sealed record BalanceCoefficients
 
     /// <summary>Gap, in seconds, between cars once the field is bunched behind the safety car.</summary>
     public double BunchGapSeconds { get; init; } = 0.6;
+
+    /// <summary>Gap (seconds) under which a following car battles the car ahead. 0 disables traffic.</summary>
+    public double CombatThresholdSeconds { get; init; } = 1.0;
+
+    /// <summary>Lap-time a car loses stuck in the dirty air of the car ahead (held up).</summary>
+    public double DirtyAirLossSeconds { get; init; } = 0.3;
+
+    /// <summary>Overtake-chance boost from slipstream / DRS when within combat range.</summary>
+    public double SlipstreamBoost { get; init; } = 0.4;
+
+    /// <summary>How far ahead, in seconds, a successful overtaker ends up.</summary>
+    public double PassMarginSeconds { get; init; } = 0.3;
 }

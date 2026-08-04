@@ -6,7 +6,7 @@ namespace LTF.Simulation.Tests;
 
 internal static class SimFixtures
 {
-    public static Circuit Circuit(double baseLap = 80.0, int power = 50, int downforce = 50) => new()
+    public static Circuit Circuit(double baseLap = 80.0, int power = 50, int downforce = 50, int overtaking = 50) => new()
     {
         Id = "c",
         Name = "Test Circuit",
@@ -15,6 +15,7 @@ internal static class SimFixtures
         BaseLapTimeSeconds = baseLap,
         PowerSensitivity = new Rating(power),
         DownforceSensitivity = new Rating(downforce),
+        Overtaking = new Rating(overtaking),
     };
 
     public static Car Car(int flat) => Car(flat, flat);
@@ -54,6 +55,7 @@ internal static class SimFixtures
             StartSkillSeconds = 0.0,
             StartSpreadSeconds = 0.0,
             SafetyCarFromIncidentChance = 0.0,
+            CombatThresholdSeconds = 0.0,
         };
 
     public static Carset Carset()
@@ -104,6 +106,35 @@ internal static class SimFixtures
             Name = "RC",
             Rules = new RulesSet { SeriesName = "S", Points = new PointsScheme { RacePoints = [25, 18] } },
             Teams = [hardy, fragile],
+            Drivers = drivers,
+            Circuits = [Circuit()],
+            Calendar = [new CalendarRound { Round = 1, CircuitId = "c", Date = new DateOnly(2025, 3, 16) }],
+        };
+    }
+
+    /// <summary>Four cars of identical pace, so they run in a pack and constantly battle —
+    /// the setup for exercising traffic and overtaking (M6).</summary>
+    public static Carset EqualFieldCarset()
+    {
+        Driver Make(string id) => new()
+        {
+            Id = id, FirstName = id.ToUpperInvariant(), LastName = "Driver", Age = 25,
+            Attributes = Attributes(70),
+        };
+
+        Driver[] drivers = [Make("e1"), Make("e2"), Make("e3"), Make("e4")];
+
+        Team MakeTeam(string id, string a, string b) => new()
+        {
+            Id = id, Name = id, Car = Car(70), DriverIds = [a, b],
+        };
+
+        return new Carset
+        {
+            Id = "eq",
+            Name = "EQ",
+            Rules = new RulesSet { SeriesName = "S", Points = new PointsScheme { RacePoints = [25, 18] } },
+            Teams = [MakeTeam("t1", "e1", "e2"), MakeTeam("t2", "e3", "e4")],
             Drivers = drivers,
             Circuits = [Circuit()],
             Calendar = [new CalendarRound { Round = 1, CircuitId = "c", Date = new DateOnly(2025, 3, 16) }],

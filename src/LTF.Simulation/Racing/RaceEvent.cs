@@ -14,6 +14,7 @@ public enum RaceEventKind
     VirtualSafetyCar,
     SafetyCar,
     RedFlag,
+    Overtake,
 }
 
 /// <summary>

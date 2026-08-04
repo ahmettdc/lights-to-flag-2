@@ -369,6 +369,79 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Traffic & overtaking (M6) ----------------------------------------
+
+    [Fact]
+    public void Overtakes_happen_in_a_close_field()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 90);
+        var balance = SimFixtures.CalmBalance with
+        {
+            CombatThresholdSeconds = 3.0,
+            OvertakeBaseChance = 1.0,
+            DirtyAirLossSeconds = 0.3,
+            SlipstreamBoost = 0.4,
+            PassMarginSeconds = 0.3,
+        };
+
+        var result = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7);
+
+        var overtakes = result.Events.Where(e => e.Kind == RaceEventKind.Overtake).ToList();
+        Assert.NotEmpty(overtakes);
+        Assert.All(overtakes, e => Assert.False(string.IsNullOrEmpty(e.OtherCompetitorId)));
+    }
+
+    [Fact]
+    public void A_hard_to_pass_track_yields_fewer_overtakes()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var balance = SimFixtures.CalmBalance with
+        {
+            CombatThresholdSeconds = 3.0,
+            OvertakeBaseChance = 0.8,
+            DirtyAirLossSeconds = 0.3,
+            SlipstreamBoost = 0.4,
+            PassMarginSeconds = 0.3,
+        };
+
+        var easy = SimFixtures.Circuit(overtaking: 95);
+        var hard = SimFixtures.Circuit(overtaking: 5);
+
+        var easyCount = 0;
+        var hardCount = 0;
+        for (var seed = 0; seed < 20; seed++)
+        {
+            easyCount += RaceSimulator.Run(easy, grid, carset.Rules, balance, seed)
+                .Events.Count(e => e.Kind == RaceEventKind.Overtake);
+            hardCount += RaceSimulator.Run(hard, grid, carset.Rules, balance, seed)
+                .Events.Count(e => e.Kind == RaceEventKind.Overtake);
+        }
+
+        Assert.True(easyCount > hardCount, $"easy={easyCount} hard={hardCount}");
+    }
+
+    [Fact]
+    public void Traffic_is_deterministic()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 60);
+        var balance = SimFixtures.CalmBalance with { CombatThresholdSeconds = 3.0, OvertakeBaseChance = 0.8 };
+
+        var a = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 99);
+        var b = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 99);
+
+        Assert.Equal(
+            a.Events.Where(e => e.Kind == RaceEventKind.Overtake).Select(e => (e.Lap, e.CompetitorId, e.OtherCompetitorId)),
+            b.Events.Where(e => e.Kind == RaceEventKind.Overtake).Select(e => (e.Lap, e.CompetitorId, e.OtherCompetitorId)));
+        Assert.Equal(
+            a.Classification.Select(e => (e.CompetitorId, e.TotalTime)),
+            b.Classification.Select(e => (e.CompetitorId, e.TotalTime)));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();
