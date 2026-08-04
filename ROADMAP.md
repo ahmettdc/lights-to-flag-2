@@ -1,6 +1,6 @@
 # Lights to Flag 2 — Yol Haritası
 
-> **Durum:** Faz 0 ✅ (M0–M2) · **Faz 1: M3 ✅ · M4 ✅** (RNG + tur zamanı; lastik + yakıt + hava, CI yeşil) · **Sıradaki: M5** (güvenilirlik + olaylar: güvenlik aracı / VSC / kaza / arıza) · Marka kiti + UI mockup teslim alındı (`design/`)
+> **Durum:** Faz 0 ✅ (M0–M2) · **Faz 1: M3 ✅ · M4 ✅ · M5a ✅ · M5b ✅** (RNG + tur zamanı; lastik/yakıt/hava; yarış motoru; **güvenilirlik: bileşen sağlığı + motor modları + mekanik arıza/DNF + olay günlüğü**, CI yeşil) · **Sıradaki: M5c** (pilot hataları + çarpışma + start/ilk-viraj) · Marka kiti + UI mockup teslim alındı (`design/`)
 > · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe · **Oyun arayüz dili:** İngilizce
 > · **Hedef platform:** Windows + macOS (Linux: yalnızca CI) · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36), tek oyunculu 1.0 + çok oyunculu co-op 2.0
 
@@ -148,6 +148,15 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | **Determinizm** | Oyun tarihi bir oyun durumudur, duvar saati değil (`DateTime.Now` yok — §4.2). Kayıt tarihi + olay kuyruğunu birebir saklar. |
 | **Dağılım** | Ağırlıkla M11 (saat+takvim+Continue); M12/M14/M15 (zaman-planlı); M18 (transfer+devir); M21 (Continue+gelen kutusu+takvim). Ayrıntı: `docs/adr/0011`. |
 
+### ADR-0012 — Olay kataloğu & hassasiyet politikası
+
+| | |
+|---|---|
+| **Karar** | F1 tarihinden ilham alan olaylar **tür olarak** entegre edilir (isim değil); veri-güdümlü `IncidentCatalog`, carset-tunable/moddable. |
+| **Hassasiyet** | Ölümlü/ağır trajedi oynanabilir olay olarak modellenmez → soyut DNF/sakatlık; grafik detay veya gerçek kurban ismi yok; kurtarma aracı/görevli çarpması modellenmez. İsimli canlandırmalar yalnızca opsiyonel mod (ADR-0007). |
+| **Determinizm** | Her olay şablonu ruloları `DeterministicRandom` fork'larından çeker; aynı tohum → aynı olay dizisi. |
+| **Dağılım** | M5b (mekanik ✅), M5c (pilot/çarpışma/start), M5d (çevre→nötralizasyon), M5e (olay günlüğü→M23/M24 + ilişki bağı ADR-0013); F/G→M7/ADR-0010. Ayrıntı: `docs/adr/0012`. |
+
 ---
 
 ## 3. Ürün vizyonu
@@ -267,7 +276,7 @@ parçaları gösterir.
 |---|---|---|
 | **M3** ⬛ | RNG + sektör bazlı tur zamanı | Tohumlanabilir, çatallanabilir (`Fork`) RNG. Tur zamanı = pist temel süresi × (pilot yeteneği ⊗ araç performansı ⊗ pist karakteri) + gürültü, **sektör sektör**. v1 tur bazlıydı; sektör bazlı olması canlı zamanlamayı, delta'yı ve slipstream'i mümkün kılan temeldir. |
 | **M4** ⬛ | Lastik · yakıt · hava | Lastik: bileşim, aşınma eğrisi, sıcaklık penceresi, graining, **performans uçurumu (cliff)**. Yakıt: yük cezası, tüketim. Hava: dinamik değişim, pist ıslaklığı, slick↔ara↔yağmur **geçiş noktaları**, kuruyan pist. |
-| **M5** ⬛ | Güvenilirlik + olaylar | Bileşen bazlı arıza (motor/şanzıman/fren/hidrolik), pilot hatası, çarpışma, spin. **Güvenlik aracı, VSC ve kırmızı bayrak** — tam prosedürleriyle (pit yolu kapanması, tur turlama, yeniden start). |
+| **M5** ⬛ | Güvenilirlik + olaylar | Bileşen bazlı arıza (motor/şanzıman/fren/hidrolik), pilot hatası, çarpışma, spin. **Güvenlik aracı, VSC ve kırmızı bayrak** — tam prosedürleriyle (pit yolu kapanması, tur turlama, yeniden start). Olaylar F1 tarihinden ilham alan **genel bir olay kataloğundan** gelir (isim yok, trajedi canlandırması yok — ADR-0012). Alt-adımlar: **M5a ✅** (yarış motoru iskeleti), **M5b ✅** (bileşen sağlığı + motor modları + mekanik arıza/DNF + limp + olay günlüğü), M5c (pilot hatası + çarpışma + start), M5d (nötralizasyon durum makinesi), M5e (olay günlüğü/telemetri cilası + altın-determinizm). |
 | **M6** ⬛ | Trafik ve geçiş | Kirli hava (dirty air), slipstream/DRS bölgeleri, blokaj, turlanan araçlar, gerçek geçiş mücadelesi (bir tur boyunca süren düellolar). |
 | **M7** ⬛ | Pit + strateji + cezalar | Pit stop süre dağılımı, güvensiz bırakma, yakıt ikmali (kural açıksa). Her rakip için **strateji planı** (undercut/overcut yapabilen). Ceza sistemi: stop-go, drive-through, süre cezası, grid cezası, hatalı start, pist limitleri, sarı bayrak ihlali. **Regülasyon sisteminin on-track yaptırım yüzeyi** (ADR-0010): regülasyon ihlali → uygun yarış cezası. |
 | **M8** | Seans biçimleri | Sıralama: eleme usulü **Q1/Q2/Q3**, tek turlu, tek seans, sprint shootout. Antrenman: oyuncu programı seçer (kurulum çalışması / lastik denemesi / yarış simülasyonu) ve seçim yarışa yansır. |
@@ -326,7 +335,7 @@ modunda oy/lobi (M17); arayüz M22. Carset formatı opsiyonel `regulations` blo�
 | **M20** | Menü + kariyer başlatma | Ana menü, yeni kariyer akışı (**mod seçimi**: Driver / Team Principal), carset seçimi, kayıt-yükleme ekranı. |
 | **M21** ⬛ | Kariyer merkezi | Pano, **takvim + FM tarzı "Devam" (Continue)** butonu (ADR-0011: tarihli olaylara kadar ilerlet), puan durumu, takım/pilot listeleri, **tarihli gelen kutusu / haber akışı** (sözleşme teklifleri, yönetim kurulu mesajları, regülasyon duyuruları, basın). |
 | **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (ağırlıklı Patron modu; Pilot modunda kısıtlı). **Regülasyon & Uyum ekranı** (ADR-0010): aktif kurallar, kendi uyum/risk durumun, bekleyen değişiklikler, `Readiness` + Patron modunda **oylama** arayüzü. |
-| **M23** ⬛ | Yarış hafta sonu | Canlı zamanlama kulesi, **pist haritası**, sektör renkleri ve delta'lar, strateji paneli (pit çağrısı, bileşim seçimi), telsiz mesajları, hız kontrolü / atlama / tekrar. |
+| **M23** ⬛ | Yarış hafta sonu | Canlı zamanlama kulesi, **şematik pist haritası + hareketli araç işaretçileri** (mockup SVG referansı; 3B değil — Motorsport/Football Manager tarzı, motor telemetriden beslenir), sektör renkleri ve delta'lar, strateji paneli (pit çağrısı, bileşim seçimi), telsiz mesajları, hız kontrolü / atlama / tekrar. |
 | **M24** ⬛ | **İstatistik ve rekorlar** | Pilot ve takım profilleri, sezon istatistikleri, **tüm zamanların rekorları**, şeref listesi (hall of fame), kafa kafaya karşılaştırma, kariyer grafikleri, pist rekorları. |
 | **M25** | **Öğretici** | Rehberli ilk hafta sonu, bağlama duyarlı ipuçları, terimler sözlüğü (undercut, graining, VSC…), yeni oyuncu için "önerilen ayar" profili. |
 

@@ -33,4 +33,20 @@ public sealed record BalanceCoefficients
 
     /// <summary>Lap-time cost of a full fuel load, in seconds, bled off as fuel burns.</summary>
     public double FuelLoadPenaltySeconds { get; init; } = 1.5;
+
+    /// <summary>Baseline component health lost per lap (fraction of full life). Reliable
+    /// cars wear slower; a harder engine mode wears faster.</summary>
+    public double ComponentHealthLossPerLap { get; init; } = 0.006;
+
+    /// <summary>Lap-time cost, in seconds, of nursing a badly worn car home (limp mode),
+    /// scaled by how far the weakest component is below the limp threshold.</summary>
+    public double LimpPaceLossSeconds { get; init; } = 2.5;
+
+    /// <summary>Lap-time gain, in seconds, from running the engine harder (push vs. standard);
+    /// conserve gives the same amount back.</summary>
+    public double EngineModePaceGainSeconds { get; init; } = 0.12;
+
+    /// <summary>How much a harder engine mode multiplies failure risk and wear (push);
+    /// conserve applies its inverse.</summary>
+    public double EngineModeRiskFactor { get; init; } = 1.8;
 }

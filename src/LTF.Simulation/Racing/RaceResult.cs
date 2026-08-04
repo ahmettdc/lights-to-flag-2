@@ -15,11 +15,14 @@ public sealed record RaceClassificationEntry
     public required int Points { get; init; }
 }
 
-/// <summary>The outcome of a race: the classification, the fastest lap, and the telemetry.</summary>
+/// <summary>The outcome of a race: the classification, the event log, the fastest lap and telemetry.</summary>
 public sealed record RaceResult
 {
     public required IReadOnlyList<RaceClassificationEntry> Classification { get; init; }
     public required RaceTelemetry Telemetry { get; init; }
+
+    /// <summary>Everything notable that happened, in the order it happened (M5b: retirements).</summary>
+    public required IReadOnlyList<RaceEvent> Events { get; init; }
 
     public string? FastestLapCompetitorId { get; init; }
     public double FastestLapTime { get; init; }

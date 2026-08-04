@@ -28,7 +28,8 @@ public class RaceSimulatorTests
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
 
-        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 7);
+        // Calm balance: no failures, so every car reaches the flag.
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
 
         Assert.Equal(grid.Count, result.Classification.Count);
         for (var i = 0; i < result.Classification.Count; i++)
@@ -44,7 +45,7 @@ public class RaceSimulatorTests
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
 
-        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 7);
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
 
         for (var i = 1; i < result.Classification.Count; i++)
         {
@@ -60,7 +61,7 @@ public class RaceSimulatorTests
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
 
-        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 7);
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
 
         var topTwo = result.Classification.Take(2).Select(e => e.CompetitorId).ToHashSet();
         Assert.Contains("d1", topTwo);
@@ -73,7 +74,7 @@ public class RaceSimulatorTests
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
 
-        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 7);
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
 
         Assert.Equal(carset.Rules.Points.PointsFor(1), result.Classification[0].Points);
         Assert.Equal(result.Classification[0].CompetitorId, result.WinnerId);
@@ -85,9 +86,109 @@ public class RaceSimulatorTests
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
 
-        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 7);
+        // Calm balance keeps every car running, so each lap snapshot holds the whole field.
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
 
         Assert.Equal(carset.Circuits[0].Laps, result.Telemetry.Laps.Count);
         Assert.All(result.Telemetry.Laps, s => Assert.Equal(grid.Count, s.Order.Count));
+    }
+
+    [Fact]
+    public void Reliability_failures_retire_cars_with_a_reason_and_event()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = carset.Balance with { ReliabilityFailureRate = 0.1 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 7);
+
+        var retired = result.Classification.Where(e => e.Status == FinishStatus.Retired).ToList();
+        Assert.NotEmpty(retired);
+        Assert.All(retired, e => Assert.False(string.IsNullOrEmpty(e.RetirementReason)));
+
+        Assert.NotEmpty(result.Events);
+        Assert.All(result.Events, ev => Assert.Equal(RaceEventKind.MechanicalFailure, ev.Kind));
+
+        // Every retirement has a matching failure event.
+        foreach (var e in retired)
+        {
+            Assert.Contains(result.Events, ev => ev.CompetitorId == e.CompetitorId);
+        }
+    }
+
+    [Fact]
+    public void Retirements_are_classified_behind_finishers()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = carset.Balance with { ReliabilityFailureRate = 0.05 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 3);
+
+        // Once a retirement appears in the order, no finisher may follow it.
+        var seenRetired = false;
+        foreach (var e in result.Classification)
+        {
+            if (e.Status == FinishStatus.Retired)
+            {
+                seenRetired = true;
+            }
+            else
+            {
+                Assert.False(seenRetired, "a finisher was classified behind a retirement");
+            }
+        }
+    }
+
+    [Fact]
+    public void A_race_with_failures_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = carset.Balance with { ReliabilityFailureRate = 0.05 };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 123);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 123);
+
+        Assert.Equal(
+            a.Classification.Select(e => (e.CompetitorId, e.Status, e.Laps, e.TotalTime)),
+            b.Classification.Select(e => (e.CompetitorId, e.Status, e.Laps, e.TotalTime)));
+        Assert.Equal(
+            a.Events.Select(e => (e.Kind, e.Lap, e.CompetitorId, e.Description)),
+            b.Events.Select(e => (e.Kind, e.Lap, e.CompetitorId, e.Description)));
+        Assert.NotEmpty(a.Events);
+    }
+
+    [Fact]
+    public void More_reliable_cars_retire_less_often()
+    {
+        var carset = SimFixtures.ReliabilityContrastCarset();
+        var grid = EntryList.Build(carset);
+        var balance = carset.Balance with { ReliabilityFailureRate = 0.01 };
+
+        var hardy = 0;
+        var fragile = 0;
+        for (var seed = 0; seed < 40; seed++)
+        {
+            var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, seed);
+            foreach (var e in result.Classification)
+            {
+                if (e.Status != FinishStatus.Retired)
+                {
+                    continue;
+                }
+
+                if (e.CompetitorId is "h1" or "h2")
+                {
+                    hardy++;
+                }
+                else
+                {
+                    fragile++;
+                }
+            }
+        }
+
+        Assert.True(fragile > hardy, $"fragile={fragile} hardy={hardy}");
     }
 }
