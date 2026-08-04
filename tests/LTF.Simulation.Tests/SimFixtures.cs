@@ -40,10 +40,20 @@ internal static class SimFixtures
 
     public static BalanceCoefficients Balance => new();
 
-    /// <summary>Balance with reliability switched off — no failures, no health drain — for
-    /// tests that assume every car reaches the flag.</summary>
+    /// <summary>Balance with every incident source switched off — no failures, no health
+    /// drain, no driver errors, collisions or start losses — so a race is pure pace and every
+    /// car reaches the flag. Tests turn individual sources back on with <c>with</c>.</summary>
     public static BalanceCoefficients CalmBalance =>
-        new() { ReliabilityFailureRate = 0.0, ComponentHealthLossPerLap = 0.0 };
+        new()
+        {
+            ReliabilityFailureRate = 0.0,
+            ComponentHealthLossPerLap = 0.0,
+            DriverErrorBaseRate = 0.0,
+            CollisionBaseRate = 0.0,
+            StartIncidentRate = 0.0,
+            StartSkillSeconds = 0.0,
+            StartSpreadSeconds = 0.0,
+        };
 
     public static Carset Carset()
     {

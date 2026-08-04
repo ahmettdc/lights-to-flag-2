@@ -8,6 +8,9 @@ namespace LTF.Simulation.Racing;
 public enum RaceEventKind
 {
     MechanicalFailure,
+    DriverError,
+    Collision,
+    StartIncident,
 }
 
 /// <summary>
@@ -20,5 +23,9 @@ public sealed record RaceEvent
     public required RaceEventKind Kind { get; init; }
     public required int Lap { get; init; }
     public required string CompetitorId { get; init; }
+
+    /// <summary>The other car involved, when there is a second party (e.g. a collision); else null.</summary>
+    public string? OtherCompetitorId { get; init; }
+
     public required string Description { get; init; }
 }

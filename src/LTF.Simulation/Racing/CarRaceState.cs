@@ -8,13 +8,14 @@ namespace LTF.Simulation.Racing;
 internal sealed class CarRaceState
 {
     public CarRaceState(
-        Competitor competitor, int gridPosition, IRandom rng, IRandom reliabilityRng,
+        Competitor competitor, int gridPosition, IRandom rng, IRandom reliabilityRng, IRandom incidentRng,
         TyreState tyre, double fuel, ComponentHealth health, EngineMode mode)
     {
         Competitor = competitor;
         GridPosition = gridPosition;
         Rng = rng;
         ReliabilityRng = reliabilityRng;
+        IncidentRng = incidentRng;
         Tyre = tyre;
         Fuel = fuel;
         Health = health;
@@ -33,6 +34,10 @@ internal sealed class CarRaceState
     /// model does.
     /// </summary>
     public IRandom ReliabilityRng { get; }
+
+    /// <summary>Another independent stream for on-track incidents (start, driver errors,
+    /// collisions), kept separate for the same reason.</summary>
+    public IRandom IncidentRng { get; }
 
     public TyreState Tyre { get; set; }
     public double Fuel { get; set; }

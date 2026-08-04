@@ -6,22 +6,25 @@ namespace LTF.Simulation.Racing;
 
 /// <summary>
 /// Runs a race lap by lap and produces a classification, an event log and telemetry. Fully
-/// deterministic: every car draws pace from its own stream forked off the race seed, and
-/// reliability from a second stream forked off that, so the same seed and grid reproduce the
-/// same race bit for bit. M5b adds component health, engine modes and mechanical failures on
-/// top of the M5a pace skeleton; driver errors, collisions and neutralisations arrive in M5c–M5e.
+/// deterministic: every car draws pace, reliability and incidents from separate streams
+/// forked off the race seed, so the same seed and grid reproduce the same race bit for bit.
+/// M5a laid the pace skeleton, M5b added reliability, M5c adds the start, driver errors and
+/// basic car-to-car collisions. Full neutralisation (safety car / VSC / red flag) is M5d.
 /// </summary>
 public static class RaceSimulator
 {
-    // A car's reliability stream is forked off its pace stream with this fixed salt, so pace
-    // draws are byte-identical to a race with no event model at all.
     private const long ReliabilitySalt = 0x5245_4C49; // "RELI"
+    private const long IncidentSalt = 0x494E_4344;    // "INCD"
 
     // Below this health the weakest component starts costing lap time (limp mode).
     private const double LimpThreshold = 0.30;
 
     // How sharply failure risk climbs as a component wears out (added at zero health).
     private const double LowHealthRiskMultiplier = 5.0;
+
+    // Share of driver errors / collisions severe enough to end a car's race.
+    private const double DriverErrorCrashShare = 0.12;
+    private const double CollisionHeavyShare = 0.20;
 
     private static readonly ComponentKind[] Components = Enum.GetValues<ComponentKind>();
 
@@ -37,7 +40,8 @@ public static class RaceSimulator
         {
             var paceRng = baseRng.Fork(i + 1);
             cars.Add(new CarRaceState(
-                grid[i], gridPosition: i + 1, rng: paceRng, reliabilityRng: paceRng.Fork(ReliabilitySalt),
+                grid[i], gridPosition: i + 1, rng: paceRng,
+                reliabilityRng: paceRng.Fork(ReliabilitySalt), incidentRng: paceRng.Fork(IncidentSalt),
                 tyre: TyreState.Fresh(startingCompound), fuel: 1.0,
                 health: ComponentHealth.Fresh(), mode: EngineMode.Standard));
         }
@@ -45,8 +49,16 @@ public static class RaceSimulator
         var snapshots = new List<LapSnapshot>(laps);
         var events = new List<RaceEvent>();
 
+        // Lights out: start performance and any getaway trouble, before lap one.
+        foreach (var car in cars)
+        {
+            ApplyStart(car, balance, events);
+        }
+
         for (var lap = 1; lap <= laps; lap++)
         {
+            var aheadOf = AheadMap(cars);
+
             foreach (var car in cars)
             {
                 if (!car.Running)
@@ -62,16 +74,28 @@ public static class RaceSimulator
                 };
 
                 // Pace first: draws happen up front so the pace stream is identical whatever
-                // the reliability model does this lap.
+                // the reliability and incident models do this lap.
                 var lapTime = LapTimeModel.Simulate(circuit, car.Competitor, balance, conditions, car.Rng).Total
                               + EngineModes.PaceDelta(car.Mode, balance)
                               + LimpPenalty(car.Health, balance);
 
-                // Wear the car, then see if anything lets go this lap (reliability stream).
+                // Reliability (its own stream): wear the car, then roll each component.
                 DegradeHealth(car, balance);
                 if (TryFail(car, lap, balance, events))
                 {
-                    // Retired mid-lap: it does not count as a completed lap.
+                    continue;
+                }
+
+                // Incidents (its own stream): a driver error, then contact with the car ahead.
+                lapTime += ApplyDriverError(car, lap, conditions, balance, events);
+                if (!car.Running)
+                {
+                    continue;
+                }
+
+                lapTime += ApplyCollision(car, aheadOf.GetValueOrDefault(car.Id), lap, balance, events);
+                if (!car.Running)
+                {
                     continue;
                 }
 
@@ -91,6 +115,33 @@ public static class RaceSimulator
 
         return Classify(cars, rules, snapshots, events);
     }
+
+    // ---- Start ------------------------------------------------------------
+
+    /// <summary>Bake start performance into the car's time before lap one: a skill-based loss
+    /// off an ideal getaway plus random spread, and a rare jump start that draws a penalty.</summary>
+    private static void ApplyStart(CarRaceState car, BalanceCoefficients balance, List<RaceEvent> events)
+    {
+        var attr = car.Competitor.Driver.Attributes;
+        var quality = (0.5 * attr.Racecraft.Normalized) + (0.5 * attr.Consistency.Normalized);
+        var loss = balance.StartSkillSeconds * (1.0 - quality);
+        var jitter = car.IncidentRng.NextGaussian() * balance.StartSpreadSeconds;
+        car.TotalTime += Math.Max(0.0, loss + jitter);
+
+        if (car.IncidentRng.NextDouble() < balance.StartIncidentRate)
+        {
+            car.TotalTime += balance.StartIncidentPenaltySeconds;
+            events.Add(new RaceEvent
+            {
+                Kind = RaceEventKind.StartIncident,
+                Lap = 0,
+                CompetitorId = car.Id,
+                Description = "Jump start (penalty)",
+            });
+        }
+    }
+
+    // ---- Reliability (M5b) ------------------------------------------------
 
     /// <summary>Extra lap time from nursing a badly worn car home; 0 until the weakest
     /// component drops below the limp threshold, then growing as it approaches zero.</summary>
@@ -160,6 +211,119 @@ public static class RaceSimulator
         ComponentKind.Brakes => "Brake failure",
         _ => "Mechanical failure",
     };
+
+    // ---- Incidents (M5c) --------------------------------------------------
+
+    /// <summary>Roll for a driver error this lap. A bad enough one ends the race; otherwise it
+    /// costs time. Inconsistent drivers err more; wet weather and lap one raise the odds;
+    /// good racecraft keeps an error out of the wall.</summary>
+    private static double ApplyDriverError(
+        CarRaceState car, int lap, LapConditions conditions, BalanceCoefficients balance, List<RaceEvent> events)
+    {
+        var attr = car.Competitor.Driver.Attributes;
+        var proneness = 1.0 - attr.Consistency.Normalized;
+        var wet = 1.0 + (conditions.Track.Wetness * 2.0);
+        var firstLap = lap == 1 ? balance.FirstLapIncidentMultiplier : 1.0;
+        var chance = balance.DriverErrorBaseRate * proneness * wet * firstLap;
+
+        if (car.IncidentRng.NextDouble() >= chance)
+        {
+            return 0.0;
+        }
+
+        var severity = car.IncidentRng.NextDouble();
+        var crashShare = DriverErrorCrashShare * (1.2 - attr.Racecraft.Normalized);
+        if (severity < crashShare)
+        {
+            car.Running = false;
+            car.Status = FinishStatus.Retired;
+            car.RetirementReason = "Driver error";
+            events.Add(new RaceEvent
+            {
+                Kind = RaceEventKind.DriverError, Lap = lap, CompetitorId = car.Id,
+                Description = "Crashed out",
+            });
+            return 0.0;
+        }
+
+        events.Add(new RaceEvent
+        {
+            Kind = RaceEventKind.DriverError, Lap = lap, CompetitorId = car.Id,
+            Description = "Off-track moment",
+        });
+        return balance.DriverErrorTimeLossSeconds * (0.3 + severity);
+    }
+
+    /// <summary>Roll for contact with the car ahead. Heavy contact ends this car's race and
+    /// delays the other; lighter contact costs both some time. Poor racecraft and lap one
+    /// raise the odds. The other party is recorded for the relationship layer (ADR-0013);
+    /// full multi-car pile-ups and neutralisation come in M5d.</summary>
+    private static double ApplyCollision(
+        CarRaceState car, CarRaceState? ahead, int lap, BalanceCoefficients balance, List<RaceEvent> events)
+    {
+        var attr = car.Competitor.Driver.Attributes;
+        var proneness = 0.5 + (1.0 - attr.Racecraft.Normalized);
+        var firstLap = lap == 1 ? balance.FirstLapIncidentMultiplier : 1.0;
+        var chance = balance.CollisionBaseRate * proneness * firstLap;
+
+        if (car.IncidentRng.NextDouble() >= chance)
+        {
+            return 0.0;
+        }
+
+        var otherId = ahead?.Id;
+        var severity = car.IncidentRng.NextDouble();
+        if (severity < CollisionHeavyShare)
+        {
+            car.Running = false;
+            car.Status = FinishStatus.Retired;
+            car.RetirementReason = "Collision";
+            if (ahead is { Running: true })
+            {
+                ahead.TotalTime += balance.CollisionTimeLossSeconds;
+            }
+
+            events.Add(new RaceEvent
+            {
+                Kind = RaceEventKind.Collision, Lap = lap, CompetitorId = car.Id,
+                OtherCompetitorId = otherId, Description = "Collision",
+            });
+            return 0.0;
+        }
+
+        if (ahead is { Running: true })
+        {
+            ahead.TotalTime += balance.CollisionTimeLossSeconds * 0.4;
+        }
+
+        events.Add(new RaceEvent
+        {
+            Kind = RaceEventKind.Collision, Lap = lap, CompetitorId = car.Id,
+            OtherCompetitorId = otherId, Description = "Contact",
+        });
+        return balance.CollisionTimeLossSeconds * (0.3 + severity);
+    }
+
+    // ---- Ordering / classification ---------------------------------------
+
+    /// <summary>For each running car, the car currently directly ahead of it — used to pair up
+    /// collisions. Computed once per lap from the standing at the lap's start.</summary>
+    private static Dictionary<string, CarRaceState> AheadMap(List<CarRaceState> cars)
+    {
+        var order = cars
+            .Where(c => c.Running)
+            .OrderByDescending(c => c.LapsCompleted)
+            .ThenBy(c => c.TotalTime)
+            .ToList();
+
+        var map = new Dictionary<string, CarRaceState>(order.Count);
+        for (var i = 1; i < order.Count; i++)
+        {
+            map[order[i].Id] = order[i - 1];
+        }
+
+        return map;
+    }
 
     private static LapSnapshot SnapshotOf(int lap, List<CarRaceState> cars)
     {

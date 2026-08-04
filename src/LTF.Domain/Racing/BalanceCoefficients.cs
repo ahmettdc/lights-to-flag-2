@@ -49,4 +49,31 @@ public sealed record BalanceCoefficients
     /// <summary>How much a harder engine mode multiplies failure risk and wear (push);
     /// conserve applies its inverse.</summary>
     public double EngineModeRiskFactor { get; init; } = 1.8;
+
+    /// <summary>Baseline per-lap probability of a driver error, before skill scaling.</summary>
+    public double DriverErrorBaseRate { get; init; } = 0.01;
+
+    /// <summary>Baseline per-lap probability of contact with a nearby car, before skill scaling.</summary>
+    public double CollisionBaseRate { get; init; } = 0.006;
+
+    /// <summary>Probability of a botched start (jump start / bog-down) per car.</summary>
+    public double StartIncidentRate { get; init; } = 0.015;
+
+    /// <summary>How much more likely incidents are on lap 1 (first-corner chaos).</summary>
+    public double FirstLapIncidentMultiplier { get; init; } = 4.0;
+
+    /// <summary>Lap-time cost of a driver error (lock-up / off-track), scaled by severity.</summary>
+    public double DriverErrorTimeLossSeconds { get; init; } = 2.0;
+
+    /// <summary>Lap-time cost of contact, scaled by severity.</summary>
+    public double CollisionTimeLossSeconds { get; init; } = 6.0;
+
+    /// <summary>Time lost off an ideal getaway, scaled by how poor the driver's start skill is.</summary>
+    public double StartSkillSeconds { get; init; } = 0.6;
+
+    /// <summary>Random spread of start performance, in seconds.</summary>
+    public double StartSpreadSeconds { get; init; } = 0.3;
+
+    /// <summary>Time penalty applied for a jump start (a stand-in until the M7 penalty system).</summary>
+    public double StartIncidentPenaltySeconds { get; init; } = 5.0;
 }

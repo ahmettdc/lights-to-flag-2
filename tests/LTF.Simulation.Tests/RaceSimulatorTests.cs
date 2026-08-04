@@ -12,6 +12,7 @@ public class RaceSimulatorTests
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
 
+        // Default balance has every event type live.
         var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 42);
         var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 42);
 
@@ -28,7 +29,7 @@ public class RaceSimulatorTests
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
 
-        // Calm balance: no failures, so every car reaches the flag.
+        // Calm balance: pure pace, so every car reaches the flag.
         var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
 
         Assert.Equal(grid.Count, result.Classification.Count);
@@ -93,12 +94,14 @@ public class RaceSimulatorTests
         Assert.All(result.Telemetry.Laps, s => Assert.Equal(grid.Count, s.Order.Count));
     }
 
+    // ---- Reliability (M5b) — isolated from other incidents via CalmBalance ----
+
     [Fact]
     public void Reliability_failures_retire_cars_with_a_reason_and_event()
     {
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
-        var balance = carset.Balance with { ReliabilityFailureRate = 0.1 };
+        var balance = SimFixtures.CalmBalance with { ReliabilityFailureRate = 0.1 };
 
         var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 7);
 
@@ -121,7 +124,7 @@ public class RaceSimulatorTests
     {
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
-        var balance = carset.Balance with { ReliabilityFailureRate = 0.05 };
+        var balance = SimFixtures.CalmBalance with { ReliabilityFailureRate = 0.05 };
 
         var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 3);
 
@@ -141,30 +144,11 @@ public class RaceSimulatorTests
     }
 
     [Fact]
-    public void A_race_with_failures_is_deterministic()
-    {
-        var carset = SimFixtures.Carset();
-        var grid = EntryList.Build(carset);
-        var balance = carset.Balance with { ReliabilityFailureRate = 0.05 };
-
-        var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 123);
-        var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 123);
-
-        Assert.Equal(
-            a.Classification.Select(e => (e.CompetitorId, e.Status, e.Laps, e.TotalTime)),
-            b.Classification.Select(e => (e.CompetitorId, e.Status, e.Laps, e.TotalTime)));
-        Assert.Equal(
-            a.Events.Select(e => (e.Kind, e.Lap, e.CompetitorId, e.Description)),
-            b.Events.Select(e => (e.Kind, e.Lap, e.CompetitorId, e.Description)));
-        Assert.NotEmpty(a.Events);
-    }
-
-    [Fact]
     public void More_reliable_cars_retire_less_often()
     {
         var carset = SimFixtures.ReliabilityContrastCarset();
         var grid = EntryList.Build(carset);
-        var balance = carset.Balance with { ReliabilityFailureRate = 0.01 };
+        var balance = SimFixtures.CalmBalance with { ReliabilityFailureRate = 0.01, ComponentHealthLossPerLap = 0.006 };
 
         var hardy = 0;
         var fragile = 0;
@@ -190,5 +174,66 @@ public class RaceSimulatorTests
         }
 
         Assert.True(fragile > hardy, $"fragile={fragile} hardy={hardy}");
+    }
+
+    // ---- Incidents (M5c) --------------------------------------------------
+
+    [Fact]
+    public void Driver_errors_produce_events()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = SimFixtures.CalmBalance with { DriverErrorBaseRate = 0.2 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 7);
+
+        Assert.Contains(result.Events, e => e.Kind == RaceEventKind.DriverError);
+    }
+
+    [Fact]
+    public void Collisions_name_both_cars_involved()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = SimFixtures.CalmBalance with { CollisionBaseRate = 0.2 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 5);
+
+        var collisions = result.Events.Where(e => e.Kind == RaceEventKind.Collision).ToList();
+        Assert.NotEmpty(collisions);
+        // At least one collision was with the car ahead (a named second party).
+        Assert.Contains(collisions, e => e.OtherCompetitorId is not null);
+    }
+
+    [Fact]
+    public void Every_car_gets_a_start_incident_when_it_is_certain()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = SimFixtures.CalmBalance with { StartIncidentRate = 1.0 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 1);
+
+        var starts = result.Events.Where(e => e.Kind == RaceEventKind.StartIncident).ToList();
+        Assert.Equal(grid.Count, starts.Count);
+        Assert.All(starts, e => Assert.Equal(0, e.Lap));
+    }
+
+    [Fact]
+    public void A_full_event_race_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        // Default balance has reliability, driver errors, collisions and start incidents all live.
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+
+        Assert.Equal(
+            a.Classification.Select(e => (e.CompetitorId, e.Status, e.Laps, e.TotalTime)),
+            b.Classification.Select(e => (e.CompetitorId, e.Status, e.Laps, e.TotalTime)));
+        Assert.Equal(
+            a.Events.Select(e => (e.Kind, e.Lap, e.CompetitorId, e.OtherCompetitorId, e.Description)),
+            b.Events.Select(e => (e.Kind, e.Lap, e.CompetitorId, e.OtherCompetitorId, e.Description)));
     }
 }
