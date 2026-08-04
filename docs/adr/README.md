@@ -17,3 +17,8 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0010](0010-regulations-governance.md) | Regülasyon & Yönetişim (FIA) |
 | [0011](0011-calendar-driven-career.md) | Takvim-tabanlı kariyer (FM tarzı) |
 | [0012](0012-incident-catalog-sensitivity.md) | Olay kataloğu & hassasiyet politikası |
+| [0013](0013-paddock-relationships.md) | Paddock ilişkileri & insan dinamikleri |
+| [0014](0014-legal-arbitration.md) | Hukuk & tahkim (paddock mahkemesi) |
+| [0015](0015-driver-development.md) | Pilot gelişimi (potansiyel + yaş eğrisi + antrenman) |
+| [0016](0016-rnd-tech-tree.md) | R&D geliştirme ağacı (tech tree) |
+| [0017](0017-driver-pool-scouting.md) | Pilot havuzu & scout (keşif) sistemi |

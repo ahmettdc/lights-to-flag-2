@@ -157,6 +157,44 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | **Determinizm** | Her olay şablonu ruloları `DeterministicRandom` fork'larından çeker; aynı tohum → aynı olay dizisi. |
 | **Dağılım** | M5b (mekanik ✅), M5c (pilot/çarpışma/start), M5d (çevre→nötralizasyon), M5e (olay günlüğü→M23/M24 + ilişki bağı ADR-0013); F/G→M7/ADR-0010. Ayrıntı: `docs/adr/0012`. |
 
+### ADR-0013 — Paddock ilişkileri & insan dinamikleri
+
+| | |
+|---|---|
+| **Karar** | Tüm insan aktörler (pilot/patron/personel) arası ikili ilişki: yakınlık + tür + kişilik. Mekanik etki: moral, pazarlık, takım emri, veri paylaşımı, personel ayrılığı, takım-içi çarpışma olasılığı, mentorluk. |
+| **Çift yön** | Olay → ilişki (çarpışma/favoritizm; `RaceEvent` katılımcı id'leri) **ve** ilişki → olay (bozuk ilişki → takım-içi kasıtlı engelleme). |
+| **Dağılım** | M11/M12 (doğuş+kalıcı), M14 (personel), M16/M17 (ajans), M18 (evrim/feud), M21/M22 (arayüz). Ayrıntı: `docs/adr/0013`. |
+
+### ADR-0014 — Hukuk & tahkim (paddock mahkemesi)
+
+| | |
+|---|---|
+| **Karar** | Herhangi bir konuda dava (regülasyon/sözleşme/ticari/IP/personel); **avukat tutulur** (retainer + dava ücreti; ekonomi kalemi). ADR-0010 itirazının avukatlı/masraflı derinleşmesi. |
+| **Süreç** | Takvimde açılış→duruşma→karar; deterministik (esas × avukat × yönetişim + tohum). Sonuç: ceza/puan/iade/tazminat/tedbir. Kurgusal/isimsiz. |
+| **Dağılım** | M11/M12/M13/M14/M17/M18/M21/M22. Ayrıntı: `docs/adr/0014`. |
+
+### ADR-0015 — Pilot gelişimi (potansiyel + yaş eğrisi + antrenman)
+
+| | |
+|---|---|
+| **Karar** | Potansiyele büyüme + **zirve-sonrası yaş gerilemesi** (fiziksel hızlı, deneyim yavaş) + uzun vadeli **antrenman programı**. M8 serbest seansından ayrı. |
+| **Dağılım** | M14 (koç/simülatör altyapısı), M16/M17 (antrenman/akademi), M18 (yaş eğrisi), M24 (grafik), ADR-0013 (mentorluk). Faz 1 kod değişmez. Ayrıntı: `docs/adr/0015`. |
+
+### ADR-0016 — R&D geliştirme ağacı (tech tree)
+
+| | |
+|---|---|
+| **Karar** | R&D dallı bir **tech tree**; sezonlar boyu, aracın **konsept yönünü** belirler (fırsat maliyeti → takımlar farklılaşır). Bütçe/tesis/personel + takvim hızlandırır. |
+| **Sinerji** | Regülasyon değişikliği dalları **budayabilir/kilitleyebilir** (Readiness ↔ ağaç). Deterministik. |
+| **Dağılım** | M14 (ana), M13/M15/M17/M18/M22. Ayrıntı: `docs/adr/0016`. |
+
+### ADR-0017 — Pilot havuzu & scout (keşif) sistemi
+
+| | |
+|---|---|
+| **Karar** | Dış-seri (F2/F3/DTM/WEC) + free-agent **pilot havuzu**; **scout ekibi** gizli nitelik/potansiyeli keşfeder (rapor = aralık + güven; kaynak/scout yeteneği kesinliği artırır). |
+| **Dağılım** | M18 (transfer/regen kaynağı), M12 (imzalama), M14 (scout işe alım), M17 (yönlendirme), M22 (ekran + bildirim). Deterministik. Ayrıntı: `docs/adr/0017`. |
+
 ---
 
 ## 3. Ürün vizyonu
@@ -327,13 +365,43 @@ M7, teknik/finansal M11/M13, itiraz süreci; **(3) evrim & hazırlık** — sezo
 değişikliği, `Readiness` (M14), hazırlıksız geriye düşer (M18); **politik katman** patron
 modunda oy/lobi (M17); arayüz M22. Carset formatı opsiyonel `regulations` bloğu taşır (M2).
 
+#### Alt-sistem C — Paddock ilişkileri & insan dinamikleri (ADR-0013)
+Pilot/patron/personel arası ikili ilişkiler (yakınlık + tür + kişilik). **Çift yönlü:** olaylar
+ilişkiyi değiştirir (çarpışma/favoritizm → `RaceEvent` katılımcı id'leri), bozuk ilişki olay
+üretir (takım-içi kasıtlı engelleme). Mekanik etki: moral, pazarlık, takım emri, veri paylaşımı,
+personel ayrılığı, takım-içi çarpışma olasılığı, mentorluk. Dağılım: M11/M12 (doğuş+kalıcı), M14
+(personel uyumu), M16/M17 (ajans), M18 (evrim/feud), M21/M22 (arayüz). Simülasyon ilişkiden habersiz.
+
+#### Alt-sistem D — Hukuk & tahkim (ADR-0014)
+Herhangi bir konuda dava (regülasyon/sözleşme/ticari/IP/personel); avukat tutulur (retainer + dava
+ücreti; ekonomi kalemi). ADR-0010 itirazının avukatlı/masraflı derinleşmesi. Takvimde
+açılış→duruşma→karar; deterministik. Sonuç: ceza/puan/iade/tazminat/tedbir. Kurgusal/isimsiz.
+Dağılım: M11/M12/M13/M14/M17/M18/M21/M22.
+
+#### Alt-sistem E — Pilot gelişimi (ADR-0015)
+Potansiyele büyüme + zirve-sonrası yaş gerilemesi (fiziksel hızlı, deneyim yavaş) + uzun vadeli
+antrenman programı (M8 serbest seansından ayrı). Dağılım: M14 (koç/simülatör altyapısı), M16/M17
+(antrenman/akademi), M18 (yaş eğrisi + büyüme), M24 (grafik), ADR-0013 mentorluk. Faz 1 kod
+değişmez (Career yazar, Simulation okur).
+
+#### Alt-sistem F — R&D geliştirme ağacı (ADR-0016)
+Dallı tech tree; sezonlar boyu, aracın konsept yönünü belirler (fırsat maliyeti → farklılaşma).
+Bütçe/tesis/personel + takvim hızlandırır. Regülasyon değişikliği dalları budayabilir (Readiness ↔
+ağaç). Dağılım: M14 (ana), M13 (finansman), M15 (güncelleme), M18 (taşıma/budama), M17 (yatırım),
+M22 (arayüz).
+
+#### Alt-sistem G — Pilot havuzu & scout (ADR-0017)
+Dış-seri (F2/F3/DTM/WEC) + free-agent havuzu; scout ekibi gizli nitelik/potansiyeli keşfeder
+(rapor = aralık + güven; kaynak/scout yeteneği kesinliği artırır). Dağılım: M18 (transfer/regen
+kaynağı), M12 (imzalama), M14 (scout işe alım), M17 (yönlendirme), M22 (ekran + bildirim). Deterministik.
+
 ### Faz 3 — Arayüz · M19–M25 — *Avalonia, oyun dili İngilizce*
 
 | | Kilometre taşı | İçerik |
 |---|---|---|
-| **M19** ⬛ | Kabuk + marka kiti | Navigasyon, tema sistemi. **Marka kiti hazır** (`design/`): palet (Track Black/Lights Out Red/Flag White), SVG logo, fontlar (Saira Condensed/Chakra Petch/Archivo). Yerelleştirme altyapısı (ileride TR dil paketi). **Görsel tasarım kullanıcının Claude Design mockup'ından gelir** (`design/mockups/ui.dc.html`); HTML/CSS doğrudan kullanılmaz, Avalonia'ya birebir çevrilir (ADR-0002). Faz 3 ekranları (M20–M25) bu mockup'ı takip eder. |
+| **M19** ⬛ | Kabuk + marka kiti | Navigasyon, tema sistemi. **Bildirim merkezi** (rozet + açılır panel; kategori/önem/derin bağlantı; tüm sistemlerden beslenir — Rev 15). **Marka kiti hazır** (`design/`): palet (Track Black/Lights Out Red/Flag White), SVG logo, fontlar (Saira Condensed/Chakra Petch/Archivo). Yerelleştirme altyapısı (ileride TR dil paketi). **Görsel tasarım kullanıcının Claude Design mockup'ından gelir** (`design/mockups/ui.dc.html`); HTML/CSS doğrudan kullanılmaz, Avalonia'ya birebir çevrilir (ADR-0002). Faz 3 ekranları (M20–M25) bu mockup'ı takip eder. |
 | **M20** | Menü + kariyer başlatma | Ana menü, yeni kariyer akışı (**mod seçimi**: Driver / Team Principal), carset seçimi, kayıt-yükleme ekranı. |
-| **M21** ⬛ | Kariyer merkezi | Pano, **takvim + FM tarzı "Devam" (Continue)** butonu (ADR-0011: tarihli olaylara kadar ilerlet), puan durumu, takım/pilot listeleri, **tarihli gelen kutusu / haber akışı** (sözleşme teklifleri, yönetim kurulu mesajları, regülasyon duyuruları, basın). |
+| **M21** ⬛ | Kariyer merkezi | Pano, **takvim + FM tarzı "Devam" (Continue)** butonu (ADR-0011: tarihli olaylara kadar ilerlet), puan durumu, takım/pilot listeleri, **tarihli gelen kutusu / haber akışı** (sözleşme teklifleri, yönetim kurulu mesajları, regülasyon duyuruları, basın). Bu akış kabuktaki **bildirim merkezi** rozeti/panelinde toplanır (kategori/önem/derin bağlantı; eylem-gerektiren bildirim Continue'yu durdurur — Rev 15). |
 | **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (ağırlıklı Patron modu; Pilot modunda kısıtlı). **Regülasyon & Uyum ekranı** (ADR-0010): aktif kurallar, kendi uyum/risk durumun, bekleyen değişiklikler, `Readiness` + Patron modunda **oylama** arayüzü. |
 | **M23** ⬛ | Yarış hafta sonu | Canlı zamanlama kulesi, **şematik pist haritası + hareketli araç işaretçileri** (mockup SVG referansı; 3B değil — Motorsport/Football Manager tarzı, motor telemetriden beslenir), sektör renkleri ve delta'lar, strateji paneli (pit çağrısı, bileşim seçimi), telsiz mesajları, hız kontrolü / atlama / tekrar. |
 | **M24** ⬛ | **İstatistik ve rekorlar** | Pilot ve takım profilleri, sezon istatistikleri, **tüm zamanların rekorları**, şeref listesi (hall of fame), kafa kafaya karşılaştırma, kariyer grafikleri, pist rekorları. |
