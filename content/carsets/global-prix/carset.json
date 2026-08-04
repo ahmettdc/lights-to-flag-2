@@ -1,0 +1,1129 @@
+{
+  "schemaVersion": 1,
+  "id": "global-prix",
+  "name": "Global Prix Series",
+  "rules": {
+    "seriesName": "Global Prix World Championship",
+    "qualifying": "Knockout",
+    "retirementAge": 40,
+    "refuellingAllowed": false,
+    "mandatoryPitStops": 1,
+    "bothDryCompoundsRequired": true,
+    "gridPenaltyPerExtraComponent": 5,
+    "componentAllocation": {
+      "Engine": 4,
+      "Gearbox": 6,
+      "Brakes": 8
+    },
+    "points": {
+      "racePoints": [
+        25,
+        18,
+        15,
+        12,
+        10,
+        8,
+        6,
+        4,
+        2,
+        1
+      ],
+      "sprintPoints": [
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1
+      ],
+      "polePoint": 0,
+      "fastestLapPoint": 0
+    }
+  },
+  "tyres": [
+    {
+      "compound": "Soft",
+      "code": "C4",
+      "grip": 92,
+      "durability": 35
+    },
+    {
+      "compound": "Medium",
+      "code": "C3",
+      "grip": 84,
+      "durability": 55
+    },
+    {
+      "compound": "Hard",
+      "code": "C2",
+      "grip": 76,
+      "durability": 75
+    },
+    {
+      "compound": "Intermediate",
+      "code": "INT",
+      "grip": 70,
+      "durability": 60
+    },
+    {
+      "compound": "Wet",
+      "code": "WET",
+      "grip": 60,
+      "durability": 70
+    }
+  ],
+  "circuits": [
+    {
+      "id": "melbourne",
+      "name": "Australian Grand Prix",
+      "country": "Australia",
+      "kind": "RoadCourse",
+      "laps": 58,
+      "lapDistanceKm": 5.278,
+      "baseLapTimeSeconds": 78.0,
+      "tyreStress": 55,
+      "overtaking": 60,
+      "powerSensitivity": 55,
+      "downforceSensitivity": 60,
+      "safetyCarLikelihood": 70,
+      "weatherVariability": 60
+    },
+    {
+      "id": "shanghai",
+      "name": "Chinese Grand Prix",
+      "country": "China",
+      "kind": "RoadCourse",
+      "laps": 56,
+      "lapDistanceKm": 5.451,
+      "baseLapTimeSeconds": 92.0,
+      "tyreStress": 60,
+      "overtaking": 70,
+      "powerSensitivity": 55,
+      "downforceSensitivity": 55,
+      "safetyCarLikelihood": 55,
+      "weatherVariability": 55
+    },
+    {
+      "id": "suzuka",
+      "name": "Japanese Grand Prix",
+      "country": "Japan",
+      "kind": "RoadCourse",
+      "laps": 53,
+      "lapDistanceKm": 5.807,
+      "baseLapTimeSeconds": 89.0,
+      "tyreStress": 75,
+      "overtaking": 45,
+      "powerSensitivity": 55,
+      "downforceSensitivity": 80,
+      "safetyCarLikelihood": 35,
+      "weatherVariability": 65
+    },
+    {
+      "id": "sakhir",
+      "name": "Bahrain Grand Prix",
+      "country": "Bahrain",
+      "kind": "RoadCourse",
+      "laps": 57,
+      "lapDistanceKm": 5.412,
+      "baseLapTimeSeconds": 90.0,
+      "tyreStress": 80,
+      "overtaking": 75,
+      "powerSensitivity": 65,
+      "downforceSensitivity": 50,
+      "safetyCarLikelihood": 40,
+      "weatherVariability": 25
+    },
+    {
+      "id": "jeddah",
+      "name": "Saudi Arabian Grand Prix",
+      "country": "Saudi Arabia",
+      "kind": "StreetCircuit",
+      "laps": 50,
+      "lapDistanceKm": 6.174,
+      "baseLapTimeSeconds": 88.0,
+      "tyreStress": 55,
+      "overtaking": 55,
+      "powerSensitivity": 80,
+      "downforceSensitivity": 55,
+      "safetyCarLikelihood": 70,
+      "weatherVariability": 20
+    },
+    {
+      "id": "miami",
+      "name": "Miami Grand Prix",
+      "country": "United States",
+      "kind": "StreetCircuit",
+      "laps": 57,
+      "lapDistanceKm": 5.412,
+      "baseLapTimeSeconds": 87.0,
+      "tyreStress": 60,
+      "overtaking": 65,
+      "powerSensitivity": 65,
+      "downforceSensitivity": 55,
+      "safetyCarLikelihood": 60,
+      "weatherVariability": 50
+    },
+    {
+      "id": "imola",
+      "name": "Emilia-Romagna Grand Prix",
+      "country": "Italy",
+      "kind": "RoadCourse",
+      "laps": 63,
+      "lapDistanceKm": 4.909,
+      "baseLapTimeSeconds": 75.0,
+      "tyreStress": 60,
+      "overtaking": 35,
+      "powerSensitivity": 55,
+      "downforceSensitivity": 70,
+      "safetyCarLikelihood": 45,
+      "weatherVariability": 55
+    },
+    {
+      "id": "monaco",
+      "name": "Monaco Grand Prix",
+      "country": "Monaco",
+      "kind": "StreetCircuit",
+      "laps": 78,
+      "lapDistanceKm": 3.337,
+      "baseLapTimeSeconds": 71.0,
+      "tyreStress": 40,
+      "overtaking": 15,
+      "powerSensitivity": 35,
+      "downforceSensitivity": 95,
+      "safetyCarLikelihood": 80,
+      "weatherVariability": 55
+    },
+    {
+      "id": "catalunya",
+      "name": "Spanish Grand Prix",
+      "country": "Spain",
+      "kind": "RoadCourse",
+      "laps": 66,
+      "lapDistanceKm": 4.657,
+      "baseLapTimeSeconds": 72.0,
+      "tyreStress": 70,
+      "overtaking": 45,
+      "powerSensitivity": 55,
+      "downforceSensitivity": 75,
+      "safetyCarLikelihood": 40,
+      "weatherVariability": 45
+    },
+    {
+      "id": "montreal",
+      "name": "Canadian Grand Prix",
+      "country": "Canada",
+      "kind": "RoadCourse",
+      "laps": 70,
+      "lapDistanceKm": 4.361,
+      "baseLapTimeSeconds": 72.0,
+      "tyreStress": 45,
+      "overtaking": 65,
+      "powerSensitivity": 70,
+      "downforceSensitivity": 50,
+      "safetyCarLikelihood": 65,
+      "weatherVariability": 60
+    },
+    {
+      "id": "red_bull_ring",
+      "name": "Austrian Grand Prix",
+      "country": "Austria",
+      "kind": "RoadCourse",
+      "laps": 71,
+      "lapDistanceKm": 4.318,
+      "baseLapTimeSeconds": 64.0,
+      "tyreStress": 65,
+      "overtaking": 70,
+      "powerSensitivity": 70,
+      "downforceSensitivity": 55,
+      "safetyCarLikelihood": 55,
+      "weatherVariability": 55
+    },
+    {
+      "id": "silverstone",
+      "name": "British Grand Prix",
+      "country": "United Kingdom",
+      "kind": "RoadCourse",
+      "laps": 52,
+      "lapDistanceKm": 5.891,
+      "baseLapTimeSeconds": 86.0,
+      "tyreStress": 80,
+      "overtaking": 55,
+      "powerSensitivity": 55,
+      "downforceSensitivity": 80,
+      "safetyCarLikelihood": 45,
+      "weatherVariability": 70
+    },
+    {
+      "id": "spa",
+      "name": "Belgian Grand Prix",
+      "country": "Belgium",
+      "kind": "RoadCourse",
+      "laps": 44,
+      "lapDistanceKm": 7.004,
+      "baseLapTimeSeconds": 104.0,
+      "tyreStress": 65,
+      "overtaking": 70,
+      "powerSensitivity": 80,
+      "downforceSensitivity": 65,
+      "safetyCarLikelihood": 45,
+      "weatherVariability": 80
+    },
+    {
+      "id": "hungaroring",
+      "name": "Hungarian Grand Prix",
+      "country": "Hungary",
+      "kind": "RoadCourse",
+      "laps": 70,
+      "lapDistanceKm": 4.381,
+      "baseLapTimeSeconds": 76.0,
+      "tyreStress": 60,
+      "overtaking": 30,
+      "powerSensitivity": 45,
+      "downforceSensitivity": 85,
+      "safetyCarLikelihood": 50,
+      "weatherVariability": 55
+    },
+    {
+      "id": "zandvoort",
+      "name": "Dutch Grand Prix",
+      "country": "Netherlands",
+      "kind": "RoadCourse",
+      "laps": 72,
+      "lapDistanceKm": 4.259,
+      "baseLapTimeSeconds": 70.0,
+      "tyreStress": 75,
+      "overtaking": 30,
+      "powerSensitivity": 50,
+      "downforceSensitivity": 80,
+      "safetyCarLikelihood": 55,
+      "weatherVariability": 60
+    },
+    {
+      "id": "monza",
+      "name": "Italian Grand Prix",
+      "country": "Italy",
+      "kind": "RoadCourse",
+      "laps": 53,
+      "lapDistanceKm": 5.793,
+      "baseLapTimeSeconds": 80.0,
+      "tyreStress": 55,
+      "overtaking": 70,
+      "powerSensitivity": 90,
+      "downforceSensitivity": 25,
+      "safetyCarLikelihood": 55,
+      "weatherVariability": 45
+    },
+    {
+      "id": "baku",
+      "name": "Azerbaijan Grand Prix",
+      "country": "Azerbaijan",
+      "kind": "StreetCircuit",
+      "laps": 51,
+      "lapDistanceKm": 6.003,
+      "baseLapTimeSeconds": 101.0,
+      "tyreStress": 50,
+      "overtaking": 65,
+      "powerSensitivity": 80,
+      "downforceSensitivity": 45,
+      "safetyCarLikelihood": 75,
+      "weatherVariability": 30
+    },
+    {
+      "id": "singapore",
+      "name": "Singapore Grand Prix",
+      "country": "Singapore",
+      "kind": "StreetCircuit",
+      "laps": 62,
+      "lapDistanceKm": 4.94,
+      "baseLapTimeSeconds": 90.0,
+      "tyreStress": 55,
+      "overtaking": 25,
+      "powerSensitivity": 45,
+      "downforceSensitivity": 85,
+      "safetyCarLikelihood": 80,
+      "weatherVariability": 55
+    },
+    {
+      "id": "cota",
+      "name": "United States Grand Prix",
+      "country": "United States",
+      "kind": "RoadCourse",
+      "laps": 56,
+      "lapDistanceKm": 5.513,
+      "baseLapTimeSeconds": 94.0,
+      "tyreStress": 70,
+      "overtaking": 70,
+      "powerSensitivity": 60,
+      "downforceSensitivity": 65,
+      "safetyCarLikelihood": 55,
+      "weatherVariability": 55
+    },
+    {
+      "id": "mexico",
+      "name": "Mexico City Grand Prix",
+      "country": "Mexico",
+      "kind": "RoadCourse",
+      "laps": 71,
+      "lapDistanceKm": 4.304,
+      "baseLapTimeSeconds": 76.0,
+      "tyreStress": 55,
+      "overtaking": 60,
+      "powerSensitivity": 75,
+      "downforceSensitivity": 60,
+      "safetyCarLikelihood": 50,
+      "weatherVariability": 40
+    },
+    {
+      "id": "interlagos",
+      "name": "São Paulo Grand Prix",
+      "country": "Brazil",
+      "kind": "RoadCourse",
+      "laps": 71,
+      "lapDistanceKm": 4.309,
+      "baseLapTimeSeconds": 70.0,
+      "tyreStress": 65,
+      "overtaking": 65,
+      "powerSensitivity": 60,
+      "downforceSensitivity": 60,
+      "safetyCarLikelihood": 60,
+      "weatherVariability": 80
+    },
+    {
+      "id": "las_vegas",
+      "name": "Las Vegas Grand Prix",
+      "country": "United States",
+      "kind": "StreetCircuit",
+      "laps": 50,
+      "lapDistanceKm": 6.201,
+      "baseLapTimeSeconds": 94.0,
+      "tyreStress": 50,
+      "overtaking": 60,
+      "powerSensitivity": 85,
+      "downforceSensitivity": 40,
+      "safetyCarLikelihood": 70,
+      "weatherVariability": 25
+    },
+    {
+      "id": "lusail",
+      "name": "Qatar Grand Prix",
+      "country": "Qatar",
+      "kind": "RoadCourse",
+      "laps": 57,
+      "lapDistanceKm": 5.419,
+      "baseLapTimeSeconds": 83.0,
+      "tyreStress": 80,
+      "overtaking": 55,
+      "powerSensitivity": 60,
+      "downforceSensitivity": 70,
+      "safetyCarLikelihood": 40,
+      "weatherVariability": 25
+    },
+    {
+      "id": "yas_marina",
+      "name": "Abu Dhabi Grand Prix",
+      "country": "United Arab Emirates",
+      "kind": "RoadCourse",
+      "laps": 58,
+      "lapDistanceKm": 5.281,
+      "baseLapTimeSeconds": 83.0,
+      "tyreStress": 55,
+      "overtaking": 50,
+      "powerSensitivity": 60,
+      "downforceSensitivity": 60,
+      "safetyCarLikelihood": 55,
+      "weatherVariability": 20
+    }
+  ],
+  "calendar": [
+    {
+      "round": 1,
+      "circuitId": "melbourne",
+      "date": "2025-03-16",
+      "sprint": false
+    },
+    {
+      "round": 2,
+      "circuitId": "shanghai",
+      "date": "2025-03-23",
+      "sprint": true
+    },
+    {
+      "round": 3,
+      "circuitId": "suzuka",
+      "date": "2025-04-06",
+      "sprint": false
+    },
+    {
+      "round": 4,
+      "circuitId": "sakhir",
+      "date": "2025-04-13",
+      "sprint": false
+    },
+    {
+      "round": 5,
+      "circuitId": "jeddah",
+      "date": "2025-04-20",
+      "sprint": false
+    },
+    {
+      "round": 6,
+      "circuitId": "miami",
+      "date": "2025-05-04",
+      "sprint": true
+    },
+    {
+      "round": 7,
+      "circuitId": "imola",
+      "date": "2025-05-18",
+      "sprint": false
+    },
+    {
+      "round": 8,
+      "circuitId": "monaco",
+      "date": "2025-05-25",
+      "sprint": false
+    },
+    {
+      "round": 9,
+      "circuitId": "catalunya",
+      "date": "2025-06-01",
+      "sprint": false
+    },
+    {
+      "round": 10,
+      "circuitId": "montreal",
+      "date": "2025-06-15",
+      "sprint": false
+    },
+    {
+      "round": 11,
+      "circuitId": "red_bull_ring",
+      "date": "2025-06-29",
+      "sprint": false
+    },
+    {
+      "round": 12,
+      "circuitId": "silverstone",
+      "date": "2025-07-06",
+      "sprint": false
+    },
+    {
+      "round": 13,
+      "circuitId": "spa",
+      "date": "2025-07-27",
+      "sprint": true
+    },
+    {
+      "round": 14,
+      "circuitId": "hungaroring",
+      "date": "2025-08-03",
+      "sprint": false
+    },
+    {
+      "round": 15,
+      "circuitId": "zandvoort",
+      "date": "2025-08-31",
+      "sprint": false
+    },
+    {
+      "round": 16,
+      "circuitId": "monza",
+      "date": "2025-09-07",
+      "sprint": false
+    },
+    {
+      "round": 17,
+      "circuitId": "baku",
+      "date": "2025-09-21",
+      "sprint": false
+    },
+    {
+      "round": 18,
+      "circuitId": "singapore",
+      "date": "2025-10-05",
+      "sprint": false
+    },
+    {
+      "round": 19,
+      "circuitId": "cota",
+      "date": "2025-10-19",
+      "sprint": true
+    },
+    {
+      "round": 20,
+      "circuitId": "mexico",
+      "date": "2025-10-26",
+      "sprint": false
+    },
+    {
+      "round": 21,
+      "circuitId": "interlagos",
+      "date": "2025-11-09",
+      "sprint": true
+    },
+    {
+      "round": 22,
+      "circuitId": "las_vegas",
+      "date": "2025-11-22",
+      "sprint": false
+    },
+    {
+      "round": 23,
+      "circuitId": "lusail",
+      "date": "2025-11-30",
+      "sprint": true
+    },
+    {
+      "round": 24,
+      "circuitId": "yas_marina",
+      "date": "2025-12-07",
+      "sprint": false
+    }
+  ],
+  "teams": [
+    {
+      "id": "talon",
+      "name": "Talon Racing",
+      "shortName": "TAL",
+      "base": "Woking, UK",
+      "principal": "Marcus Vale",
+      "nationality": "GB",
+      "car": {
+        "aerodynamics": 92,
+        "chassis": 90,
+        "powerUnit": 88,
+        "tyreGentleness": 82,
+        "reliability": 86,
+        "engineSupplier": "Talon"
+      },
+      "driverIds": [
+        "ferreira_mateo",
+        "whitlock_idris"
+      ]
+    },
+    {
+      "id": "kuro",
+      "name": "Kuro Dynamics",
+      "shortName": "KUR",
+      "base": "Yokohama, JP",
+      "principal": "Rei Tanaka",
+      "nationality": "JP",
+      "car": {
+        "aerodynamics": 89,
+        "chassis": 87,
+        "powerUnit": 90,
+        "tyreGentleness": 78,
+        "reliability": 84,
+        "engineSupplier": "Kuro"
+      },
+      "driverIds": [
+        "nakamura_kenji",
+        "nilsen_freya"
+      ]
+    },
+    {
+      "id": "kestrel",
+      "name": "Kestrel Racing",
+      "shortName": "KES",
+      "base": "Enstone, UK",
+      "principal": "Dana Cole",
+      "nationality": "GB",
+      "car": {
+        "aerodynamics": 90,
+        "chassis": 86,
+        "powerUnit": 85,
+        "tyreGentleness": 80,
+        "reliability": 83,
+        "engineSupplier": "Vale"
+      },
+      "driverIds": [
+        "hargreave_oliver",
+        "salazar_diego"
+      ]
+    },
+    {
+      "id": "sable",
+      "name": "Sable GP",
+      "shortName": "SAB",
+      "base": "Maranello, IT",
+      "principal": "Gio Bianchi",
+      "nationality": "IT",
+      "car": {
+        "aerodynamics": 86,
+        "chassis": 85,
+        "powerUnit": 87,
+        "tyreGentleness": 79,
+        "reliability": 88,
+        "engineSupplier": "Sable"
+      },
+      "driverIds": [
+        "bergstrom_hugo",
+        "diallo_amara"
+      ]
+    },
+    {
+      "id": "nordwind",
+      "name": "Nordwind",
+      "shortName": "NOR",
+      "base": "Hinwil, CH",
+      "principal": "Klaus Reiner",
+      "nationality": "DE",
+      "car": {
+        "aerodynamics": 80,
+        "chassis": 79,
+        "powerUnit": 82,
+        "tyreGentleness": 76,
+        "reliability": 80,
+        "engineSupplier": "Kuro"
+      },
+      "driverIds": [
+        "brandt_lukas",
+        "ricci_sofia"
+      ]
+    },
+    {
+      "id": "aurelia",
+      "name": "Aurelia Corse",
+      "shortName": "AUR",
+      "base": "Modena, IT",
+      "principal": "Franco Neri",
+      "nationality": "IT",
+      "car": {
+        "aerodynamics": 78,
+        "chassis": 80,
+        "powerUnit": 79,
+        "tyreGentleness": 77,
+        "reliability": 79,
+        "engineSupplier": "Sable"
+      },
+      "driverIds": [
+        "greco_paolo",
+        "novak_elena"
+      ]
+    },
+    {
+      "id": "marchetti",
+      "name": "Marchetti Corse",
+      "shortName": "MAR",
+      "base": "Faenza, IT",
+      "principal": "Aldo Marchetti",
+      "nationality": "IT",
+      "car": {
+        "aerodynamics": 76,
+        "chassis": 77,
+        "powerUnit": 80,
+        "tyreGentleness": 75,
+        "reliability": 78,
+        "engineSupplier": "Kuro"
+      },
+      "driverIds": [
+        "okonkwo_paul",
+        "varga_tomas"
+      ]
+    },
+    {
+      "id": "vanguard",
+      "name": "Vanguard GP",
+      "shortName": "VAN",
+      "base": "Silverstone, UK",
+      "principal": "Ruth Kane",
+      "nationality": "GB",
+      "car": {
+        "aerodynamics": 72,
+        "chassis": 73,
+        "powerUnit": 74,
+        "tyreGentleness": 72,
+        "reliability": 76,
+        "engineSupplier": "Vale"
+      },
+      "driverIds": [
+        "costa_rafael",
+        "petrov_nikolai"
+      ]
+    },
+    {
+      "id": "meridian",
+      "name": "Meridian Racing",
+      "shortName": "MRD",
+      "base": "Grove, UK",
+      "principal": "Sam Holt",
+      "nationality": "GB",
+      "car": {
+        "aerodynamics": 70,
+        "chassis": 71,
+        "powerUnit": 72,
+        "tyreGentleness": 70,
+        "reliability": 74,
+        "engineSupplier": "Talon"
+      },
+      "driverIds": [
+        "fenwick_adam",
+        "sato_yuki"
+      ]
+    },
+    {
+      "id": "halcyon",
+      "name": "Halcyon Motorsport",
+      "shortName": "HAL",
+      "base": "Banbury, UK",
+      "principal": "Nia Osei",
+      "nationality": "GB",
+      "car": {
+        "aerodynamics": 68,
+        "chassis": 70,
+        "powerUnit": 71,
+        "tyreGentleness": 71,
+        "reliability": 77,
+        "engineSupplier": "Sable"
+      },
+      "driverIds": [
+        "alves_bruno",
+        "reid_callum"
+      ]
+    }
+  ],
+  "drivers": [
+    {
+      "id": "ferreira_mateo",
+      "firstName": "Mateo",
+      "lastName": "Ferreira",
+      "age": 24,
+      "nationality": "BR",
+      "number": 16,
+      "attributes": {
+        "pace": 90,
+        "racecraft": 94,
+        "consistency": 90,
+        "tyreManagement": 90,
+        "wetWeather": 90,
+        "feedback": 90
+      },
+      "reputation": 92
+    },
+    {
+      "id": "whitlock_idris",
+      "firstName": "Idris",
+      "lastName": "Whitlock",
+      "age": 29,
+      "nationality": "GB",
+      "number": 4,
+      "attributes": {
+        "pace": 86,
+        "racecraft": 86,
+        "consistency": 86,
+        "tyreManagement": 86,
+        "wetWeather": 91,
+        "feedback": 86
+      },
+      "reputation": 88
+    },
+    {
+      "id": "nakamura_kenji",
+      "firstName": "Kenji",
+      "lastName": "Nakamura",
+      "age": 27,
+      "nationality": "JP",
+      "number": 7,
+      "attributes": {
+        "pace": 88,
+        "racecraft": 88,
+        "consistency": 88,
+        "tyreManagement": 88,
+        "wetWeather": 88,
+        "feedback": 88
+      },
+      "reputation": 90
+    },
+    {
+      "id": "nilsen_freya",
+      "firstName": "Freya",
+      "lastName": "Nilsen",
+      "age": 23,
+      "nationality": "NO",
+      "number": 23,
+      "attributes": {
+        "pace": 84,
+        "racecraft": 84,
+        "consistency": 84,
+        "tyreManagement": 84,
+        "wetWeather": 90,
+        "feedback": 84
+      },
+      "reputation": 86
+    },
+    {
+      "id": "hargreave_oliver",
+      "firstName": "Oliver",
+      "lastName": "Hargreave",
+      "age": 31,
+      "nationality": "GB",
+      "number": 5,
+      "attributes": {
+        "pace": 89,
+        "racecraft": 89,
+        "consistency": 89,
+        "tyreManagement": 89,
+        "wetWeather": 89,
+        "feedback": 89
+      },
+      "reputation": 91
+    },
+    {
+      "id": "salazar_diego",
+      "firstName": "Diego",
+      "lastName": "Salazar",
+      "age": 26,
+      "nationality": "AR",
+      "number": 11,
+      "attributes": {
+        "pace": 82,
+        "racecraft": 85,
+        "consistency": 82,
+        "tyreManagement": 82,
+        "wetWeather": 82,
+        "feedback": 82
+      },
+      "reputation": 84
+    },
+    {
+      "id": "bergstrom_hugo",
+      "firstName": "Hugo",
+      "lastName": "Bergström",
+      "age": 28,
+      "nationality": "SE",
+      "number": 31,
+      "attributes": {
+        "pace": 85,
+        "racecraft": 85,
+        "consistency": 85,
+        "tyreManagement": 85,
+        "wetWeather": 89,
+        "feedback": 85
+      },
+      "reputation": 87
+    },
+    {
+      "id": "diallo_amara",
+      "firstName": "Amara",
+      "lastName": "Diallo",
+      "age": 22,
+      "nationality": "SN",
+      "number": 27,
+      "attributes": {
+        "pace": 83,
+        "racecraft": 83,
+        "consistency": 83,
+        "tyreManagement": 83,
+        "wetWeather": 83,
+        "feedback": 83
+      },
+      "reputation": 85
+    },
+    {
+      "id": "brandt_lukas",
+      "firstName": "Lukas",
+      "lastName": "Brandt",
+      "age": 30,
+      "nationality": "DE",
+      "number": 14,
+      "attributes": {
+        "pace": 80,
+        "racecraft": 80,
+        "consistency": 80,
+        "tyreManagement": 80,
+        "wetWeather": 80,
+        "feedback": 80
+      },
+      "reputation": 82
+    },
+    {
+      "id": "ricci_sofia",
+      "firstName": "Sofia",
+      "lastName": "Ricci",
+      "age": 25,
+      "nationality": "IT",
+      "number": 19,
+      "attributes": {
+        "pace": 78,
+        "racecraft": 78,
+        "consistency": 78,
+        "tyreManagement": 78,
+        "wetWeather": 78,
+        "feedback": 78
+      },
+      "reputation": 80
+    },
+    {
+      "id": "greco_paolo",
+      "firstName": "Paolo",
+      "lastName": "Greco",
+      "age": 33,
+      "nationality": "IT",
+      "number": 2,
+      "attributes": {
+        "pace": 79,
+        "racecraft": 79,
+        "consistency": 79,
+        "tyreManagement": 79,
+        "wetWeather": 79,
+        "feedback": 79
+      },
+      "reputation": 81
+    },
+    {
+      "id": "novak_elena",
+      "firstName": "Elena",
+      "lastName": "Novak",
+      "age": 24,
+      "nationality": "CZ",
+      "number": 77,
+      "attributes": {
+        "pace": 76,
+        "racecraft": 76,
+        "consistency": 76,
+        "tyreManagement": 76,
+        "wetWeather": 80,
+        "feedback": 76
+      },
+      "reputation": 78
+    },
+    {
+      "id": "okonkwo_paul",
+      "firstName": "Paul",
+      "lastName": "Okonkwo",
+      "age": 27,
+      "nationality": "NG",
+      "number": 9,
+      "attributes": {
+        "pace": 82,
+        "racecraft": 87,
+        "consistency": 82,
+        "tyreManagement": 82,
+        "wetWeather": 82,
+        "feedback": 82
+      },
+      "reputation": 84
+    },
+    {
+      "id": "varga_tomas",
+      "firstName": "Tomas",
+      "lastName": "Varga",
+      "age": 29,
+      "nationality": "SK",
+      "number": 24,
+      "attributes": {
+        "pace": 74,
+        "racecraft": 74,
+        "consistency": 74,
+        "tyreManagement": 74,
+        "wetWeather": 74,
+        "feedback": 74
+      },
+      "reputation": 76
+    },
+    {
+      "id": "costa_rafael",
+      "firstName": "Rafael",
+      "lastName": "Costa",
+      "age": 26,
+      "nationality": "PT",
+      "number": 10,
+      "attributes": {
+        "pace": 75,
+        "racecraft": 75,
+        "consistency": 75,
+        "tyreManagement": 75,
+        "wetWeather": 75,
+        "feedback": 75
+      },
+      "reputation": 77
+    },
+    {
+      "id": "petrov_nikolai",
+      "firstName": "Nikolai",
+      "lastName": "Petrov",
+      "age": 32,
+      "nationality": "KZ",
+      "number": 21,
+      "attributes": {
+        "pace": 72,
+        "racecraft": 72,
+        "consistency": 72,
+        "tyreManagement": 72,
+        "wetWeather": 72,
+        "feedback": 72
+      },
+      "reputation": 74
+    },
+    {
+      "id": "fenwick_adam",
+      "firstName": "Adam",
+      "lastName": "Fenwick",
+      "age": 35,
+      "nationality": "GB",
+      "number": 44,
+      "attributes": {
+        "pace": 73,
+        "racecraft": 73,
+        "consistency": 73,
+        "tyreManagement": 73,
+        "wetWeather": 76,
+        "feedback": 73
+      },
+      "reputation": 75
+    },
+    {
+      "id": "sato_yuki",
+      "firstName": "Yuki",
+      "lastName": "Sato",
+      "age": 21,
+      "nationality": "JP",
+      "number": 18,
+      "attributes": {
+        "pace": 70,
+        "racecraft": 70,
+        "consistency": 70,
+        "tyreManagement": 70,
+        "wetWeather": 70,
+        "feedback": 70
+      },
+      "reputation": 72
+    },
+    {
+      "id": "alves_bruno",
+      "firstName": "Bruno",
+      "lastName": "Alves",
+      "age": 28,
+      "nationality": "BR",
+      "number": 33,
+      "attributes": {
+        "pace": 71,
+        "racecraft": 74,
+        "consistency": 71,
+        "tyreManagement": 71,
+        "wetWeather": 71,
+        "feedback": 71
+      },
+      "reputation": 73
+    },
+    {
+      "id": "reid_callum",
+      "firstName": "Callum",
+      "lastName": "Reid",
+      "age": 23,
+      "nationality": "GB",
+      "number": 28,
+      "attributes": {
+        "pace": 74,
+        "racecraft": 74,
+        "consistency": 74,
+        "tyreManagement": 74,
+        "wetWeather": 74,
+        "feedback": 74
+      },
+      "reputation": 76
+    }
+  ]
+}

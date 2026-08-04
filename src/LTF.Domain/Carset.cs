@@ -29,6 +29,9 @@ public sealed record Carset
 
     public required IReadOnlyList<Circuit> Circuits { get; init; }
 
+    /// <summary>The season schedule: circuits raced in order, on their dates (ADR-0011).</summary>
+    public required IReadOnlyList<CalendarRound> Calendar { get; init; }
+
     /// <summary>Tyre range the series brings (soft → wet).</summary>
     public IReadOnlyList<TyreSpec> Tyres { get; init; } = [];
 

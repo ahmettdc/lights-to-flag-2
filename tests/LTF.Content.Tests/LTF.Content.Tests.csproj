@@ -15,4 +15,10 @@
     <ProjectReference Include="..\..\src\LTF.Content\LTF.Content.csproj" />
   </ItemGroup>
 
+  <!-- Copy the real content files so tests can load and validate them on CI. -->
+  <ItemGroup>
+    <None Include="..\..\content\carsets\global-prix\carset.json" Link="carsets/global-prix.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\content\mods\real-2025\carset.json" Link="carsets/real-2025.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

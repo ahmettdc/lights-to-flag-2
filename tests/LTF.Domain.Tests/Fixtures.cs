@@ -71,6 +71,15 @@ internal static class Fixtures
             Teams = [Team("talon", "Talon Racing", d1.Id, d2.Id)],
             Drivers = [d1, d2],
             Circuits = [Circuit("belgian", "Belgian Grand Prix")],
+            Calendar =
+            [
+                new CalendarRound
+                {
+                    Round = 1,
+                    CircuitId = "belgian",
+                    Date = new DateOnly(2025, 7, 27),
+                },
+            ],
         };
     }
 }
