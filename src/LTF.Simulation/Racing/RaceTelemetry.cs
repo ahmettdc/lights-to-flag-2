@@ -4,11 +4,14 @@ namespace LTF.Simulation.Racing;
 public readonly record struct LapStanding(
     string CompetitorId, int Position, double TotalTime, double GapToLeader);
 
-/// <summary>The running order at the end of one lap.</summary>
+/// <summary>The running order at the end of one lap, and the race-control state during it.</summary>
 public sealed record LapSnapshot
 {
     public required int Lap { get; init; }
     public required IReadOnlyList<LapStanding> Order { get; init; }
+
+    /// <summary>Whether the lap ran green or under a neutralisation (M5d).</summary>
+    public required NeutralizationState State { get; init; }
 }
 
 /// <summary>

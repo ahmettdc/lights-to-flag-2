@@ -11,6 +11,9 @@ public enum RaceEventKind
     DriverError,
     Collision,
     StartIncident,
+    VirtualSafetyCar,
+    SafetyCar,
+    RedFlag,
 }
 
 /// <summary>

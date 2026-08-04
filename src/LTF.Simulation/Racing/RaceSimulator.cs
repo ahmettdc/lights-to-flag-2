@@ -7,14 +7,16 @@ namespace LTF.Simulation.Racing;
 /// <summary>
 /// Runs a race lap by lap and produces a classification, an event log and telemetry. Fully
 /// deterministic: every car draws pace, reliability and incidents from separate streams
-/// forked off the race seed, so the same seed and grid reproduce the same race bit for bit.
-/// M5a laid the pace skeleton, M5b added reliability, M5c adds the start, driver errors and
-/// basic car-to-car collisions. Full neutralisation (safety car / VSC / red flag) is M5d.
+/// forked off the race seed, plus a race-control stream for neutralisations, so the same
+/// seed and grid reproduce the same race bit for bit. M5a laid the pace skeleton, M5b added
+/// reliability, M5c the start / driver errors / collisions, and M5d the safety car, VSC and
+/// red-flag neutralisations.
 /// </summary>
 public static class RaceSimulator
 {
     private const long ReliabilitySalt = 0x5245_4C49; // "RELI"
     private const long IncidentSalt = 0x494E_4344;    // "INCD"
+    private const long RaceControlSalt = 0x5241_4345; // "RACE"
 
     // Below this health the weakest component starts costing lap time (limp mode).
     private const double LimpThreshold = 0.30;
@@ -33,6 +35,7 @@ public static class RaceSimulator
         int seed, TyreCompound startingCompound = TyreCompound.Medium)
     {
         var baseRng = new DeterministicRandom(seed);
+        var raceControlRng = baseRng.Fork(RaceControlSalt);
         var laps = circuit.Laps;
 
         var cars = new List<CarRaceState>(grid.Count);
@@ -55,14 +58,30 @@ public static class RaceSimulator
             ApplyStart(car, balance, events);
         }
 
+        var state = NeutralizationState.Green;
+        var neutralLapsLeft = 0;
+
         for (var lap = 1; lap <= laps; lap++)
         {
+            var stateThisLap = state;
+            var neutralized = stateThisLap != NeutralizationState.Green;
             var aheadOf = AheadMap(cars);
+            var retiredThisLap = 0;
+            string? triggerCarId = null;
 
             foreach (var car in cars)
             {
                 if (!car.Running)
                 {
+                    continue;
+                }
+
+                if (neutralized)
+                {
+                    // Circulating behind the safety car: a slow, uniform lap, no racing.
+                    car.TotalTime += NeutralizedLapTime(circuit, balance);
+                    car.LapsCompleted = lap;
+                    car.Fuel = FuelModel.Burn(car.Fuel, laps);
                     continue;
                 }
 
@@ -83,6 +102,8 @@ public static class RaceSimulator
                 DegradeHealth(car, balance);
                 if (TryFail(car, lap, balance, events))
                 {
+                    retiredThisLap++;
+                    triggerCarId = car.Id;
                     continue;
                 }
 
@@ -90,12 +111,16 @@ public static class RaceSimulator
                 lapTime += ApplyDriverError(car, lap, conditions, balance, events);
                 if (!car.Running)
                 {
+                    retiredThisLap++;
+                    triggerCarId = car.Id;
                     continue;
                 }
 
                 lapTime += ApplyCollision(car, aheadOf.GetValueOrDefault(car.Id), lap, balance, events);
                 if (!car.Running)
                 {
+                    retiredThisLap++;
+                    triggerCarId = car.Id;
                     continue;
                 }
 
@@ -110,7 +135,44 @@ public static class RaceSimulator
                 car.Fuel = FuelModel.Burn(car.Fuel, laps);
             }
 
-            snapshots.Add(SnapshotOf(lap, cars));
+            // Decide the next state before snapshotting, so a restart's bunching is captured now.
+            NeutralizationState nextState;
+            int nextLeft;
+            if (neutralized)
+            {
+                nextLeft = neutralLapsLeft - 1;
+                if (nextLeft <= 0)
+                {
+                    ApplyRestart(cars, stateThisLap, balance, startingCompound);
+                    nextState = NeutralizationState.Green;
+                    nextLeft = 0;
+                }
+                else
+                {
+                    nextState = stateThisLap;
+                }
+            }
+            else
+            {
+                nextState = NeutralizationState.Green;
+                nextLeft = 0;
+                if (retiredThisLap > 0 && TryTriggerNeutralization(raceControlRng, circuit, balance, retiredThisLap))
+                {
+                    nextState = ChooseNeutralization(raceControlRng, balance);
+                    nextLeft = balance.NeutralizationLaps;
+                    events.Add(new RaceEvent
+                    {
+                        Kind = ToEventKind(nextState),
+                        Lap = lap,
+                        CompetitorId = triggerCarId ?? string.Empty,
+                        Description = NeutralizationLabel(nextState),
+                    });
+                }
+            }
+
+            snapshots.Add(SnapshotOf(lap, cars, stateThisLap));
+            state = nextState;
+            neutralLapsLeft = nextLeft;
         }
 
         return Classify(cars, rules, snapshots, events);
@@ -215,8 +277,8 @@ public static class RaceSimulator
     // ---- Incidents (M5c) --------------------------------------------------
 
     /// <summary>Roll for a driver error this lap. A bad enough one ends the race; otherwise it
-    /// costs time. Inconsistent drivers err more; wet weather and lap one raise the odds;
-    /// good racecraft keeps an error out of the wall.</summary>
+    /// costs time. Inconsistent drivers err more; wet weather and lap one raise the odds; good
+    /// racecraft keeps an error out of the wall.</summary>
     private static double ApplyDriverError(
         CarRaceState car, int lap, LapConditions conditions, BalanceCoefficients balance, List<RaceEvent> events)
     {
@@ -255,9 +317,9 @@ public static class RaceSimulator
     }
 
     /// <summary>Roll for contact with the car ahead. Heavy contact ends this car's race and
-    /// delays the other; lighter contact costs both some time. Poor racecraft and lap one
-    /// raise the odds. The other party is recorded for the relationship layer (ADR-0013);
-    /// full multi-car pile-ups and neutralisation come in M5d.</summary>
+    /// delays the other; lighter contact costs both some time. Poor racecraft and lap one raise
+    /// the odds. The other party is recorded for the relationship layer (ADR-0013); full
+    /// multi-car pile-ups come with the neutralisation model.</summary>
     private static double ApplyCollision(
         CarRaceState car, CarRaceState? ahead, int lap, BalanceCoefficients balance, List<RaceEvent> events)
     {
@@ -304,6 +366,89 @@ public static class RaceSimulator
         return balance.CollisionTimeLossSeconds * (0.3 + severity);
     }
 
+    // ---- Neutralisation (M5d) ---------------------------------------------
+
+    /// <summary>Each car stopped on track this lap gets a chance (scaled by the circuit's
+    /// safety-car likelihood) to bring out a neutralisation to recover it.</summary>
+    private static bool TryTriggerNeutralization(
+        IRandom rng, Circuit circuit, BalanceCoefficients balance, int retiredThisLap)
+    {
+        var chance = balance.SafetyCarFromIncidentChance * circuit.SafetyCarLikelihood.Normalized;
+        var triggered = false;
+        for (var k = 0; k < retiredThisLap; k++)
+        {
+            if (rng.NextDouble() < chance)
+            {
+                triggered = true;
+            }
+        }
+
+        return triggered;
+    }
+
+    private static NeutralizationState ChooseNeutralization(IRandom rng, BalanceCoefficients balance)
+    {
+        if (rng.NextDouble() < balance.VirtualSafetyCarShare)
+        {
+            return NeutralizationState.VirtualSafetyCar;
+        }
+
+        return rng.NextDouble() < balance.RedFlagShare
+            ? NeutralizationState.RedFlag
+            : NeutralizationState.SafetyCar;
+    }
+
+    private static double NeutralizedLapTime(Circuit circuit, BalanceCoefficients balance) =>
+        circuit.BaseLapTimeSeconds * balance.NeutralizationPaceFactor;
+
+    /// <summary>Resume racing. A VSC kept the gaps, so nothing changes. A safety car bunches the
+    /// field nose to tail (lapped cars unlap); a red flag does the same and grants fresh tyres.</summary>
+    private static void ApplyRestart(
+        List<CarRaceState> cars, NeutralizationState state, BalanceCoefficients balance, TyreCompound startingCompound)
+    {
+        if (state == NeutralizationState.VirtualSafetyCar)
+        {
+            return;
+        }
+
+        var running = cars
+            .Where(c => c.Running)
+            .OrderByDescending(c => c.LapsCompleted)
+            .ThenBy(c => c.TotalTime)
+            .ToList();
+        if (running.Count == 0)
+        {
+            return;
+        }
+
+        var leaderLaps = running[0].LapsCompleted;
+        var leaderTime = running[0].TotalTime;
+        for (var i = 0; i < running.Count; i++)
+        {
+            var c = running[i];
+            c.LapsCompleted = leaderLaps;
+            c.TotalTime = leaderTime + (balance.BunchGapSeconds * i);
+            if (state == NeutralizationState.RedFlag)
+            {
+                c.Tyre = TyreState.Fresh(startingCompound);
+            }
+        }
+    }
+
+    private static RaceEventKind ToEventKind(NeutralizationState state) => state switch
+    {
+        NeutralizationState.VirtualSafetyCar => RaceEventKind.VirtualSafetyCar,
+        NeutralizationState.RedFlag => RaceEventKind.RedFlag,
+        _ => RaceEventKind.SafetyCar,
+    };
+
+    private static string NeutralizationLabel(NeutralizationState state) => state switch
+    {
+        NeutralizationState.VirtualSafetyCar => "Virtual safety car",
+        NeutralizationState.RedFlag => "Red flag",
+        _ => "Safety car",
+    };
+
     // ---- Ordering / classification ---------------------------------------
 
     /// <summary>For each running car, the car currently directly ahead of it — used to pair up
@@ -325,7 +470,7 @@ public static class RaceSimulator
         return map;
     }
 
-    private static LapSnapshot SnapshotOf(int lap, List<CarRaceState> cars)
+    private static LapSnapshot SnapshotOf(int lap, List<CarRaceState> cars, NeutralizationState state)
     {
         var running = cars
             .Where(c => c.Running)
@@ -341,7 +486,7 @@ public static class RaceSimulator
             order.Add(new LapStanding(c.Id, i + 1, c.TotalTime, c.TotalTime - leaderTime));
         }
 
-        return new LapSnapshot { Lap = lap, Order = order };
+        return new LapSnapshot { Lap = lap, Order = order, State = state };
     }
 
     private static RaceResult Classify(

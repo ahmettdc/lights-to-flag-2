@@ -76,4 +76,23 @@ public sealed record BalanceCoefficients
 
     /// <summary>Time penalty applied for a jump start (a stand-in until the M7 penalty system).</summary>
     public double StartIncidentPenaltySeconds { get; init; } = 5.0;
+
+    /// <summary>Chance a car stopping on track brings out a neutralisation (scaled by the
+    /// circuit's safety-car likelihood).</summary>
+    public double SafetyCarFromIncidentChance { get; init; } = 0.4;
+
+    /// <summary>Of neutralisations, the share that are a virtual safety car rather than a full one.</summary>
+    public double VirtualSafetyCarShare { get; init; } = 0.5;
+
+    /// <summary>Of full (non-VSC) neutralisations, the share that escalate to a red flag.</summary>
+    public double RedFlagShare { get; init; } = 0.1;
+
+    /// <summary>How much slower a neutralised lap is than green (multiplier on base lap time).</summary>
+    public double NeutralizationPaceFactor { get; init; } = 1.4;
+
+    /// <summary>How many laps a safety car / VSC period lasts.</summary>
+    public int NeutralizationLaps { get; init; } = 3;
+
+    /// <summary>Gap, in seconds, between cars once the field is bunched behind the safety car.</summary>
+    public double BunchGapSeconds { get; init; } = 0.6;
 }

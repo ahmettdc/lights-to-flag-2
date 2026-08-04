@@ -236,4 +236,89 @@ public class RaceSimulatorTests
             a.Events.Select(e => (e.Kind, e.Lap, e.CompetitorId, e.OtherCompetitorId, e.Description)),
             b.Events.Select(e => (e.Kind, e.Lap, e.CompetitorId, e.OtherCompetitorId, e.Description)));
     }
+
+    // ---- Neutralisation (M5d) ---------------------------------------------
+
+    [Fact]
+    public void An_incident_can_bring_out_a_neutralization()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // Retirements are frequent and each one is certain to neutralise.
+        var balance = SimFixtures.CalmBalance with { ReliabilityFailureRate = 0.3, SafetyCarFromIncidentChance = 5.0 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 7);
+
+        Assert.Contains(result.Events, e =>
+            e.Kind is RaceEventKind.SafetyCar or RaceEventKind.VirtualSafetyCar or RaceEventKind.RedFlag);
+        Assert.Contains(result.Telemetry.Laps, s => s.State != NeutralizationState.Green);
+    }
+
+    [Fact]
+    public void Neutralized_laps_are_calm()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = SimFixtures.CalmBalance with { ReliabilityFailureRate = 0.3, SafetyCarFromIncidentChance = 5.0 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 7);
+
+        var neutralLaps = result.Telemetry.Laps
+            .Where(s => s.State != NeutralizationState.Green)
+            .Select(s => s.Lap)
+            .ToHashSet();
+        Assert.NotEmpty(neutralLaps);
+
+        // No racing incident (failure / error / collision) happens on a neutralised lap.
+        foreach (var e in result.Events)
+        {
+            if (e.Kind is RaceEventKind.MechanicalFailure or RaceEventKind.DriverError or RaceEventKind.Collision)
+            {
+                Assert.DoesNotContain(e.Lap, neutralLaps);
+            }
+        }
+    }
+
+    [Fact]
+    public void The_safety_car_compresses_the_field()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // Force a full safety car (no VSC, no red flag) that is certain to be called.
+        var balance = SimFixtures.CalmBalance with
+        {
+            ReliabilityFailureRate = 0.3,
+            SafetyCarFromIncidentChance = 5.0,
+            VirtualSafetyCarShare = 0.0,
+            RedFlagShare = 0.0,
+        };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 7);
+
+        var safetyCarLaps = result.Telemetry.Laps.Where(s => s.State == NeutralizationState.SafetyCar).ToList();
+        Assert.NotEmpty(safetyCarLaps);
+
+        // At the restart the field is bunched nose to tail, so at least one safety-car lap shows
+        // a tiny spread.
+        Assert.Contains(safetyCarLaps, s => s.Order.Count > 0 && s.Order.Max(o => o.GapToLeader) < 3.0);
+    }
+
+    [Fact]
+    public void A_neutralized_race_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = SimFixtures.CalmBalance with { ReliabilityFailureRate = 0.2, SafetyCarFromIncidentChance = 5.0 };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 2024);
+
+        Assert.Equal(
+            a.Classification.Select(e => (e.CompetitorId, e.Status, e.Laps, e.TotalTime)),
+            b.Classification.Select(e => (e.CompetitorId, e.Status, e.Laps, e.TotalTime)));
+        Assert.Equal(
+            a.Telemetry.Laps.Select(s => (s.Lap, s.State)),
+            b.Telemetry.Laps.Select(s => (s.Lap, s.State)));
+        Assert.Contains(a.Telemetry.Laps, s => s.State != NeutralizationState.Green);
+    }
 }
