@@ -4,9 +4,9 @@ namespace LTF.Simulation.Laps;
 
 /// <summary>
 /// The core lap-time model: circuit reference pace scaled by how well a car and driver
-/// suit the track, then perturbed by per-sector noise. Deterministic given the supplied
-/// <see cref="IRandom"/>. Tyres, fuel and weather layer on top in later milestones (M4+);
-/// this milestone establishes the pace backbone and the determinism guarantee.
+/// suit the track, plus the deltas from tyres, fuel and weather, then per-sector noise.
+/// Deterministic given the supplied <see cref="IRandom"/>. The pace backbone came in M3;
+/// M4 adds the <see cref="LapConditions"/> deltas.
 /// </summary>
 public static class LapTimeModel
 {
@@ -18,20 +18,34 @@ public static class LapTimeModel
     private const double ReferencePace = 0.85;
     private const double PaceSpread = 0.25;
 
+    /// <summary>A pure-pace lap under reference conditions (fresh mediums, no fuel, dry).</summary>
     public static SectorTimes Simulate(
-        Circuit circuit, Car car, DriverAttributes driver, BalanceCoefficients balance, IRandom rng)
+        Circuit circuit, Car car, DriverAttributes driver, BalanceCoefficients balance, IRandom rng) =>
+        Simulate(circuit, car, driver, balance, LapConditions.Neutral, rng);
+
+    /// <summary>A lap run under the given tyre / fuel / weather conditions.</summary>
+    public static SectorTimes Simulate(
+        Circuit circuit, Car car, DriverAttributes driver, BalanceCoefficients balance,
+        LapConditions conditions, IRandom rng)
     {
         var pace = (balance.CarPaceWeight * CarScore(car, circuit))
                    + (balance.DriverPaceWeight * DriverScore(driver));
 
         var lapCore = circuit.BaseLapTimeSeconds * (1.0 + (PaceSpread * (ReferencePace - pace)));
 
+        var conditionDelta =
+            TyreModel.TimeDelta(conditions.Tyre, circuit)
+            + FuelModel.Penalty(conditions.FuelFraction, balance)
+            + WeatherModel.ConditionPenalty(conditions.Tyre.Compound, conditions.Track.Wetness);
+
+        var effective = lapCore + conditionDelta;
+
         // Less consistent drivers scatter more lap to lap.
         var noiseScale = balance.RandomnessSpreadSeconds * (1.2 - driver.Consistency.Normalized);
 
-        var s1 = Sector(lapCore, SectorFraction[0], noiseScale, rng);
-        var s2 = Sector(lapCore, SectorFraction[1], noiseScale, rng);
-        var s3 = Sector(lapCore, SectorFraction[2], noiseScale, rng);
+        var s1 = Sector(effective, SectorFraction[0], noiseScale, rng);
+        var s2 = Sector(effective, SectorFraction[1], noiseScale, rng);
+        var s3 = Sector(effective, SectorFraction[2], noiseScale, rng);
         return new SectorTimes(s1, s2, s3);
     }
 
@@ -39,8 +53,12 @@ public static class LapTimeModel
         Circuit circuit, Competitor competitor, BalanceCoefficients balance, IRandom rng) =>
         Simulate(circuit, competitor.Car, competitor.Driver.Attributes, balance, rng);
 
-    private static double Sector(double lapCore, double fraction, double noiseScale, IRandom rng) =>
-        (lapCore * fraction) + (rng.NextGaussian() * noiseScale * fraction);
+    public static SectorTimes Simulate(
+        Circuit circuit, Competitor competitor, BalanceCoefficients balance, LapConditions conditions, IRandom rng) =>
+        Simulate(circuit, competitor.Car, competitor.Driver.Attributes, balance, conditions, rng);
+
+    private static double Sector(double effectiveCore, double fraction, double noiseScale, IRandom rng) =>
+        (effectiveCore * fraction) + (rng.NextGaussian() * noiseScale * fraction);
 
     /// <summary>How well the car suits this circuit, 0–1, weighting power vs downforce by track.</summary>
     private static double CarScore(Car car, Circuit circuit)
