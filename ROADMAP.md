@@ -1,6 +1,6 @@
 # Lights to Flag 2 — Yol Haritası
 
-> **Durum:** Faz 0 / M0 ✅ · M1 ✅ (Domain modeli, CI yeşil) · **Sıradaki: M2** (içerik formatı + örnek carset) · Marka kiti + UI mockup teslim alındı (`design/`)
+> **Durum:** **Faz 0 ✅ tamam** (M0 iskelet · M1 domain · M2 içerik formatı + örnek carset, üçü de CI'da yeşil) · **Sıradaki: Faz 1 / M3** (tohumlanabilir RNG + sektör bazlı tur zamanı) · Marka kiti + UI mockup teslim alındı (`design/`)
 > · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe · **Oyun arayüz dili:** İngilizce
 > · **Hedef platform:** Windows + macOS (Linux: yalnızca CI) · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36), tek oyunculu 1.0 + çok oyunculu co-op 2.0
 
