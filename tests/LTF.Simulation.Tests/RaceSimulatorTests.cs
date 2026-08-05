@@ -571,6 +571,75 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Active aero (26b) ------------------------------------------------
+
+    [Fact]
+    public void Active_aero_makes_the_2026_car_faster_on_a_power_track()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(power: 95, downforce: 40);
+        // Pure pace, traffic off: the only difference between the two runs is the active-aero gain.
+        var balance = SimFixtures.CalmBalance;
+
+        var withAero = RegulationSet.Aero2026;
+        var withoutAero = new RegulationSet
+        {
+            Era = RegulationEra.ActiveAero2026,
+            LowDragLapGainSeconds = 0.0,
+            HighDownforceLapGainSeconds = 0.0,
+        };
+
+        var fast = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7, regulations: withAero);
+        var slow = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7, regulations: withoutAero);
+
+        Assert.True(fast.Classification[0].TotalTime < slow.Classification[0].TotalTime,
+            $"withAero={fast.Classification[0].TotalTime} withoutAero={slow.Classification[0].TotalTime}");
+    }
+
+    [Fact]
+    public void Active_aero_gain_is_larger_on_a_power_sensitive_track()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var balance = SimFixtures.CalmBalance;
+
+        var withAero = RegulationSet.Aero2026;
+        var withoutAero = new RegulationSet
+        {
+            Era = RegulationEra.ActiveAero2026,
+            LowDragLapGainSeconds = 0.0,
+            HighDownforceLapGainSeconds = 0.0,
+        };
+
+        double Gain(Circuit c)
+        {
+            var a = RaceSimulator.Run(c, grid, carset.Rules, balance, 7, regulations: withAero).Classification[0].TotalTime;
+            var b = RaceSimulator.Run(c, grid, carset.Rules, balance, 7, regulations: withoutAero).Classification[0].TotalTime;
+            return b - a; // seconds saved by active aero
+        }
+
+        // Same low downforce on both, so the difference is the low-drag (X) gain, which scales with power.
+        var powerTrack = SimFixtures.Circuit(power: 95, downforce: 20);
+        var flatTrack = SimFixtures.Circuit(power: 20, downforce: 20);
+
+        Assert.True(Gain(powerTrack) > Gain(flatTrack), $"power={Gain(powerTrack)} flat={Gain(flatTrack)}");
+    }
+
+    [Fact]
+    public void The_2026_low_drag_mode_raises_top_speed()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(power: 90);
+        var balance = SimFixtures.CalmBalance;
+
+        var drs = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7);
+        var era2026 = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7, regulations: RegulationSet.Aero2026);
+
+        Assert.True(era2026.Classification.Max(e => e.TopSpeed) > drs.Classification.Max(e => e.TopSpeed));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();

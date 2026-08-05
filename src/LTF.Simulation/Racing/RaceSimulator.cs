@@ -11,9 +11,10 @@ namespace LTF.Simulation.Racing;
 /// seed and grid reproduce the same race bit for bit. M5a laid the pace skeleton, M5b added
 /// reliability, M5c the start / driver errors / collisions, and M5d the safety car, VSC and
 /// red-flag neutralisations. M6 added traffic and overtaking; 26a made the overtaking aid and
-/// energy regulation-era-aware (DRS ↔ 2026 Manual Override). The energy model draws no random
-/// numbers — it is deterministic arithmetic — so the pre-2026 streams are untouched and a
-/// DRS-era race stays bit-for-bit identical to before.
+/// energy regulation-era-aware (DRS ↔ 2026 Manual Override) and 26b added the 2026 active-aero
+/// lap-time gain and its top-speed effect. The energy and aero models draw no random numbers —
+/// they are deterministic arithmetic — so the pre-2026 streams are untouched and a DRS-era race
+/// stays bit-for-bit identical to before.
 /// </summary>
 public static class RaceSimulator
 {
@@ -65,7 +66,7 @@ public static class RaceSimulator
                 reliabilityRng: paceRng.Fork(ReliabilitySalt), incidentRng: paceRng.Fork(IncidentSalt),
                 tyre: TyreState.Fresh(startingCompound), fuel: 1.0,
                 health: ComponentHealth.Fresh(), mode: EngineMode.Standard,
-                topSpeed: TopSpeedFor(grid[i].Car, circuit)));
+                topSpeed: TopSpeedFor(grid[i].Car, circuit, regs, era2026)));
         }
 
         var snapshots = new List<LapSnapshot>(laps);
@@ -121,9 +122,11 @@ public static class RaceSimulator
                               + EngineModes.PaceDelta(car.Mode, balance)
                               + LimpPenalty(car.Health, balance);
 
-                // 2026 only: a depleted battery de-rates the car (deterministic, no random draw).
+                // 2026 only: active aero gains time, a depleted battery de-rates the car — both
+                // deterministic, no random draw.
                 if (era2026)
                 {
+                    lapTime += ActiveAeroDelta(car.Competitor.Car, circuit, regs);
                     lapTime += DeRatingPenalty(car, regs);
                 }
 
@@ -444,8 +447,32 @@ public static class RaceSimulator
     private static double NeutralizedLapTime(Circuit circuit, BalanceCoefficients balance) =>
         circuit.BaseLapTimeSeconds * balance.NeutralizationPaceFactor;
 
-    private static double TopSpeedFor(Car car, Circuit circuit) =>
-        BaseTopSpeedKph + (car.PowerUnit.Normalized * TopSpeedSpanKph * (0.6 + (0.4 * circuit.PowerSensitivity.Normalized)));
+    /// <summary>Representative top speed (kph): a base plus a power-unit-scaled span weighted by track
+    /// power. In 2026 the low-drag (X) aero mode adds more top speed on power-sensitive circuits.</summary>
+    private static double TopSpeedFor(Car car, Circuit circuit, RegulationSet regs, bool era2026)
+    {
+        var speed = BaseTopSpeedKph
+                    + (car.PowerUnit.Normalized * TopSpeedSpanKph * (0.6 + (0.4 * circuit.PowerSensitivity.Normalized)));
+        if (era2026)
+        {
+            speed += regs.LowDragTopSpeedKph * circuit.PowerSensitivity.Normalized;
+        }
+
+        return speed;
+    }
+
+    /// <summary>2026 active aero: a per-lap time gain (negative) blending the low-drag (X) benefit on
+    /// the straights — scaled by the circuit's power sensitivity and the car's power unit — with the
+    /// high-downforce (Z) benefit in the corners — scaled by downforce sensitivity and the car's aero.
+    /// Automatic in 2026; deterministic, no random draw.</summary>
+    private static double ActiveAeroDelta(Car car, Circuit circuit, RegulationSet regs)
+    {
+        var lowDrag = regs.LowDragLapGainSeconds * circuit.PowerSensitivity.Normalized
+                      * (0.5 + (0.5 * car.PowerUnit.Normalized));
+        var highDownforce = regs.HighDownforceLapGainSeconds * circuit.DownforceSensitivity.Normalized
+                            * (0.5 + (0.5 * car.Aerodynamics.Normalized));
+        return -(lowDrag + highDownforce);
+    }
 
     private static SectorTimes EvenSectors(double total) =>
         new(total * 0.34, total * 0.33, total * 0.33);

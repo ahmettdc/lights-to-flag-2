@@ -50,6 +50,20 @@ public sealed record RegulationSet
     /// is below <see cref="DeRatingThreshold"/>.</summary>
     public double DeRatingPenaltySeconds { get; init; } = 1.5;
 
+    // ---- 2026: active aero (read only when Era is ActiveAero2026) ----
+
+    /// <summary>Lap-time gained from the low-drag (X) aero mode down the straights, scaled by the
+    /// circuit's power sensitivity and the car's power unit.</summary>
+    public double LowDragLapGainSeconds { get; init; } = 0.15;
+
+    /// <summary>Lap-time gained from the high-downforce (Z) aero mode through the corners, scaled by
+    /// the circuit's downforce sensitivity and the car's aerodynamics.</summary>
+    public double HighDownforceLapGainSeconds { get; init; } = 0.15;
+
+    /// <summary>Top speed (kph) added by the low-drag (X) aero mode, scaled by the circuit's power
+    /// sensitivity.</summary>
+    public double LowDragTopSpeedKph { get; init; } = 15.0;
+
     /// <summary>The shared default: the DRS era with pre-2026 behaviour.</summary>
     public static RegulationSet Drs { get; } = new();
 
