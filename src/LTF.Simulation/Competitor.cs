@@ -13,6 +13,10 @@ public sealed record Competitor
     public required string Id { get; init; }
 
     public required string TeamId { get; init; }
+
+    /// <summary>The class this competitor races in (M9); empty = single class.</summary>
+    public string Class { get; init; } = "";
+
     public required Driver Driver { get; init; }
     public required Car Car { get; init; }
 }

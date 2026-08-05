@@ -148,4 +148,33 @@ internal static class SimFixtures
         var brokenTeam = carset.Teams[0] with { DriverIds = ["ghost", "d2"] };
         return carset with { Teams = [brokenTeam, carset.Teams[1]] };
     }
+
+    /// <summary>Two classes of two cars each — a fast prototype class and a slower GT class — for
+    /// exercising per-class classification (M9d).</summary>
+    public static Carset MultiClassCarset()
+    {
+        Driver Make(string id) => new()
+        {
+            Id = id, FirstName = id.ToUpperInvariant(), LastName = "Driver", Age = 25,
+            Attributes = Attributes(70),
+        };
+
+        Driver[] drivers = [Make("p1"), Make("p2"), Make("g1"), Make("g2")];
+
+        Team MakeTeam(string id, int flat, string cls, string a, string b) => new()
+        {
+            Id = id, Name = id, Class = cls, Car = Car(flat), DriverIds = [a, b],
+        };
+
+        return new Carset
+        {
+            Id = "mc",
+            Name = "MC",
+            Rules = new RulesSet { SeriesName = "S", Points = new PointsScheme { RacePoints = [25, 18] } },
+            Teams = [MakeTeam("proto", 90, "LMP", "p1", "p2"), MakeTeam("gt", 60, "GTE", "g1", "g2")],
+            Drivers = drivers,
+            Circuits = [Circuit()],
+            Calendar = [new CalendarRound { Round = 1, CircuitId = "c", Date = new DateOnly(2025, 3, 16) }],
+        };
+    }
 }

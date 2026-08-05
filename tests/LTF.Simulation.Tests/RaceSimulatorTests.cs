@@ -1065,6 +1065,45 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Multi-class (M9d) ------------------------------------------------
+
+    [Fact]
+    public void The_entry_list_copies_the_team_class()
+    {
+        var carset = SimFixtures.MultiClassCarset();
+        var grid = EntryList.Build(carset);
+
+        Assert.Equal("LMP", grid.Single(c => c.Id == "p1").Class);
+        Assert.Equal("GTE", grid.Single(c => c.Id == "g1").Class);
+    }
+
+    [Fact]
+    public void Per_class_positions_are_dense_within_each_class()
+    {
+        var carset = SimFixtures.MultiClassCarset();
+        var grid = EntryList.Build(carset);
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
+
+        foreach (var group in result.Classification.GroupBy(e => e.ClassId))
+        {
+            var classPositions = group.OrderBy(e => e.Position).Select(e => e.ClassPosition).ToList();
+            Assert.Equal(Enumerable.Range(1, classPositions.Count), classPositions);
+        }
+    }
+
+    [Fact]
+    public void A_single_class_field_has_class_position_equal_to_position()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
+
+        Assert.All(result.Classification, e => Assert.Equal(e.Position, e.ClassPosition));
+        Assert.All(result.Classification, e => Assert.Equal("", e.ClassId));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();

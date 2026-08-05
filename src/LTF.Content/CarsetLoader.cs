@@ -218,6 +218,7 @@ public static class CarsetLoader
         Base = t.Base ?? "",
         Principal = t.Principal ?? "",
         Nationality = t.Nationality ?? "",
+        Class = t.Class ?? "",
         Car = MapCar(t.Car, $"{p}.car"),
         DriverIds = t.DriverIds?.ToArray() ?? [],
         Facilities = MapFacilities(t.Facilities),

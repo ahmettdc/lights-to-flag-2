@@ -19,6 +19,9 @@ public sealed record Team
     public string Principal { get; init; } = "";
     public string Nationality { get; init; } = "";
 
+    /// <summary>The class this team races in, for multi-class series (M9); empty = single class.</summary>
+    public string Class { get; init; } = "";
+
     public required Car Car { get; init; }
 
     /// <summary>Driver ids filling this team's seats at the start of the career.</summary>

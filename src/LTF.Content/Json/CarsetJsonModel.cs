@@ -113,6 +113,7 @@ internal sealed class TeamJson
     public string? Base { get; set; }
     public string? Principal { get; set; }
     public string? Nationality { get; set; }
+    public string? Class { get; set; }
     public CarJson? Car { get; set; }
     public List<string>? DriverIds { get; set; }
     public FacilitiesJson? Facilities { get; set; }

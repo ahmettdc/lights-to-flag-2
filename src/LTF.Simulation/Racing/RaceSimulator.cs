@@ -931,11 +931,19 @@ public static class RaceSimulator
         }
 
         var leaderTime = ordered.Count > 0 ? ordered[0].TotalTime : 0.0;
+        var classCounts = new Dictionary<string, int>(StringComparer.Ordinal);
         var entries = new List<RaceClassificationEntry>(ordered.Count);
         for (var i = 0; i < ordered.Count; i++)
         {
             var c = ordered[i];
             var position = i + 1;
+
+            // Dense position within the car's class (M9d); "" for a single-class field gives
+            // ClassPosition == Position.
+            var classId = c.Competitor.Class;
+            classCounts.TryGetValue(classId, out var classCount);
+            classCount++;
+            classCounts[classId] = classCount;
 
             var points = c.Status == FinishStatus.Finished ? rules.Points.PointsFor(position) : 0;
             if (rules.Points.FastestLapPoint > 0 && fastest is not null && c.Id == fastest.Id
@@ -973,6 +981,8 @@ public static class RaceSimulator
                 BestLap = c.BestLap < double.MaxValue ? c.BestLap : 0.0,
                 TopSpeed = c.TopSpeed,
                 Points = points,
+                ClassId = classId,
+                ClassPosition = classCount,
             });
         }
 

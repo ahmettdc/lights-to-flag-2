@@ -28,6 +28,7 @@ public static class EntryList
                 {
                     Id = driverId,
                     TeamId = team.Id,
+                    Class = team.Class,
                     Driver = driver,
                     Car = team.Car,
                 });

@@ -17,6 +17,12 @@ public sealed record RaceClassificationEntry
     public required double TopSpeed { get; init; }
 
     public required int Points { get; init; }
+
+    /// <summary>The competitor's class (M9); empty for a single-class field.</summary>
+    public string ClassId { get; init; } = "";
+
+    /// <summary>Position within the class (M9); equal to <see cref="Position"/> for a single class.</summary>
+    public int ClassPosition { get; init; }
 }
 
 /// <summary>The outcome of a race: the classification, the event log, the fastest lap and telemetry.</summary>

@@ -119,4 +119,17 @@ public class CarsetLoaderTests
         Assert.Equal(1, carset.Rules.Points.LeadingLapPoint);
         Assert.Equal(5, carset.Rules.Points.MostLapsLedPoint);
     }
+
+    [Fact]
+    public void Reads_a_team_class()
+    {
+        var json = TestData.MinimalValid.Replace(
+            "\"id\": \"tm\", \"name\": \"Team\",",
+            "\"id\": \"tm\", \"name\": \"Team\", \"class\": \"GT\",",
+            StringComparison.Ordinal);
+
+        var carset = CarsetLoader.LoadFromJson(json);
+
+        Assert.Equal("GT", carset.Teams[0].Class);
+    }
 }
