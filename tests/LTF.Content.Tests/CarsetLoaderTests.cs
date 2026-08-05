@@ -1,4 +1,5 @@
 using LTF.Content;
+using LTF.Domain.Racing;
 using Xunit;
 
 namespace LTF.Content.Tests;
@@ -55,5 +56,53 @@ public class CarsetLoaderTests
         var json = TestData.MinimalValid.Replace("2025-03-16", "03/16/2025", StringComparison.Ordinal);
         var ex = Assert.Throws<CarsetValidationException>(() => CarsetLoader.LoadFromJson(json));
         Assert.Contains("date", ex.Message);
+    }
+
+    // ---- Regulations (26c / ADR-0018) -------------------------------------
+
+    [Fact]
+    public void No_regulations_block_is_the_drs_era()
+    {
+        var carset = CarsetLoader.LoadFromJson(TestData.MinimalValid);
+        Assert.Equal(RegulationEra.DrsEra, carset.Regulations.Era);
+    }
+
+    [Fact]
+    public void Loads_the_2026_era_and_defaults_unspecified_params()
+    {
+        var json = TestData.MinimalValid.Replace(
+            "\"name\": \"T\",",
+            "\"name\": \"T\", \"regulations\": { \"era\": \"ActiveAero2026\" },",
+            StringComparison.Ordinal);
+
+        var carset = CarsetLoader.LoadFromJson(json);
+
+        Assert.Equal(RegulationEra.ActiveAero2026, carset.Regulations.Era);
+        Assert.Equal(new RegulationSet().ManualOverrideBoost, carset.Regulations.ManualOverrideBoost);
+    }
+
+    [Fact]
+    public void Reads_2026_tuning_parameters()
+    {
+        var json = TestData.MinimalValid.Replace(
+            "\"name\": \"T\",",
+            "\"name\": \"T\", \"regulations\": { \"era\": \"ActiveAero2026\", \"manualOverrideBoost\": 0.9 },",
+            StringComparison.Ordinal);
+
+        var carset = CarsetLoader.LoadFromJson(json);
+
+        Assert.Equal(0.9, carset.Regulations.ManualOverrideBoost);
+    }
+
+    [Fact]
+    public void Rejects_an_unknown_regulation_era()
+    {
+        var json = TestData.MinimalValid.Replace(
+            "\"name\": \"T\",",
+            "\"name\": \"T\", \"regulations\": { \"era\": \"Nonsense\" },",
+            StringComparison.Ordinal);
+
+        var ex = Assert.Throws<CarsetValidationException>(() => CarsetLoader.LoadFromJson(json));
+        Assert.Contains("regulations.era", ex.Message);
     }
 }

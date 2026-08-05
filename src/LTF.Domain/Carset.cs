@@ -22,6 +22,10 @@ public sealed record Carset
     public required RulesSet Rules { get; init; }
     public BalanceCoefficients Balance { get; init; } = new();
 
+    /// <summary>The technical regulation era this championship races under (ADR-0018); defaults to
+    /// the DRS era so carsets without a <c>regulations</c> block behave exactly as before.</summary>
+    public RegulationSet Regulations { get; init; } = RegulationSet.Drs;
+
     public required IReadOnlyList<Team> Teams { get; init; }
 
     /// <summary>Full race drivers filling the teams' seats.</summary>

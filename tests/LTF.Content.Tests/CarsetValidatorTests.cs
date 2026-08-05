@@ -44,4 +44,30 @@ public class CarsetValidatorTests
         Assert.Contains(issues, i =>
             i.Severity == ValidationSeverity.Error && i.Message.Contains("unknown circuit 'cX'", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void Negative_regulation_coefficient_is_an_error()
+    {
+        var json = TestData.MinimalValid.Replace(
+            "\"name\": \"T\",",
+            "\"name\": \"T\", \"regulations\": { \"era\": \"ActiveAero2026\", \"energyRegenPerLap\": -0.5 },",
+            StringComparison.Ordinal);
+        var issues = CarsetValidator.Validate(CarsetLoader.LoadFromJson(json));
+
+        Assert.Contains(issues, i =>
+            i.Severity == ValidationSeverity.Error && i.Message.Contains("non-negative", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Out_of_range_derating_threshold_is_an_error()
+    {
+        var json = TestData.MinimalValid.Replace(
+            "\"name\": \"T\",",
+            "\"name\": \"T\", \"regulations\": { \"era\": \"ActiveAero2026\", \"deRatingThreshold\": 1.5 },",
+            StringComparison.Ordinal);
+        var issues = CarsetValidator.Validate(CarsetLoader.LoadFromJson(json));
+
+        Assert.Contains(issues, i =>
+            i.Severity == ValidationSeverity.Error && i.Message.Contains("deRatingThreshold", StringComparison.Ordinal));
+    }
 }

@@ -1,6 +1,6 @@
 # Lights to Flag 2 — Yol Haritası
 
-> **Durum:** Faz 0 ✅ (M0–M2) · **Faz 1: M3 ✅ · M4 ✅ · M5 ✅ (a–e) · M6 ✅** (RNG + tur zamanı; lastik/yakıt/hava; yarış motoru: güvenilirlik + pilot hataları + çarpışma + start + nötralizasyon + zengin telemetri; **trafik: kirli hava / slipstream-DRS / geçiş mücadelesi**, CI yeşil) · **Sıradaki: M7** (pit stop + strateji + cezalar) · Marka kiti + UI mockup teslim alındı (`design/`)
+> **Durum:** Faz 0 ✅ (M0–M2) · **Faz 1: M3 ✅ · M4 ✅ · M5 ✅ (a–e) · M6 ✅** (RNG + tur zamanı; lastik/yakıt/hava; yarış motoru: güvenilirlik + pilot hataları + çarpışma + start + nötralizasyon + zengin telemetri; **trafik: kirli hava / slipstream-DRS / geçiş mücadelesi**, CI yeşil) · **2026 regülasyon çağı ✅** (26a–c: aktif aero X/Z + Manuel Override + enerji/de-rating; carset `regulations` bloğuyla seçilebilir — ADR-0018) · **Sıradaki: M7** (pit stop + strateji + cezalar) · Marka kiti + UI mockup teslim alındı (`design/`)
 > · **Belge tarihi:** 2026-08-03 · **Belge dili:** Türkçe · **Oyun arayüz dili:** İngilizce
 > · **Hedef platform:** Windows + macOS (Linux: yalnızca CI) · **Kapsam:** 7 faz (0–6), 37 kilometre taşı (M0–M36), tek oyunculu 1.0 + çok oyunculu co-op 2.0
 

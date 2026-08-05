@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 namespace LTF.Content.Json;
 
 // Data-transfer shapes for a carset.json file. Everything is nullable so the mapper
@@ -21,8 +19,21 @@ internal sealed class CarsetJson
     public List<DriverJson>? Drivers { get; set; }
     public List<DriverJson>? Reserves { get; set; }
 
-    /// <summary>Forward hook (ADR-0010): parsed and retained but not yet interpreted.</summary>
-    public JsonElement? Regulations { get; set; }
+    /// <summary>Optional regulation era + tuning (ADR-0018). Absent → the DRS era.</summary>
+    public RegulationsJson? Regulations { get; set; }
+}
+
+internal sealed class RegulationsJson
+{
+    public string? Era { get; set; }
+    public double? EnergyRegenPerLap { get; set; }
+    public double? ManualOverrideEnergyCost { get; set; }
+    public double? ManualOverrideBoost { get; set; }
+    public double? DeRatingThreshold { get; set; }
+    public double? DeRatingPenaltySeconds { get; set; }
+    public double? LowDragLapGainSeconds { get; set; }
+    public double? HighDownforceLapGainSeconds { get; set; }
+    public double? LowDragTopSpeedKph { get; set; }
 }
 
 internal sealed class RulesJson

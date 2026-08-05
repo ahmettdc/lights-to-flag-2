@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "id": "global-prix-2026",
+  "name": "Global Prix 2026 — Active Aero Era",
+  "regulations": {
+    "era": "ActiveAero2026"
+  },
+  "rules": {
+    "seriesName": "Global Prix 2026 World Championship",
+    "qualifying": "Knockout",
+    "retirementAge": 40,
+    "mandatoryPitStops": 1,
+    "bothDryCompoundsRequired": true,
+    "gridPenaltyPerExtraComponent": 5,
+    "componentAllocation": {
+      "Engine": 4,
+      "Gearbox": 6,
+      "Brakes": 8
+    },
+    "points": {
+      "racePoints": [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+      "sprintPoints": [8, 7, 6, 5, 4, 3, 2, 1]
+    }
+  },
+  "tyres": [
+    { "compound": "Soft", "code": "C4", "grip": 92, "durability": 35 },
+    { "compound": "Medium", "code": "C3", "grip": 84, "durability": 55 },
+    { "compound": "Hard", "code": "C2", "grip": 76, "durability": 75 },
+    { "compound": "Intermediate", "code": "I", "grip": 70, "durability": 60 },
+    { "compound": "Wet", "code": "W", "grip": 62, "durability": 65 }
+  ],
+  "circuits": [
+    { "id": "sable-bay", "name": "Sable Bay Circuit", "country": "Monaco-like", "kind": "StreetCircuit",
+      "laps": 58, "lapDistanceKm": 3.3, "baseLapTimeSeconds": 74.0,
+      "overtaking": 20, "powerSensitivity": 35, "downforceSensitivity": 85, "tyreStress": 40, "safetyCarLikelihood": 75 },
+    { "id": "nordwind-ring", "name": "Nordwind Ring", "country": "Germany-like", "kind": "RoadCourse",
+      "laps": 60, "lapDistanceKm": 4.6, "baseLapTimeSeconds": 82.0,
+      "overtaking": 60, "powerSensitivity": 60, "downforceSensitivity": 55, "tyreStress": 55, "safetyCarLikelihood": 35 },
+    { "id": "aurelia-park", "name": "Aurelia Park", "country": "Italy-like", "kind": "RoadCourse",
+      "laps": 53, "lapDistanceKm": 5.8, "baseLapTimeSeconds": 88.0,
+      "overtaking": 80, "powerSensitivity": 90, "downforceSensitivity": 40, "tyreStress": 60, "safetyCarLikelihood": 30 },
+    { "id": "kestrel-speedway", "name": "Kestrel Speedway", "country": "USA-like", "kind": "RoadCourse",
+      "laps": 56, "lapDistanceKm": 5.4, "baseLapTimeSeconds": 92.0,
+      "overtaking": 70, "powerSensitivity": 75, "downforceSensitivity": 60, "tyreStress": 70, "safetyCarLikelihood": 45 }
+  ],
+  "calendar": [
+    { "round": 1, "circuitId": "sable-bay", "date": "2026-03-15" },
+    { "round": 2, "circuitId": "nordwind-ring", "date": "2026-04-12", "sprint": true },
+    { "round": 3, "circuitId": "aurelia-park", "date": "2026-05-10" },
+    { "round": 4, "circuitId": "kestrel-speedway", "date": "2026-06-07" }
+  ],
+  "teams": [
+    { "id": "talon", "name": "Talon Racing", "shortName": "TAL", "base": "Oxford-like", "principal": "Helena Vasquez",
+      "car": { "aerodynamics": 88, "chassis": 85, "powerUnit": 84, "tyreGentleness": 80, "reliability": 86 },
+      "driverIds": ["d1", "d2"] },
+    { "id": "kuro", "name": "Kuro Dynamics", "shortName": "KUR", "base": "Tokyo-like", "principal": "Kenji Arata",
+      "car": { "aerodynamics": 82, "chassis": 83, "powerUnit": 86, "tyreGentleness": 78, "reliability": 82 },
+      "driverIds": ["d3", "d4"] },
+    { "id": "kestrel", "name": "Kestrel Racing", "shortName": "KES", "base": "Milan-like", "principal": "Giulia Moretti",
+      "car": { "aerodynamics": 78, "chassis": 76, "powerUnit": 75, "tyreGentleness": 74, "reliability": 79 },
+      "driverIds": ["d5", "d6"] },
+    { "id": "sable", "name": "Sable GP", "shortName": "SAB", "base": "Lyon-like", "principal": "Antoine Rey",
+      "car": { "aerodynamics": 72, "chassis": 74, "powerUnit": 70, "tyreGentleness": 76, "reliability": 73 },
+      "driverIds": ["d7", "d8"] }
+  ],
+  "drivers": [
+    { "id": "d1", "firstName": "Alessandro", "lastName": "Costa", "age": 28, "nationality": "Italy-like", "number": 7,
+      "attributes": { "pace": 88, "racecraft": 86, "consistency": 84, "tyreManagement": 82, "wetWeather": 80, "feedback": 83 } },
+    { "id": "d2", "firstName": "Mateo", "lastName": "Ferreira", "age": 24, "nationality": "Brazil-like", "number": 14,
+      "attributes": { "pace": 82, "racecraft": 78, "consistency": 76, "tyreManagement": 79, "wetWeather": 81, "feedback": 74 } },
+    { "id": "d3", "firstName": "Idris", "lastName": "Whitlock", "age": 31, "nationality": "Britain-like", "number": 3,
+      "attributes": { "pace": 84, "racecraft": 85, "consistency": 83, "tyreManagement": 80, "wetWeather": 78, "feedback": 82 } },
+    { "id": "d4", "firstName": "Yuki", "lastName": "Takahashi", "age": 26, "nationality": "Japan-like", "number": 22,
+      "attributes": { "pace": 80, "racecraft": 79, "consistency": 81, "tyreManagement": 83, "wetWeather": 76, "feedback": 80 } },
+    { "id": "d5", "firstName": "Freya", "lastName": "Nilsen", "age": 23, "nationality": "Norway-like", "number": 41,
+      "attributes": { "pace": 79, "racecraft": 74, "consistency": 72, "tyreManagement": 73, "wetWeather": 82, "feedback": 77 } },
+    { "id": "d6", "firstName": "Ravi", "lastName": "Anand", "age": 29, "nationality": "India-like", "number": 18,
+      "attributes": { "pace": 75, "racecraft": 77, "consistency": 78, "tyreManagement": 75, "wetWeather": 72, "feedback": 79 } },
+    { "id": "d7", "firstName": "Lars", "lastName": "Nordmann", "age": 33, "nationality": "Sweden-like", "number": 9,
+      "attributes": { "pace": 73, "racecraft": 80, "consistency": 79, "tyreManagement": 77, "wetWeather": 74, "feedback": 81 } },
+    { "id": "d8", "firstName": "Sofia", "lastName": "Delgado", "age": 22, "nationality": "Spain-like", "number": 27,
+      "attributes": { "pace": 76, "racecraft": 72, "consistency": 70, "tyreManagement": 74, "wetWeather": 79, "feedback": 73 } }
+  ]
+}

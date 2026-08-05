@@ -70,6 +70,7 @@ public static class CarsetLoader
         SchemaVersion = j.SchemaVersion ?? 1,
         Rules = MapRules(j.Rules),
         Balance = MapBalance(j.Balance),
+        Regulations = MapRegulations(j.Regulations),
         Circuits = MapList(j.Circuits, "circuits", MapCircuit),
         Calendar = MapList(j.Calendar, "calendar", MapRound),
         Teams = MapList(j.Teams, "teams", MapTeam),
@@ -145,6 +146,32 @@ public static class CarsetLoader
             OvertakeBaseChance = b.OvertakeBaseChance ?? d.OvertakeBaseChance,
             WetPaceLoss = b.WetPaceLoss ?? d.WetPaceLoss,
             FuelLoadPenaltySeconds = b.FuelLoadPenaltySeconds ?? d.FuelLoadPenaltySeconds,
+        };
+    }
+
+    private static RegulationSet MapRegulations(RegulationsJson? r)
+    {
+        if (r is null)
+        {
+            return RegulationSet.Drs;
+        }
+
+        // Absent era → DRS; an unknown era string is a structural error (mirrors other enums).
+        var era = r.Era is null
+            ? RegulationEra.DrsEra
+            : ReqEnum<RegulationEra>(r.Era, "regulations.era");
+
+        var d = new RegulationSet { Era = era };
+        return d with
+        {
+            EnergyRegenPerLap = r.EnergyRegenPerLap ?? d.EnergyRegenPerLap,
+            ManualOverrideEnergyCost = r.ManualOverrideEnergyCost ?? d.ManualOverrideEnergyCost,
+            ManualOverrideBoost = r.ManualOverrideBoost ?? d.ManualOverrideBoost,
+            DeRatingThreshold = r.DeRatingThreshold ?? d.DeRatingThreshold,
+            DeRatingPenaltySeconds = r.DeRatingPenaltySeconds ?? d.DeRatingPenaltySeconds,
+            LowDragLapGainSeconds = r.LowDragLapGainSeconds ?? d.LowDragLapGainSeconds,
+            HighDownforceLapGainSeconds = r.HighDownforceLapGainSeconds ?? d.HighDownforceLapGainSeconds,
+            LowDragTopSpeedKph = r.LowDragTopSpeedKph ?? d.LowDragTopSpeedKph,
         };
     }
 

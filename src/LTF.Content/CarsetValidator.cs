@@ -112,6 +112,21 @@ public static class CarsetValidator
             Error("rules.points.racePoints must list at least one score");
         }
 
+        // Regulations (ADR-0018): the era parsed structurally in the loader; here sanity-check the
+        // 2026 energy/aero coefficients.
+        var reg = carset.Regulations;
+        if (reg.EnergyRegenPerLap < 0 || reg.ManualOverrideEnergyCost < 0 || reg.ManualOverrideBoost < 0
+            || reg.DeRatingPenaltySeconds < 0 || reg.LowDragLapGainSeconds < 0
+            || reg.HighDownforceLapGainSeconds < 0 || reg.LowDragTopSpeedKph < 0)
+        {
+            Error("regulations energy/aero coefficients must be non-negative");
+        }
+
+        if (reg.DeRatingThreshold < 0 || reg.DeRatingThreshold > 1)
+        {
+            Error("regulations deRatingThreshold must be within 0..1");
+        }
+
         return issues;
     }
 }
