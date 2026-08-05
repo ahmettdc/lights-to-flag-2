@@ -40,6 +40,14 @@
       ],
       "polePoint": 0,
       "fastestLapPoint": 0
+    },
+    "economy": {
+      "prizeMoney": [55000000, 48000000, 43000000, 39000000, 35000000, 31000000, 28000000, 25000000, 22000000, 20000000],
+      "tvIncome": 30000000,
+      "operatingCostPerRace": 3500000,
+      "crashCostPerIncident": 1000000,
+      "costCapFinePercent": 100,
+      "costCapPointsPerOverage": 20000000
     }
   },
   "tyres": [
@@ -601,6 +609,14 @@
       "driverIds": [
         "ferreira_mateo",
         "whitlock_idris"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "talon-title", "name": "Vale Aerospace", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 3 }
+      ],
+      "staff": [
+        { "id": "talon-td", "firstName": "Ana", "lastName": "Ford", "role": "TechnicalDirector", "skill": 88, "salary": 4000000 },
+        { "id": "talon-re", "firstName": "Beck", "lastName": "Ito", "role": "RaceEngineer", "skill": 82, "salary": 1500000 }
       ]
     },
     {
@@ -621,6 +637,14 @@
       "driverIds": [
         "nakamura_kenji",
         "nilsen_freya"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "kuro-title", "name": "Yoko Systems", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 3 }
+      ],
+      "staff": [
+        { "id": "kuro-td", "firstName": "Rei", "lastName": "Sato", "role": "TechnicalDirector", "skill": 87, "salary": 4000000 },
+        { "id": "kuro-re", "firstName": "Kai", "lastName": "Mori", "role": "RaceEngineer", "skill": 80, "salary": 1500000 }
       ]
     },
     {
@@ -641,6 +665,14 @@
       "driverIds": [
         "hargreave_oliver",
         "salazar_diego"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "kestrel-title", "name": "Enstone Capital", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 3 }
+      ],
+      "staff": [
+        { "id": "kestrel-td", "firstName": "Dana", "lastName": "Pike", "role": "TechnicalDirector", "skill": 86, "salary": 4000000 },
+        { "id": "kestrel-re", "firstName": "Lee", "lastName": "Ross", "role": "RaceEngineer", "skill": 80, "salary": 1500000 }
       ]
     },
     {
@@ -661,6 +693,14 @@
       "driverIds": [
         "bergstrom_hugo",
         "diallo_amara"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "sable-title", "name": "Rossi Motors", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 5 }
+      ],
+      "staff": [
+        { "id": "sable-td", "firstName": "Gio", "lastName": "Fabbri", "role": "TechnicalDirector", "skill": 85, "salary": 4000000 },
+        { "id": "sable-re", "firstName": "Ivo", "lastName": "Conti", "role": "RaceEngineer", "skill": 78, "salary": 1500000 }
       ]
     },
     {
@@ -681,6 +721,14 @@
       "driverIds": [
         "brandt_lukas",
         "ricci_sofia"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "nordwind-title", "name": "Alpine Bank", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 5 }
+      ],
+      "staff": [
+        { "id": "nordwind-td", "firstName": "Karl", "lastName": "Weiss", "role": "TechnicalDirector", "skill": 80, "salary": 4000000 },
+        { "id": "nordwind-re", "firstName": "Uli", "lastName": "Braun", "role": "RaceEngineer", "skill": 76, "salary": 1500000 }
       ]
     },
     {
@@ -701,6 +749,14 @@
       "driverIds": [
         "greco_paolo",
         "novak_elena"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "aurelia-title", "name": "Modena Oil", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 7 }
+      ],
+      "staff": [
+        { "id": "aurelia-td", "firstName": "Enzo", "lastName": "Belli", "role": "TechnicalDirector", "skill": 80, "salary": 4000000 },
+        { "id": "aurelia-re", "firstName": "Pia", "lastName": "Longo", "role": "RaceEngineer", "skill": 76, "salary": 1500000 }
       ]
     },
     {
@@ -721,6 +777,14 @@
       "driverIds": [
         "okonkwo_paul",
         "varga_tomas"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "marchetti-title", "name": "Faenza Tools", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 7 }
+      ],
+      "staff": [
+        { "id": "marchetti-td", "firstName": "Aldo", "lastName": "Vitale", "role": "TechnicalDirector", "skill": 78, "salary": 4000000 },
+        { "id": "marchetti-re", "firstName": "Rina", "lastName": "Costa", "role": "RaceEngineer", "skill": 75, "salary": 1500000 }
       ]
     },
     {
@@ -741,6 +805,14 @@
       "driverIds": [
         "costa_rafael",
         "petrov_nikolai"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "vanguard-title", "name": "Kane Logistics", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 9 }
+      ],
+      "staff": [
+        { "id": "vanguard-td", "firstName": "Ruth", "lastName": "Blake", "role": "TechnicalDirector", "skill": 76, "salary": 4000000 },
+        { "id": "vanguard-re", "firstName": "Tom", "lastName": "Nash", "role": "RaceEngineer", "skill": 73, "salary": 1500000 }
       ]
     },
     {
@@ -761,6 +833,14 @@
       "driverIds": [
         "fenwick_adam",
         "sato_yuki"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "meridian-title", "name": "Grove Energy", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 9 }
+      ],
+      "staff": [
+        { "id": "meridian-td", "firstName": "Sam", "lastName": "Doyle", "role": "TechnicalDirector", "skill": 74, "salary": 4000000 },
+        { "id": "meridian-re", "firstName": "Amy", "lastName": "Frost", "role": "RaceEngineer", "skill": 72, "salary": 1500000 }
       ]
     },
     {
@@ -781,6 +861,14 @@
       "driverIds": [
         "alves_bruno",
         "reid_callum"
+      ],
+      "finances": { "balance": 300000000, "costCap": 150000000 },
+      "sponsors": [
+        { "id": "halcyon-title", "name": "Banbury Air", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 10 }
+      ],
+      "staff": [
+        { "id": "halcyon-td", "firstName": "Nia", "lastName": "Bello", "role": "TechnicalDirector", "skill": 77, "salary": 4000000 },
+        { "id": "halcyon-re", "firstName": "Ola", "lastName": "Vann", "role": "RaceEngineer", "skill": 71, "salary": 1500000 }
       ]
     }
   ],

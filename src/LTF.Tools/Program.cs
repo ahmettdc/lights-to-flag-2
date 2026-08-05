@@ -2,6 +2,7 @@
 // the tool reads carset files and hands their text to the I/O-free LTF.Content loader.
 
 using System.Globalization;
+using LTF.Career;
 using LTF.Content;
 using LTF.Domain;
 using LTF.Simulation.Sweep;
@@ -157,6 +158,28 @@ static int Sweep(string[] args)
         $"Field: retirement rate {report.RetirementRate * 100.0:0.0}%, " +
         $"{report.SafetyCarsPerRace:0.00} safety cars/race, " +
         $"{report.AveragePitStopsPerCar:0.00} pit stops/car."));
+
+    // Economy summary (M13) — only when the carset actually configures an economy.
+    var economyRules = carset.Rules.Economy;
+    if (economyRules.PrizeMoney.Count > 0 || economyRules.TvIncome > 0)
+    {
+        var economy = EconomySweep.Run(carset, seasons, seed);
+        var teamNames = carset.Teams.ToDictionary(t => t.Id, t => t.Name, StringComparer.Ordinal);
+
+        Console.WriteLine();
+        Console.WriteLine($"{"Team",-24} {"Balance",16} {"Low",16} {"Debt",5}");
+        foreach (var t in economy.Teams)
+        {
+            var name = teamNames.TryGetValue(t.TeamId, out var n) ? n : t.TeamId;
+            Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+                $"{Clip(name, 24),-24} {t.FinalBalance,16:N0} {t.MinBalance,16:N0} {t.SeasonsInDebt,5}"));
+        }
+
+        Console.WriteLine();
+        Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+            $"Economy: {economy.BankruptTeams} team(s) in the red after {economy.Seasons} seasons, " +
+            $"richest {economy.MaxFinalBalance:N0}, poorest {economy.MinFinalBalance:N0}."));
+    }
 
     return 0;
 }
