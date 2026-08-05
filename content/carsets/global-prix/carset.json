@@ -48,8 +48,50 @@
       "crashCostPerIncident": 1000000,
       "costCapFinePercent": 100,
       "costCapPointsPerOverage": 20000000
+    },
+    "research": {
+      "baseProgressPerSeason": 220,
+      "facilityWeight": 0.8,
+      "staffWeight": 0.5,
+      "baseActiveProjects": 2,
+      "approveThreshold": 0.75,
+      "maxRetries": 1
     }
   },
+  "balance": { "tyreGentlenessWearInfluence": 0.15 },
+  "techTree": {
+    "departments": [
+      { "id": "aero", "name": "Aerodynamics" },
+      { "id": "chassis", "name": "Chassis & Vehicle Dynamics" },
+      { "id": "powertrain", "name": "Power Unit" },
+      { "id": "durability", "name": "Durability & Tyres" }
+    ],
+    "nodes": [
+        { "id": "aero_floor_1", "department": "aero", "category": "AeroFloor", "size": "Minor", "cost": 8000000, "gainMin": 3, "gainMax": 3, "confidence": 85, "correlation": 90 },
+        { "id": "aero_lowspeed_1", "department": "aero", "category": "AeroLowSpeed", "size": "Minor", "cost": 8000000, "gainMin": 3, "gainMax": 3, "confidence": 84, "correlation": 88 },
+        { "id": "aero_highspeed_1", "department": "aero", "category": "AeroHighSpeed", "size": "Major", "cost": 20000000, "prerequisites": ["aero_floor_1"], "gainMin": 5, "gainMax": 5, "confidence": 80, "correlation": 82 },
+        { "id": "drag_reduction_1", "department": "aero", "category": "DragEfficiency", "size": "Major", "cost": 22000000, "prerequisites": ["aero_lowspeed_1"], "gainMin": 5, "gainMax": 5, "confidence": 78, "correlation": 82 },
+        { "id": "aero_concept_2", "department": "aero", "category": "AeroMediumSpeed", "size": "Ultimate", "cost": 40000000, "prerequisites": ["aero_highspeed_1", "drag_reduction_1"], "gainMin": 7, "gainMax": 7, "confidence": 72, "correlation": 80 },
+        { "id": "mech_grip_1", "department": "chassis", "category": "MechanicalGrip", "size": "Minor", "cost": 8000000, "gainMin": 3, "gainMax": 3, "confidence": 85, "correlation": 90 },
+        { "id": "braking_1", "department": "chassis", "category": "Braking", "size": "Minor", "cost": 8000000, "gainMin": 3, "gainMax": 3, "confidence": 84, "correlation": 88 },
+        { "id": "mech_grip_2", "department": "chassis", "category": "MechanicalGrip", "size": "Major", "cost": 20000000, "prerequisites": ["mech_grip_1"], "gainMin": 5, "gainMax": 5, "confidence": 80, "correlation": 82 },
+        { "id": "power_unit_1", "department": "powertrain", "category": "PowerUnit", "size": "Minor", "cost": 10000000, "gainMin": 3, "gainMax": 3, "confidence": 84, "correlation": 88 },
+        { "id": "power_unit_2", "department": "powertrain", "category": "PowerUnit", "size": "Major", "cost": 24000000, "prerequisites": ["power_unit_1"], "gainMin": 5, "gainMax": 5, "confidence": 78, "correlation": 80 },
+        { "id": "pu_reliability_1", "department": "powertrain", "category": "PowerUnitReliability", "size": "Minor", "cost": 8000000, "gainMin": 3, "gainMax": 3, "confidence": 88, "correlation": 92 },
+        { "id": "gearbox_reliability_1", "department": "durability", "category": "GearboxReliability", "size": "Minor", "cost": 8000000, "gainMin": 3, "gainMax": 3, "confidence": 86, "correlation": 90 },
+        { "id": "tyre_management_1", "department": "durability", "category": "TyreManagement", "size": "Minor", "cost": 8000000, "gainMin": 3, "gainMax": 3, "confidence": 84, "correlation": 88 },
+        { "id": "tyre_management_2", "department": "durability", "category": "TyreManagement", "size": "Major", "cost": 20000000, "prerequisites": ["tyre_management_1"], "gainMin": 5, "gainMax": 5, "confidence": 80, "correlation": 82 },
+        { "id": "pu_reliability_2", "department": "durability", "category": "PowerUnitReliability", "size": "Major", "cost": 20000000, "prerequisites": ["pu_reliability_1"], "gainMin": 5, "gainMax": 5, "confidence": 80, "correlation": 82 },
+        { "id": "reliability_ultimate", "department": "durability", "category": "GearboxReliability", "size": "Ultimate", "cost": 38000000, "prerequisites": ["gearbox_reliability_1", "pu_reliability_2"], "gainMin": 7, "gainMax": 7, "confidence": 72, "correlation": 78 }
+    ]
+  },
+  "staffPool": [
+    { "id": "fa-aero-1", "firstName": "Priya", "lastName": "Anand", "role": "ChiefAerodynamicist", "skill": 86, "nationality": "IN", "age": 44, "salary": 3200000 },
+    { "id": "fa-strat-1", "firstName": "Lucas", "lastName": "Moreau", "role": "ChiefStrategist", "skill": 83, "nationality": "FR", "age": 39, "salary": 2600000 },
+    { "id": "fa-td-1", "firstName": "Sofia", "lastName": "Marek", "role": "TechnicalDirector", "skill": 84, "nationality": "CZ", "age": 51, "salary": 4200000 },
+    { "id": "fa-re-1", "firstName": "Diego", "lastName": "Santos", "role": "RaceEngineer", "skill": 79, "nationality": "BR", "age": 35, "salary": 1400000 },
+    { "id": "fa-re-2", "firstName": "Hana", "lastName": "Okafor", "role": "RaceEngineer", "skill": 81, "nationality": "NG", "age": 33, "salary": 1500000 }
+  ],
   "tyres": [
     {
       "compound": "Soft",
@@ -610,6 +652,14 @@
         "ferreira_mateo",
         "whitlock_idris"
       ],
+      "facilities": { "designOffice": 5, "windTunnel": 5, "cfd": 5, "compositeManufacturing": 5, "mechanicalWorkshop": 5, "qualityControl": 5, "simulator": 5, "dyno": 5, "pitCrewCentre": 5, "dataCentre": 5 },
+      "research": {
+        "unlockedNodeIds": ["aero_floor_1"],
+        "activeProjects": [
+          { "nodeId": "aero_highspeed_1", "state": "InManufacture", "targetAxis": "AeroHighSpeed", "estimatedGainMin": 5, "estimatedGainMax": 5, "correlationPercent": 82, "progress": 120, "retriesLeft": 1 }
+        ],
+        "regulationReadiness": 20
+      },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "talon-title", "name": "Vale Aerospace", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 3 }
@@ -638,6 +688,7 @@
         "nakamura_kenji",
         "nilsen_freya"
       ],
+      "facilities": { "designOffice": 5, "windTunnel": 5, "cfd": 5, "compositeManufacturing": 5, "mechanicalWorkshop": 5, "qualityControl": 5, "simulator": 5, "dyno": 5, "pitCrewCentre": 5, "dataCentre": 5 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "kuro-title", "name": "Yoko Systems", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 3 }
@@ -666,6 +717,7 @@
         "hargreave_oliver",
         "salazar_diego"
       ],
+      "facilities": { "designOffice": 4, "windTunnel": 4, "cfd": 4, "compositeManufacturing": 4, "mechanicalWorkshop": 4, "qualityControl": 4, "simulator": 4, "dyno": 4, "pitCrewCentre": 4, "dataCentre": 4 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "kestrel-title", "name": "Enstone Capital", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 3 }
@@ -694,6 +746,7 @@
         "bergstrom_hugo",
         "diallo_amara"
       ],
+      "facilities": { "designOffice": 4, "windTunnel": 4, "cfd": 4, "compositeManufacturing": 4, "mechanicalWorkshop": 4, "qualityControl": 4, "simulator": 4, "dyno": 4, "pitCrewCentre": 4, "dataCentre": 4 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "sable-title", "name": "Rossi Motors", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 5 }
@@ -722,6 +775,7 @@
         "brandt_lukas",
         "ricci_sofia"
       ],
+      "facilities": { "designOffice": 4, "windTunnel": 4, "cfd": 4, "compositeManufacturing": 4, "mechanicalWorkshop": 4, "qualityControl": 4, "simulator": 4, "dyno": 4, "pitCrewCentre": 4, "dataCentre": 4 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "nordwind-title", "name": "Alpine Bank", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 5 }
@@ -750,6 +804,7 @@
         "greco_paolo",
         "novak_elena"
       ],
+      "facilities": { "designOffice": 3, "windTunnel": 3, "cfd": 3, "compositeManufacturing": 3, "mechanicalWorkshop": 3, "qualityControl": 3, "simulator": 3, "dyno": 3, "pitCrewCentre": 3, "dataCentre": 3 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "aurelia-title", "name": "Modena Oil", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 7 }
@@ -778,6 +833,7 @@
         "okonkwo_paul",
         "varga_tomas"
       ],
+      "facilities": { "designOffice": 3, "windTunnel": 3, "cfd": 3, "compositeManufacturing": 3, "mechanicalWorkshop": 3, "qualityControl": 3, "simulator": 3, "dyno": 3, "pitCrewCentre": 3, "dataCentre": 3 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "marchetti-title", "name": "Faenza Tools", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 7 }
@@ -806,6 +862,7 @@
         "costa_rafael",
         "petrov_nikolai"
       ],
+      "facilities": { "designOffice": 3, "windTunnel": 3, "cfd": 3, "compositeManufacturing": 3, "mechanicalWorkshop": 3, "qualityControl": 3, "simulator": 3, "dyno": 3, "pitCrewCentre": 3, "dataCentre": 3 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "vanguard-title", "name": "Kane Logistics", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 9 }
@@ -834,6 +891,7 @@
         "fenwick_adam",
         "sato_yuki"
       ],
+      "facilities": { "designOffice": 2, "windTunnel": 2, "cfd": 2, "compositeManufacturing": 2, "mechanicalWorkshop": 2, "qualityControl": 2, "simulator": 2, "dyno": 2, "pitCrewCentre": 2, "dataCentre": 2 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "meridian-title", "name": "Grove Energy", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 9 }
@@ -862,6 +920,7 @@
         "alves_bruno",
         "reid_callum"
       ],
+      "facilities": { "designOffice": 2, "windTunnel": 2, "cfd": 2, "compositeManufacturing": 2, "mechanicalWorkshop": 2, "qualityControl": 2, "simulator": 2, "dyno": 2, "pitCrewCentre": 2, "dataCentre": 2 },
       "finances": { "balance": 300000000, "costCap": 150000000 },
       "sponsors": [
         { "id": "halcyon-title", "name": "Banbury Air", "tier": "Title", "perRaceFee": 1200000, "perPointBonus": 40000, "objectiveBonus": 6000000, "objectivePosition": 10 }

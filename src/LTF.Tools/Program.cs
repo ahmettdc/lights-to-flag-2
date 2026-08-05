@@ -181,6 +181,27 @@ static int Sweep(string[] args)
             $"richest {economy.MaxFinalBalance:N0}, poorest {economy.MinFinalBalance:N0}."));
     }
 
+    // R&D summary (M14) — only when the carset actually ships a tech tree.
+    if (carset.TechTree.Nodes.Count > 0)
+    {
+        var research = ResearchSweep.Run(carset, seasons, seed);
+        var teamNames = carset.Teams.ToDictionary(t => t.Id, t => t.Name, StringComparer.Ordinal);
+
+        Console.WriteLine();
+        Console.WriteLine($"{"Team",-24} {"Start",6} {"Final",6} {"Nodes",6}");
+        foreach (var t in research.Teams)
+        {
+            var name = teamNames.TryGetValue(t.TeamId, out var n) ? n : t.TeamId;
+            Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+                $"{Clip(name, 24),-24} {t.StartOverall,6} {t.FinalOverall,6} {t.NodesApproved,6}"));
+        }
+
+        Console.WriteLine();
+        Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+            $"R&D: {research.TotalNodesApproved} node(s) approved across the field over {research.Seasons} seasons, " +
+            $"biggest car gain +{research.MaxOverallGain}."));
+    }
+
     return 0;
 }
 
