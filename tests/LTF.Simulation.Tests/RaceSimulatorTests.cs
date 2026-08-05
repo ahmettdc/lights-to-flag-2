@@ -374,7 +374,7 @@ public class RaceSimulatorTests
     // A checked-in golden hash of a canonical race (M10), locking the engine's exact output across
     // commits and across Windows / macOS / Linux. If an engine change deliberately alters this race,
     // regenerate the hash from the CI failure message and update this constant.
-    private const string GoldenDigestHash = "PENDING";
+    private const string GoldenDigestHash = "0250B8ACA01FE0DD8F424159C1D382C52DF69000151A79C56FF16A628BF987E6";
 
     [Fact]
     public void The_canonical_race_matches_the_golden_digest()
