@@ -12,8 +12,8 @@ v1'de M0–M10 tamamlanmıştı. Kullanıcıya "mevcudun üstüne devam mı, sı
 açıkça soruldu; **sıfırdan** kararı verildi.
 
 ## Gerekçe
-Zaten yeniden yazılacak üç katman vardı: (1) kariyer katmanı tek oyuncu rolü
-varsayıyordu, çift mod isteniyor; (2) WPF arayüzü Linux CI'da derlenmiyordu;
+Zaten yeniden yazılacak üç katman vardı: (1) kariyer katmanı v1'in pilot rolü
+varsayımına bağlıydı, LTF2 ise Takım Patronu derinliğini istiyor; (2) WPF arayüzü Linux CI'da derlenmiyordu;
 (3) simülasyon tur bazlıydı, istenen derinlik sektör bazlı model gerektiriyor.
 Sıfırdan karar, bu üç yeniden yazımı resmileştiriyor.
 

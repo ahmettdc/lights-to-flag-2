@@ -1,16 +1,22 @@
-# ADR-0004 — Çift oyuncu modu, baştan
+# ADR-0004 — Tek kariyer modu: Takım Patronu (Pilot Kariyeri ertelendi)
 
-- **Durum:** Kabul edildi
-- **Tarih:** 2026-08-03
+- **Durum:** Revize edildi (Rev 26; önceki "çift oyuncu modu" kararının yerini alır)
+- **Tarih:** 2026-08-05
 
 ## Karar
-Kariyer katmanı iki modu taşıyacak şekilde kurulur: **Driver Career** (pilot) ve
-**Team Principal** (takım patronu). Yeni kariyerde seçilir.
+Oyun **tek bir kariyer modu** taşır: **Team Principal (Takım Patronu)**. **Driver Career
+(Pilot Kariyeri) şimdilik rafa kaldırılır** — silinmez, post-1.0 bir fikir olarak kayıtlı kalır.
 
-## Gerekçe
-Ortak dünya durumu (takımlar, pilotlar, sözleşmeler, finans, takvim) + moda özel
-karar yüzeyi. Sonradan eklemek kariyer katmanını yeniden yazmak demek olurdu.
+## Neden değişti?
+İlk karar iki modu (Driver Career + Team Principal) baştan taşımaktı. Kullanıcı odağı tek moda
+çekti: derinlik iki moda bölünmek yerine **Takım Patronu** deneyimine yoğunlaşır — pit duvarı,
+bütçe, Ar-Ge, transfer ve yönetim kurulu baskısı (ADR-0025). Güncel UI mockup'ı da (`design/`)
+tamamen Team Principal; ayrı bir sürücü-kariyeri akışı çizilmemiştir.
 
 ## Sonuçlar
-- Faz 2 belirgin şekilde uzar (M16 ve M17 ayrı kilometre taşları).
-- Ortak dünya durumu M11'de doğru kurulursa mod farkı yalnızca karar yüzeyidir.
+- **Kod etkisi yok:** kariyer katmanı (`LTF.Career`) henüz yazılmadı; bu saf bir kapsam kararıdır.
+- **M16 (Pilot Kariyeri modu) rafa alınır; M17 (Takım Patronu) tek kariyer yüzeyidir.** Faz 2/3'te
+  "pilot ajansı (M16)" kancası taşıyan ADR'ler (0013/0015/0021) Patron-tarafına (M17) daralır.
+- Ortak dünya durumu (ADR-0022, Dinamik Dünya) yine M11'de kurulur; ileride Pilot Kariyeri eklenmek
+  istenirse aynı yaşayan dünya üstüne bir karar yüzeyi olarak oturur (kariyer katmanı yeniden
+  yazılmaz).

@@ -14,13 +14,9 @@ and macOS, the ship targets).
 
 ## What it is
 
-Two ways to play, chosen when you start a career:
-
-- **Driver Career** — find a seat, pick your practice programme, manage tyres and
-  strategy on race day, and climb the grid as contracts, reputation and form open
-  doors.
-- **Team Principal** — run the budget, sponsors, staff, R&D and driver transfers, and
-  call both cars' strategy from the pit wall.
+You play as a **Team Principal** — run the budget, sponsors, staff, R&D and driver
+transfers, and call both cars' strategy from the pit wall, under board and media
+pressure. A Driver Career mode is shelved for now (a possible post-1.0 addition).
 
 Online 4-player co-op (Football-Manager style) is planned as a post-1.0 phase.
 
@@ -32,7 +28,7 @@ LightsToFlag2.sln
 │  ├─ LTF.Domain/        Pure model. No I/O, no dependencies.
 │  ├─ LTF.Content/       Carset format: schema, loader, validator.
 │  ├─ LTF.Simulation/    Practice / qualifying / race. Deterministic.
-│  ├─ LTF.Career/        Season, career, economy, contracts, R&D, both modes.
+│  ├─ LTF.Career/        Season, career, economy, contracts, R&D, transfers.
 │  ├─ LTF.Persistence/   Save / load + schema migration.
 │  ├─ LTF.App/           Avalonia UI. All platforms.
 │  └─ LTF.Tools/         CLI: validator, balance sweep, tooling.

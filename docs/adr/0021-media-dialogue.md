@@ -26,7 +26,7 @@ güncelle. Kişi/konu/olay **cooldown** + hafızaya atıf; "otomatik-çöz / yal
 Diyalog/medya sonuçları tohumlu (ADR-0002). Kurgusal.
 
 ## Milestone dağılımı
-M11 (metrikler kalıcı), M12 (sözleşme diyalogları), M16/M17 (ajans), M21 (Paddock Hub — Rev 15),
+M11 (metrikler kalıcı), M12 (sözleşme diyalogları), M17 (patron ajansı), M21 (Paddock Hub — Rev 15),
 M22 (kişi/diyalog/ilişki ekranı), M23 (hafta sonu mekânları). ADR-0010/0014 (FIA/protesto).
 Alt-sistem J.
 

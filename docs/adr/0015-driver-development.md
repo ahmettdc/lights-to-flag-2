@@ -20,7 +20,7 @@ Gelişim/gerileme/antrenman tümü deterministik (tohumlu; duvar saati yok — �
 Aynı tohum + kararlar → aynı gelişim yörüngesi.
 
 ## Milestone dağılımı
-M14 (antrenman altyapısı: pilot koçu / simülatör), M16 (pilot antrenman seçimi), M17 (iki
+M14 (antrenman altyapısı: pilot koçu / simülatör), M17 (patron: iki
 pilotun antrenmanı + genç akademisi), M18 (**yaş eğrisi + potansiyele büyüme**), M24 (kariyer
 gelişim grafikleri), ADR-0013 (mentorluk hızlandırır). Faz 1 kod değişmez: gelişim
 `DriverAttributes`'ı değiştirir, lap-time modeli (M3/M4) onu okur.

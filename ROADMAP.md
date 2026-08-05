@@ -35,8 +35,9 @@ fontları **tamamen kaldırılacaktır**. v1'in kendisi git geçmişinde `a83ebc
 korunur; istenirse oradan bakılabilir.
 
 > **Neden bu makul bir karar?** Sırf inatçılık değil — üç somut gerekçesi var:
-> 1. v1'in kariyer katmanı tek oyuncu rolü (pilot) varsayımı üzerine kurulu. Çift mod
->    (pilot + takım patronu) istendiği için bu katman zaten baştan yazılacaktı.
+> 1. v1'in kariyer katmanı tek oyuncu rolü (pilot) varsayımı üzerine kurulu. LTF2'nin
+>    kariyeri **Takım Patronu** derinliği (bütçe/Ar-Ge/transfer/yönetim kurulu) üzerine
+>    kurulacağı için bu katman zaten baştan yazılacaktı.
 > 2. v1'in arayüzü WPF olduğu için Linux CI'da **hiç derlenmiyor** — bu yüzden
 >    `LightsToFlag.CI.slnf` filtresi var. Arayüz hataları ancak elde yakalanıyor.
 > 3. v1'in simülasyonu **tur bazlı**. İstenen derinlik (slipstream, delta, sektör
@@ -80,13 +81,13 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | **Dürüst not** | Font "yazmak" gerçekçi değil. Yapılacak olan: yeni bir **OFL lisanslı font seti seçmek** (v1'in Saira Condensed / Chakra Petch / Archivo üçlüsü kullanılmayacak). Logo ve paletin kendisi sıfırdan üretilir (SVG). |
 | **Sonuç** | İlk oynanabilir içerik: **"Global Prix Series"** — 10 kurgusal takım, 20 pilot, 20 pist. |
 
-### ADR-0004 — Çift oyuncu modu, baştan
+### ADR-0004 — Tek kariyer modu: Takım Patronu (Rev 26'da revize)
 
 | | |
 |---|---|
-| **Karar** | Kariyer katmanı **iki modu** taşıyacak şekilde kurulur: *Driver Career* (pilot) ve *Team Principal* (takım patronu). Yeni kariyerde seçilir. |
-| **Gerekçe** | Ortak dünya durumu (takımlar, pilotlar, sözleşmeler, finans, takvim) + moda özel karar yüzeyi. Sonradan eklemek kariyer katmanını yeniden yazmak demek. |
-| **Feda edilen** | Faz 2 belirgin şekilde uzuyor (M16 ve M17 ayrı kilometre taşları). |
+| **Karar** | Oyun **tek kariyer modu** taşır: **Team Principal (Takım Patronu)**. **Pilot Kariyeri rafa kaldırıldı** (post-1.0; silinmedi). |
+| **Neden** | Odak tek moda: derinlik Takım Patronu deneyiminde (pit duvarı / bütçe / Ar-Ge / transfer / yönetim kurulu — ADR-0025). Güncel UI mockup'ı da Team-Principal-only. |
+| **Etki** | Kod yok (Career yazılmadı). **M16 rafta, M17 tek kariyer yüzeyi**; pilot-ajans kancaları (ADR-0013/0015/0021) M17'ye daralır. Ayrıntı: `docs/adr/0004`. |
 
 ### ADR-0005 — Öncelik: yarış derinliği → yönetim → içerik
 
@@ -163,7 +164,7 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 |---|---|
 | **Karar** | Tüm insan aktörler (pilot/patron/personel) arası ikili ilişki: yakınlık + tür + kişilik. Mekanik etki: moral, pazarlık, takım emri, veri paylaşımı, personel ayrılığı, takım-içi çarpışma olasılığı, mentorluk. |
 | **Çift yön** | Olay → ilişki (çarpışma/favoritizm; `RaceEvent` katılımcı id'leri) **ve** ilişki → olay (bozuk ilişki → takım-içi kasıtlı engelleme). |
-| **Dağılım** | M11/M12 (doğuş+kalıcı), M14 (personel), M16/M17 (ajans), M18 (evrim/feud), M21/M22 (arayüz). Ayrıntı: `docs/adr/0013`. |
+| **Dağılım** | M11/M12 (doğuş+kalıcı), M14 (personel), M17 (patron ajansı), M18 (evrim/feud), M21/M22 (arayüz). Ayrıntı: `docs/adr/0013`. |
 
 ### ADR-0014 — Hukuk & tahkim (paddock mahkemesi)
 
@@ -178,7 +179,7 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | | |
 |---|---|
 | **Karar** | Potansiyele büyüme + **zirve-sonrası yaş gerilemesi** (fiziksel hızlı, deneyim yavaş) + uzun vadeli **antrenman programı**. M8 serbest seansından ayrı. |
-| **Dağılım** | M14 (koç/simülatör altyapısı), M16/M17 (antrenman/akademi), M18 (yaş eğrisi), M24 (grafik), ADR-0013 (mentorluk). Faz 1 kod değişmez. Ayrıntı: `docs/adr/0015`. |
+| **Dağılım** | M14 (koç/simülatör altyapısı), M17 (patron: iki pilotun antrenmanı + akademi), M18 (yaş eğrisi), M24 (grafik), ADR-0013 (mentorluk). Faz 1 kod değişmez. Ayrıntı: `docs/adr/0015`. |
 
 ### ADR-0016 — R&D geliştirme ağacı (tech tree)
 
@@ -223,7 +224,7 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | | |
 |---|---|
 | **Karar** | Mekân-tabanlı **diyalog + medya + delegasyon**. Medya metrikleri (reputation/popularity/credibility/pressure/narrative heat), basın tetikleri, cooldown/hafıza, **bulanık ilişki gösterimi**. ADR-0013 + Rev 15 üstünde birleşir. |
-| **Dağılım** | M11/M12/M16/M17, M21 (Paddock Hub), M22, M23 (mekânlar). Alt-sistem J. Deterministik. Ayrıntı: `docs/adr/0021`. |
+| **Dağılım** | M11/M12/M17, M21 (Paddock Hub), M22, M23 (mekânlar). Alt-sistem J. Deterministik. Ayrıntı: `docs/adr/0021`. |
 
 ### ADR-0022 — Dinamik Dünya Sistemi (yaşayan evren)
 
@@ -260,17 +261,13 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 ## 3. Ürün vizyonu
 
 > **Lights to Flag 2**, veriye dayalı (data-driven), deterministik bir motorsporu
-> kariyer simülasyonudur. Oyuncu ya direksiyonun arkasına geçer ya da pit duvarına —
-> ve her ikisinde de sonucu belirleyen şey refleks değil, karardır.
+> kariyer simülasyonudur. Oyuncu **pit duvarına** geçer — ve sonucu belirleyen şey
+> refleks değil, karardır.
 
-**Pilot Kariyeri (Driver Career)** — Alt sıradaki bir takımda koltuk bulursunuz.
-Antrenman programını seçer, sıralamada riski ayarlar, yarışta lastik ve pit
-kararlarını verirsiniz. İyi giderseniz sözleşme teklifleri gelir; takım arkadaşınızla
-rekabet, itibarınız ve moraliniz hangi kapıların açılacağını belirler.
-
-**Takım Patronu (Team Principal)** — Bütçe, sponsorlar, personel, Ar-Ge programları ve
-pilot transferleri sizin. Yarış günü iki aracın stratejisini pit duvarından
-yönetirsiniz. Yönetim kurulunun hedefleri var ve sabrı sonsuz değil.
+**Takım Patronu (Team Principal)** — tek kariyer modu. Bütçe, sponsorlar, personel,
+Ar-Ge programları ve pilot transferleri sizin. Yarış günü iki aracın stratejisini pit
+duvarından yönetirsiniz. Yönetim kurulunun hedefleri var ve sabrı sonsuz değil
+(ADR-0025). *(Pilot Kariyeri şimdilik rafta — post-1.0 fikir; bkz. ADR-0004.)*
 
 **İleride (2.0): Çok oyunculu co-op** — Football Manager tarzı, 4 oyuncuya kadar
 çevrimiçi ortak kariyer: her oyuncu bir takımın patronu olur, aynı şampiyonayı
@@ -303,7 +300,7 @@ LightsToFlag2.sln
 │  ├─ LTF.Domain/          net9.0   Saf model. I/O yok, bağımlılık yok.
 │  ├─ LTF.Content/         net9.0   Carset formatı: şema, yükleyici, doğrulayıcı.
 │  ├─ LTF.Simulation/      net9.0   Antrenman / sıralama / yarış. Deterministik.
-│  ├─ LTF.Career/          net9.0   Sezon, kariyer, ekonomi, sözleşme, Ar-Ge, iki mod.
+│  ├─ LTF.Career/          net9.0   Sezon, kariyer, ekonomi, sözleşme, Ar-Ge, transfer (tek mod: Takım Patronu).
 │  ├─ LTF.Persistence/     net9.0   Kayıt/yükleme + şema göçü (migration).
 │  ├─ LTF.App/             net9.0   Avalonia arayüz. Tüm platformlar.
 │  └─ LTF.Tools/           net9.0   CLI: doğrulayıcı, denge süpürmesi, carset editörü.
@@ -406,8 +403,8 @@ parçaları gösterir.
 | **M13** ⬛ | Ekonomi | Sponsorlar (hedefli anlaşmalar, bonuslar), ödül parası, TV geliri, maaşlar, parça/seyahat gideri, kaza maliyeti, isteğe bağlı **bütçe tavanı**. **Bütçe tavanı yaptırımı** (ADR-0010): aşım tespiti → para cezası / puan silme / aero-test kısıtı. |
 | **M14** ⬛ | Ar-Ge ve personel | Gelişim programları (aerodinamik / motor / şasi / güvenilirlik), kaynak dağıtımı, tesis yükseltmeleri (rüzgâr tüneli, simülatör), personel işe alımı. Sezon içi gelişim **simülasyonda gerçekten hissedilir** (Faz 1'e bağlanır). **"Regülasyon hazırlığı" programı** (ADR-0010): yaklaşan kurallara `Readiness` için kaynak ayırma. İlerleme **takvime göre günlük/haftalık** işler (ADR-0011). |
 | **M15** | Test ve bileşen yönetimi | **Takvimdeki test günleri**, sezon içi güncellemelerin devreye alınması, bileşen tahsis takibi ve grid cezaları. |
-| **M16** ⬛ | **Pilot Kariyeri modu** | Uçtan uca: koltuk arayışı, sezon hedefleri, hafta sonu kararları, yarış içi strateji tercihleri, sezon değerlendirmesi. Zaman çizgisi gün gün akar (ADR-0011). |
-| **M17** ⬛ | **Takım Patronu modu** | Uçtan uca: pit duvarından iki araç yönetimi, transfer, bütçe, yönetim kurulu hedefleri ve kovulma riski. **Regülasyon politik katmanı** (ADR-0010): önerilen kural değişikliklerinde **oy/lobi**. |
+| ~~**M16**~~ | **Pilot Kariyeri modu — RAFTA (post-1.0)** | **Ertelendi** (ADR-0004). Oyun tek kariyer modu taşır: **Takım Patronu (M17)**. Sürücü-kariyeri fikri kayıtlı; ileride aynı yaşayan dünya (ADR-0022) üstüne bir karar yüzeyi olarak eklenebilir (kariyer katmanı yeniden yazılmadan). |
+| **M17** ⬛ | **Takım Patronu modu** (tek kariyer modu) | Uçtan uca: pit duvarından iki araç yönetimi, transfer, bütçe, **yönetim kurulu hedefleri, baskı ve kovulma riski** (ADR-0025). **Regülasyon politik katmanı** (ADR-0010): önerilen kural değişikliklerinde **oy/lobi**. |
 | **M18** ⬛ | Sezon devri | Yaşlanma, gelişim/gerileme eğrileri, emeklilik, **yeni nesil pilot üretimi (regen)**, **transfer penceresi** (belirli tarihlerde; AI takımlar da hamle yapar). **Regülasyon değişikliklerini uygula + hazırlıksız takımları geriye düşür** (Readiness'e göre performans cezası — ADR-0010). |
 
 #### Alt-sistem A — Takvim-tabanlı kariyer (ADR-0011)
@@ -430,7 +427,7 @@ Pilot/patron/personel arası ikili ilişkiler (yakınlık + tür + kişilik). **
 ilişkiyi değiştirir (çarpışma/favoritizm → `RaceEvent` katılımcı id'leri), bozuk ilişki olay
 üretir (takım-içi kasıtlı engelleme). Mekanik etki: moral, pazarlık, takım emri, veri paylaşımı,
 personel ayrılığı, takım-içi çarpışma olasılığı, mentorluk. Dağılım: M11/M12 (doğuş+kalıcı), M14
-(personel uyumu), M16/M17 (ajans), M18 (evrim/feud), M21/M22 (arayüz). Simülasyon ilişkiden habersiz.
+(personel uyumu), M17 (patron ajansı), M18 (evrim/feud), M21/M22 (arayüz). Simülasyon ilişkiden habersiz.
 
 #### Alt-sistem D — Hukuk & tahkim (ADR-0014)
 Herhangi bir konuda dava (regülasyon/sözleşme/ticari/IP/personel); avukat tutulur (retainer + dava
@@ -440,8 +437,8 @@ Dağılım: M11/M12/M13/M14/M17/M18/M21/M22.
 
 #### Alt-sistem E — Pilot gelişimi (ADR-0015)
 Potansiyele büyüme + zirve-sonrası yaş gerilemesi (fiziksel hızlı, deneyim yavaş) + uzun vadeli
-antrenman programı (M8 serbest seansından ayrı). Dağılım: M14 (koç/simülatör altyapısı), M16/M17
-(antrenman/akademi), M18 (yaş eğrisi + büyüme), M24 (grafik), ADR-0013 mentorluk. Faz 1 kod
+antrenman programı (M8 serbest seansından ayrı). Dağılım: M14 (koç/simülatör altyapısı), M17
+(patron: iki pilotun antrenmanı + akademi), M18 (yaş eğrisi + büyüme), M24 (grafik), ADR-0013 mentorluk. Faz 1 kod
 değişmez (Career yazar, Simulation okur).
 
 #### Alt-sistem F — R&D geliştirme ağacı (ADR-0016)
@@ -469,7 +466,7 @@ tamamlayıcı). Rüzgâr tüneli/CFD ATR kotasını artırmaz, verimini + korela
 #### Alt-sistem J — Medya & diyalog (ADR-0021)
 Mekân-tabanlı diyalog + medya (reputation/popularity/credibility/pressure/narrative heat) + delegasyon.
 Basın tetikte; cooldown/hafıza; ilişki ekranı bulanık (kesin puan yok). Rev 15 bildirim merkezi burada
-Paddock Hub'a evrilir. Dağılım: M11/M12/M16/M17, M21 (Hub), M22, M23 (hafta sonu mekânları).
+Paddock Hub'a evrilir. Dağılım: M11/M12/M17, M21 (Hub), M22, M23 (hafta sonu mekânları).
 
 #### Alt-sistem K — Dinamik Dünya (ADR-0022)
 Oyuncudan bağımsız yaşayan evren: 7 ekosistem (takım/sürücü/personel/üretici/sponsor/regülasyon/global) +
@@ -497,9 +494,9 @@ yüzeyi. Dağılım: **M17 ana yüzey**, M13/M11/M12/M24, Rev 21 (medya baskıs�
 | | Kilometre taşı | İçerik |
 |---|---|---|
 | **M19** ⬛ | Kabuk + marka kiti | Navigasyon, tema sistemi. **Bildirim merkezi** (rozet + açılır panel; kategori/önem/derin bağlantı; tüm sistemlerden beslenir — Rev 15). **Marka kiti hazır** (`design/`): palet (Track Black/Lights Out Red/Flag White), SVG logo, fontlar (Saira Condensed/Chakra Petch/Archivo). Yerelleştirme altyapısı (ileride TR dil paketi). **Görsel tasarım kullanıcının Claude Design mockup'ından gelir** (`design/mockups/ui.dc.html`); HTML/CSS doğrudan kullanılmaz, Avalonia'ya birebir çevrilir (ADR-0002). Faz 3 ekranları (M20–M25) bu mockup'ı takip eder. |
-| **M20** | Menü + kariyer başlatma | Ana menü, yeni kariyer akışı (**mod seçimi**: Driver / Team Principal), carset seçimi, kayıt-yükleme ekranı. |
+| **M20** | Menü + kariyer başlatma | Ana menü, yeni **Takım Patronu kariyeri** akışı (takım seçimi + yönetim kurulu hedef müzakeresi), carset seçimi, kayıt-yükleme ekranı. |
 | **M21** ⬛ | Kariyer merkezi | Pano, **takvim + FM tarzı "Devam" (Continue)** butonu (ADR-0011: tarihli olaylara kadar ilerlet), puan durumu, takım/pilot listeleri, **tarihli gelen kutusu / haber akışı** (sözleşme teklifleri, yönetim kurulu mesajları, regülasyon duyuruları, basın). Bu akış kabuktaki **bildirim merkezi** rozeti/panelinde toplanır (kategori/önem/derin bağlantı; eylem-gerektiren bildirim Continue'yu durdurur — Rev 15). |
-| **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (ağırlıklı Patron modu; Pilot modunda kısıtlı). **Regülasyon & Uyum ekranı** (ADR-0010): aktif kurallar, kendi uyum/risk durumun, bekleyen değişiklikler, `Readiness` + Patron modunda **oylama** arayüzü. |
+| **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (Takım Patronu). **Regülasyon & Uyum ekranı** (ADR-0010): aktif kurallar, kendi uyum/risk durumun, bekleyen değişiklikler, `Readiness` + Patron modunda **oylama** arayüzü. |
 | **M23** ⬛ | Yarış hafta sonu | Canlı zamanlama kulesi, **şematik pist haritası + hareketli araç işaretçileri** (mockup SVG referansı; 3B değil — Motorsport/Football Manager tarzı, motor telemetriden beslenir), sektör renkleri ve delta'lar, strateji paneli (pit çağrısı, bileşim seçimi), telsiz mesajları, hız kontrolü / atlama / tekrar. |
 | **M24** ⬛ | **İstatistik ve rekorlar** | Pilot ve takım profilleri, sezon istatistikleri, **tüm zamanların rekorları**, şeref listesi (hall of fame), kafa kafaya karşılaştırma, kariyer grafikleri, pist rekorları. |
 | **M25** | **Öğretici** | Rehberli ilk hafta sonu, bağlama duyarlı ipuçları, terimler sözlüğü (undercut, graining, VSC…), yeni oyuncu için "önerilen ayar" profili. |
@@ -552,7 +549,7 @@ geçilmez.
 takım hiç podyum görmüyor değil, terk oranı %5–15 bandında) · tüm testler Linux CI'da
 yeşil.
 
-**Faz 2 bitti:** Her iki modda da **başsız (headless)** olarak 10 sezonluk kariyer
+**Faz 2 bitti:** **Takım Patronu modunda başsız (headless)** olarak 10 sezonluk kariyer
 sonuna kadar oynanabiliyor · ekonomi kendi kendini dengeliyor (takımlar toplu iflas
 etmiyor, para birikip anlamsızlaşmıyor) · Ar-Ge yatırımı süpürme raporunda ölçülebilir
 performans farkı yaratıyor · kayıt/yükleme durumu bit bit koruyor.
@@ -589,7 +586,7 @@ oyuncu düşüp yeniden bağlandığında oyun bozulmuyor.
 | **Avalonia öğrenme eğrisi** | M19 şişip iki katına çıkması | M19 kasten küçük tutulur; tema ve kontrol seti erken sabitlenir, sonra dokunulmaz. |
 | **İçerik yükü** | 20 pisti elle yazmanın sıkıcılığı, M2'nin takılması | Üretici betikle iskelet üretilir, elle sadece dengelenir. Görseller SVG yer tutucu — sanat işi Faz 5'e ertelenir. |
 | **Determinizmin sessizce bozulması** | Testler bazen geçip bazen kalması | Koruma testleri M3'te kurulur ve **hiç gevşetilmez**. Altın dosyalar M10'da sabitlenir. |
-| **Çift modun ikiye katlaması** | M16/M17'nin tahmin edilenden uzun sürmesi | Ortak dünya durumu M11'de doğru kurulursa mod farkı yalnızca karar yüzeyidir. M11 aceleye getirilmez. |
+| **Tek mod odağı** | İki moda bölünmek derinliği dağıtırdı | Pilot Kariyeri rafa alındı (ADR-0004); odak Takım Patronu deneyiminde. Ortak dünya (ADR-0022) M11'de kurulur; Pilot ileride aynı dünya üstüne eklenebilir. |
 | **Ağ/senkron karmaşıklığı (Faz 6)** | Oyuncular arası durum sapması (desync), host düşünce oyunun ölmesi | Faz 6 tek oyunculu 1.0 oturmadan başlamaz. Deterministik motor sayesinde tam durum değil yalnızca kararlar+tohum senkronize edilir; desync bir testle yakalanır (aynı girdi → aynı durum). |
 | **Lisanslı mod dağıtımı** | Gerçek isimli içeriğin oyunla dağıtılıp telif riski doğurması | Lisanslı içerik yalnızca kullanıcı modu; ana dağıtıma asla girmez (ADR-0007). |
 | **v1'in geri özlenmesi** | "Keşke silmeseydik" | v1 `a83ebcc` commit'inde duruyor; formüllere bakmak için `git show` yeterli. |

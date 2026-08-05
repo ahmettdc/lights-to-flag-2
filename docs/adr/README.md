@@ -8,7 +8,7 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0001](0001-ground-up-rebuild.md) | Sıfırdan inşa |
 | [0002](0002-dotnet9-avalonia.md) | .NET 9 + Avalonia |
 | [0003](0003-everything-from-zero.md) | Her şey sıfır: içerik ve marka dahil |
-| [0004](0004-dual-player-modes.md) | Çift oyuncu modu, baştan |
+| [0004](0004-dual-player-modes.md) | Tek kariyer modu: Takım Patronu (Pilot ertelendi) |
 | [0005](0005-priority-order.md) | Öncelik: yarış derinliği → yönetim → içerik |
 | [0006](0006-doc-turkish-game-english.md) | Belge Türkçe, oyun İngilizce |
 | [0007](0007-mod-system-licensed-content.md) | Mod sistemi ve lisanslı içerik |

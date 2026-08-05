@@ -35,7 +35,7 @@ tohum + kararlar → aynı ilişki yörüngeleri. Kayıt grafiği birebir korur.
 
 ## Milestone dağılımı
 M11 (kalıcı grafik), M12 (doğuş + pazarlık ilişkiyi okur), M14 (personel uyumu/ayrılma),
-M16 (pilot ajansı), M17 (patron insan yönetimi / favoritizm / takım emri), M18
+M17 (patron insan yönetimi / favoritizm / takım emri), M18
 (evrim / feud / mentorluk / transfere etki), M21 (ilişki haberleri), M22 (Paddock/İlişkiler
 ekranı). Simülasyon ilişkiden habersiz kalır (katmanlama).
 
