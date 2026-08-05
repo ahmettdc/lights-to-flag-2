@@ -1,4 +1,5 @@
 using LTF.Domain.Management;
+using LTF.Domain.Rnd;
 
 namespace LTF.Domain.Racing;
 
@@ -33,6 +34,10 @@ public sealed record Team
     public IReadOnlyList<Staff> Staff { get; init; } = [];
     public IReadOnlyList<Sponsor> Sponsors { get; init; } = [];
     public IReadOnlyList<PowerUnitComponent> Components { get; init; } = [];
+
+    /// <summary>This team's R&amp;D progress (M14): unlocked nodes, in-flight projects, concept and
+    /// readiness. Empty until a career develops the car.</summary>
+    public ResearchState Research { get; init; } = ResearchState.Empty;
 
     // --- History ---
     public int ChampionshipsWon { get; init; }

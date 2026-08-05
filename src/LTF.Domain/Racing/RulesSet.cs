@@ -98,4 +98,8 @@ public sealed record RulesSet
     /// <summary>The series' economic rules — prize money, TV income, baseline costs (M13). Empty by
     /// default, so a carset with no economy moves no money.</summary>
     public EconomyRules Economy { get; init; } = new();
+
+    /// <summary>The series' R&amp;D tuning — development speed, facility/staff scaling, validation (M14).
+    /// Neutral by default, so a carset with no research rules does no development.</summary>
+    public ResearchRules Research { get; init; } = new();
 }
