@@ -22,6 +22,7 @@ UI taslağında eksikler şunlar:
    - İşe alma / buy-out / pazarlık işlemleri
 
 4. **Araç geliştirme ekranı**
+   - **Departman-bazlı gezinilebilir tech-tree görünümü** (ADR-0016 Rev 30): Aerodinamik / Şasi / Güç Ünitesi / Dayanıklılık departmanları; Minor/Major/Ultimate düğümler; düğüm seç → yan panelde etki / maliyet / önkoşul / doğrulama. FM-yoğun bağımlılık grafiği, radyal gösteri değil.
    - Aktif ve kuyruktaki geliştirme projeleri
    - Parça bazlı geliştirme: ön/arka kanat, taban, süspansiyon vb.
    - Aero, downforce, drag efficiency, reliability gibi etkiler

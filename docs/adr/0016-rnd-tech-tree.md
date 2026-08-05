@@ -1,6 +1,6 @@
 # ADR-0016 — R&D geliştirme ağacı (tech tree)
 
-- **Durum:** Kabul edildi
+- **Durum:** Kabul edildi (Rev 30: hibrit yapı — departman + düğüm boyutları)
 - **Tarih:** 2026-08-04
 
 ## Karar
@@ -24,6 +24,28 @@ kurallara uygun dala yatırım yapmış takımlar avantajlı başlar, hazırlık
 `TechNode` (id, kategori, maliyet, süre, önkoşullar, etki), `TechTree` (düğüm grafiği +
 açılmış/ilerleyen durum, kariyer dünya durumunda kalıcı), `ResearchProgram` (aktif yatırımlar).
 Etki `Car` derecelerine ve bir **konsept-yönü etiketine** işler.
+
+## Hibrit yapı (Rev 30 — F1M ağaç yapısı + FM yoğunluğu)
+Kullanıcının referans görseli (F1-Manager departman ağacı) doğrultusunda ağaç **yapısı**
+benimsenir; **görsel dil FM-yoğun** kalır (`design/ui`: "F1 Manager değil Football Manager
+gibi"). Somut kararlar:
+- **Departman yapısı:** ağaç departmanlara bölünür (Aerodinamik, Şasi, Güç Ünitesi,
+  Dayanıklılık…); her departman bir alt-ağaç (merkez + dallar). ADR-0024'ün 12 ekseni bu
+  departmanlara/kategorilere dağılır — kategoriler görselin "Front/Rear DF + DRS"si **değil**,
+  bizim hız-rejimi eksenlerimiz (düşük/orta/yüksek aero, floor, drag_efficiency…); **DRS ekseni
+  yok** (2026/ADR-0018 aktif-aero ile tutarlı).
+- **Düğüm boyutları:** `TechNode.Size` = **Minor / Major / Ultimate** (artan maliyet + etki +
+  önkoşul derinliği); görselin düğüm-boyut anahtarıyla eşleşir.
+- **Ekonomi korunur:** düğüm maliyeti **$ bütçe (M13) + CFD/rüzgâr-tüneli kotası + tesis slotu**
+  (ADR-0020) ile ödenir; ayrı bir **"Resource Points" para birimi eklenmez** (mevcut ekonomi +
+  committed mockup ile tutarlı).
+- **Departman verimi / kalite kontrol:** görselin "Department Efficiency / Quality Control"
+  dalları = ADR-0020 tesis modifiyeleri (verim çarpanı, kırılma/kusur riski); ağaçta departman
+  meta-dalı olarak yüzeye çıkar, ayrı sistem değil.
+- **UI (M22):** R&D ekranı, mevcut FM-yoğun proje-listesi + tesis + pist-doğrulama paneline
+  **ek olarak** departman-bazlı **gezinilebilir tech-tree / bağımlılık görünümü** sunar —
+  gösterişli radyal hero değil, yoğun bir bağımlılık grafiği (düğüm seç → yan panelde etki /
+  maliyet / önkoşul / doğrulama). "FM-değil-F1M" direktifiyle uzlaşır.
 
 ## Milestone dağılımı
 M14 (ana), M13 (finansman), M15 (sezon-içi güncellemeler ağaçtan), M18 (sezon devrinde taşıma +
