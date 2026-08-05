@@ -52,5 +52,14 @@ M14 (ana), M13 (finansman), M15 (sezon-içi güncellemeler ağaçtan), M18 (sezo
 regülasyon budaması), M17 (yatırım/konsept kararları), M22 (Ar-Ge ağacı arayüzü), ADR-0015
 (pilot gelişim ağacıyla simetri).
 
+## Durum (M14 — uygulandı)
+Tech tree domain'de (`TechTree`/`Department`/`TechNode`; `CarAxis` → `CarAxisMap` ile beş canlı
+dereceye; `NodeSize` Minor/Major/Ultimate), carset JSON'dan yüklenir + doğrulanır, kayıtta korunur
+(`CareerState.Research`). `ResearchLedger.DevelopSeason` her sezon düğümleri ilerletir; onaylanan
+düğüm aracın derecesini kalıcı yükseltir (fırsat maliyeti: bütçe + prereq). Flagship 4 departman +
+16 düğümlü ağaç taşır; `ResearchSweep` çok sezonda aracın **ölçülebilir/sınırlı/deterministik**
+geliştiğini gösterir. **Ertelendi:** sezon-içi güncelleme (M15), regülasyon budaması + sezon devri
+(M18), yatırım/konsept kararları + arayüz (M17/M22).
+
 ## Sonuç
 Ar-Ge boş bir sayı oyunu değil; her sezon oynanan, aracın kimliğini belirleyen bir ağaç olur.

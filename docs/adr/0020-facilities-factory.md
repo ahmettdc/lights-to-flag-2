@@ -28,5 +28,13 @@ M14 (ana), M13 (yatırım/bakım maliyeti), M15 (kalite kontrol → güvenilirli
 M7 (pit crew), ADR-0016 (tech tree ile), M22 (arayüz). Alt-sistem I. M2 opsiyonel başlangıç tesis
 seviyeleri.
 
+## Durum (M14 — uygulandı)
+`Facilities` on tesisin her biri `FacilityLevel` (1–5) olarak modellendi; carset'ten yüklenir,
+kayıtta korunur. Tesis **araç puanı vermez** — `ResearchLedger` geliştirme hızını tesis
+seviyelerinden ölçekler (`ResearchRules.FacilityWeight`), böylece daha donanımlı takım daha hızlı
+geliştirir (`ResearchSweep` doğrular). Flagship 10 takıma çeşitli tesis seviyeleri (2–5) taşır.
+**Ertelendi:** yatırım/bakım maliyeti + kalite→güvenilirlik + simülatör→pilot gelişimi
+(M15/ADR-0015), arayüz (M22).
+
 ## Sonuç
 Tesis yatırımı bir "geleceğe hazırlık" ekseni olur; küçük takım doğru yatırımla açığı kapatabilir.

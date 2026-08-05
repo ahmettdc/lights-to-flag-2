@@ -36,5 +36,14 @@ R&D / korelasyon / AI kararları tohumlu (tekrar-üretilebilir; ADR-0002).
 M13 (cost-cap), M22 (mühendis↔oyuncu ekranları). Alt-sistem M. M2 opsiyonel 12-eksen + tech tree +
 ATR tablosu.
 
+## Durum (M14 — pist-doğrulama döngüsü uygulandı)
+Geliştirme bir "buton" değil: `ValidationState` (InDesign→InManufacture→ReadyForTrackTest→
+FittedForPractice→DataReview→ApprovedForRace/Rework/Abandoned) altı-durumlu boru hattı; kalıcı araç
+puanı **yalnız ApprovedForRace** sonrası değişir. Gerçekleşen kazanç = tahmin × korelasyon × tohumlu
+spread; eşiği tutmazsa yeniden-çalışır, retry biterse terk edilir (`ResearchLedger`, deterministik).
+12-eksen/500-merkezli puan modeli **ayrı milestone** (M1/Faz-2) — M14 boyunca araç 5-derece kalır,
+düğüm kategorileri `CarAxisMap` ile çözülür. **Ertelendi:** 12-eksen inceltme + LapTimeModel genişleme
+(M1/Faz-2), antrenman/telemetri ölçümü (M8/M5e), rakip istihbaratı + AI (ADR-0021/0022).
+
 ## Sonuç
 Geliştirme bir "buton" değil; ölçülen, doğrulanan, riskli bir mühendislik süreci olur.
