@@ -234,7 +234,7 @@ public static class RaceSimulator
                 nextLeft = neutralLapsLeft - 1;
                 if (nextLeft <= 0)
                 {
-                    ApplyRestart(cars, stateThisLap, balance, startingCompound, rules.DriversUnlapUnderSafetyCar);
+                    ApplyRestart(cars, stateThisLap, circuit, balance, startingCompound, rules.DriversUnlapUnderSafetyCar);
                     nextState = NeutralizationState.Green;
                     nextLeft = 0;
                 }
@@ -781,10 +781,11 @@ public static class RaceSimulator
     }
 
     /// <summary>Resume racing. A VSC kept the gaps, so nothing changes. A safety car bunches the
-    /// field nose to tail (lapped cars unlap); a red flag does the same and grants fresh tyres.</summary>
+    /// field nose to tail; lapped cars are waved past onto the lead lap unless the unlap rule is off,
+    /// when they are kept a lap down. A red flag does the same and grants fresh tyres.</summary>
     private static void ApplyRestart(
-        List<CarRaceState> cars, NeutralizationState state, BalanceCoefficients balance, TyreCompound startingCompound,
-        bool driversUnlap)
+        List<CarRaceState> cars, NeutralizationState state, Circuit circuit, BalanceCoefficients balance,
+        TyreCompound startingCompound, bool driversUnlap)
     {
         if (state == NeutralizationState.VirtualSafetyCar)
         {
@@ -801,20 +802,28 @@ public static class RaceSimulator
             return;
         }
 
-        var leaderLaps = running[0].LapsCompleted;
         var leaderTime = running[0].TotalTime;
+
+        // Positions here are by time — all running cars share the same lap counter — so a car more
+        // than a lap behind the leader is a lapped car (M9e).
+        var lapReference = circuit.BaseLapTimeSeconds;
+        var bunchIndex = 0;
         for (var i = 0; i < running.Count; i++)
         {
             var c = running[i];
-
-            // Waved past to unlap (M9e): by default lapped cars join the lead lap; when the rule is
-            // off they keep their own lap count and stay behind the lead-lap group.
-            if (driversUnlap || c.LapsCompleted == leaderLaps)
+            var lapped = (c.TotalTime - leaderTime) > lapReference;
+            if (!driversUnlap && lapped)
             {
-                c.LapsCompleted = leaderLaps;
+                // Held a lap down: kept behind the bunched lead-lap pack instead of being waved by.
+                c.TotalTime = leaderTime + lapReference + (balance.BunchGapSeconds * i);
+            }
+            else
+            {
+                // Bunched nose to tail onto the lead lap.
+                c.TotalTime = leaderTime + (balance.BunchGapSeconds * bunchIndex);
+                bunchIndex++;
             }
 
-            c.TotalTime = leaderTime + (balance.BunchGapSeconds * i);
             if (state == NeutralizationState.RedFlag)
             {
                 c.Tyre = TyreState.Fresh(startingCompound);
