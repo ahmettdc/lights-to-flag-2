@@ -24,6 +24,12 @@ internal sealed class CarsetJson
 
     /// <summary>Optional active contracts binding drivers/staff to teams (M12).</summary>
     public List<ContractJson>? Contracts { get; set; }
+
+    /// <summary>Optional series-wide R&D development catalog (M14).</summary>
+    public TechTreeJson? TechTree { get; set; }
+
+    /// <summary>Optional free-agent staff pool available to hire (M14).</summary>
+    public List<StaffJson>? StaffPool { get; set; }
 }
 
 internal sealed class RegulationsJson
@@ -52,6 +58,7 @@ internal sealed class RulesJson
     public Dictionary<string, int>? ComponentAllocation { get; set; }
     public PointsJson? Points { get; set; }
     public EconomyJson? Economy { get; set; }
+    public ResearchRulesJson? Research { get; set; }
 }
 
 internal sealed class PointsJson
@@ -136,6 +143,7 @@ internal sealed class TeamJson
     public FinancesJson? Finances { get; set; }
     public List<SponsorJson>? Sponsors { get; set; }
     public List<StaffJson>? Staff { get; set; }
+    public ResearchJson? Research { get; set; }
     public int? ChampionshipsWon { get; set; }
     public int? RaceWins { get; set; }
 }
@@ -255,4 +263,76 @@ internal sealed class ContractClausesJson
     public long? ChampionshipBonus { get; set; }
     public long? ExitClause { get; set; }
     public bool? FirstDriverStatus { get; set; }
+}
+
+internal sealed class TechTreeJson
+{
+    public List<DepartmentJson>? Departments { get; set; }
+    public List<TechNodeJson>? Nodes { get; set; }
+}
+
+internal sealed class DepartmentJson
+{
+    public string? Id { get; set; }
+    public string? Name { get; set; }
+}
+
+internal sealed class TechNodeJson
+{
+    public string? Id { get; set; }
+    public string? Department { get; set; }
+    public string? Category { get; set; }
+    public string? Size { get; set; }
+    public long? Cost { get; set; }
+    public int? Quota { get; set; }
+    public List<string>? Prerequisites { get; set; }
+    public int? GainMin { get; set; }
+    public int? GainMax { get; set; }
+    public int? Confidence { get; set; }
+    public int? Correlation { get; set; }
+}
+
+internal sealed class ResearchJson
+{
+    public List<string>? UnlockedNodeIds { get; set; }
+    public List<ProjectJson>? ActiveProjects { get; set; }
+    public ConceptJson? Concept { get; set; }
+    public int? RegulationReadiness { get; set; }
+}
+
+internal sealed class ProjectJson
+{
+    public string? NodeId { get; set; }
+    public string? State { get; set; }
+    public string? TargetAxis { get; set; }
+    public int? EstimatedGainMin { get; set; }
+    public int? EstimatedGainMax { get; set; }
+    public int? Confidence { get; set; }
+    public int? CorrelationPercent { get; set; }
+    public int? Progress { get; set; }
+    public int? RetriesLeft { get; set; }
+}
+
+internal sealed class ConceptJson
+{
+    public int? AeroLean { get; set; }
+    public int? PowertrainLean { get; set; }
+}
+
+internal sealed class ResearchRulesJson
+{
+    public int? BaseProgressPerSeason { get; set; }
+    public int? StepProgress { get; set; }
+    public double? FacilityWeight { get; set; }
+    public double? StaffWeight { get; set; }
+    public int? CorrelationBaseline { get; set; }
+    public int? QuotaPerFacilityLevel { get; set; }
+    public int? BaseActiveProjects { get; set; }
+    public double? ApproveThreshold { get; set; }
+    public int? MaxRetries { get; set; }
+    public double? RealizationSpread { get; set; }
+    public int? ReadinessGainPerSeason { get; set; }
+    public double? MinorCostMultiplier { get; set; }
+    public double? MajorCostMultiplier { get; set; }
+    public double? UltimateCostMultiplier { get; set; }
 }

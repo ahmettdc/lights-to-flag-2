@@ -5,6 +5,7 @@ using LTF.Domain;
 using LTF.Domain.Common;
 using LTF.Domain.Management;
 using LTF.Domain.Racing;
+using LTF.Domain.Rnd;
 
 namespace LTF.Content;
 
@@ -78,6 +79,8 @@ public static class CarsetLoader
         Tyres = MapOptional(j.Tyres, "tyres", MapTyre),
         Reserves = MapOptional(j.Reserves, "reserves", MapDriver),
         Contracts = MapOptional(j.Contracts, "contracts", MapContract),
+        TechTree = MapTechTree(j.TechTree),
+        StaffPool = MapOptional(j.StaffPool, "staffPool", MapStaff),
     };
 
     private static RulesSet MapRules(RulesJson? r)
@@ -129,6 +132,7 @@ public static class CarsetLoader
             ComponentAllocation = allocation,
             GridPenaltyPerExtraComponent = r.GridPenaltyPerExtraComponent ?? 5,
             Economy = MapEconomy(r.Economy),
+            Research = MapResearchRules(r.Research),
         };
     }
 
@@ -247,6 +251,7 @@ public static class CarsetLoader
         Finances = MapFinances(t.Finances),
         Sponsors = MapOptional(t.Sponsors, $"{p}.sponsors", MapSponsor),
         Staff = MapOptional(t.Staff, $"{p}.staff", MapStaff),
+        Research = MapResearch(t.Research),
         ChampionshipsWon = t.ChampionshipsWon ?? 0,
         RaceWins = t.RaceWins ?? 0,
     };
@@ -293,6 +298,111 @@ public static class CarsetLoader
 
     private static FacilityLevel Level(int? value) =>
         value is null ? new FacilityLevel(3) : FacilityLevel.Clamped(value.Value);
+
+    private static TechTree MapTechTree(TechTreeJson? t)
+    {
+        if (t is null)
+        {
+            return TechTree.Empty;
+        }
+
+        return new TechTree
+        {
+            Departments = MapOptional(t.Departments, "techTree.departments", MapDepartment),
+            Nodes = MapOptional(t.Nodes, "techTree.nodes", MapTechNode),
+        };
+    }
+
+    private static Department MapDepartment(DepartmentJson d, string p) => new()
+    {
+        Id = ReqStr(d.Id, $"{p}.id"),
+        Name = ReqStr(d.Name, $"{p}.name"),
+    };
+
+    private static TechNode MapTechNode(TechNodeJson n, string p) => new()
+    {
+        Id = ReqStr(n.Id, $"{p}.id"),
+        DepartmentId = ReqStr(n.Department, $"{p}.department"),
+        Category = ReqEnum<CarAxis>(n.Category, $"{p}.category"),
+        Size = EnumOr(n.Size, NodeSize.Minor),
+        Cost = n.Cost ?? 0,
+        Quota = n.Quota ?? 0,
+        Prerequisites = n.Prerequisites?.ToArray() ?? [],
+        GainMin = n.GainMin ?? 0,
+        GainMax = n.GainMax ?? 0,
+        Confidence = n.Confidence ?? 100,
+        Correlation = n.Correlation ?? 100,
+    };
+
+    private static ResearchState MapResearch(ResearchJson? r)
+    {
+        if (r is null)
+        {
+            return ResearchState.Empty;
+        }
+
+        return new ResearchState
+        {
+            UnlockedNodeIds = r.UnlockedNodeIds?.ToArray() ?? [],
+            ActiveProjects = MapOptional(r.ActiveProjects, "research.activeProjects", MapProject),
+            Concept = MapConcept(r.Concept),
+            RegulationReadiness = r.RegulationReadiness ?? 0,
+        };
+    }
+
+    private static DevelopmentProject MapProject(ProjectJson pj, string p) => new()
+    {
+        NodeId = ReqStr(pj.NodeId, $"{p}.nodeId"),
+        State = EnumOr(pj.State, ValidationState.InDesign),
+        TargetAxis = EnumOr(pj.TargetAxis, CarAxis.AeroLowSpeed),
+        EstimatedGainMin = pj.EstimatedGainMin ?? 0,
+        EstimatedGainMax = pj.EstimatedGainMax ?? 0,
+        Confidence = pj.Confidence ?? 100,
+        CorrelationPercent = pj.CorrelationPercent ?? 100,
+        Progress = pj.Progress ?? 0,
+        RetriesLeft = pj.RetriesLeft ?? 0,
+    };
+
+    private static ConceptDirection MapConcept(ConceptJson? c)
+    {
+        if (c is null)
+        {
+            return ConceptDirection.Neutral;
+        }
+
+        return new ConceptDirection
+        {
+            AeroLean = c.AeroLean ?? 0,
+            PowertrainLean = c.PowertrainLean ?? 0,
+        };
+    }
+
+    private static ResearchRules MapResearchRules(ResearchRulesJson? r)
+    {
+        if (r is null)
+        {
+            return new ResearchRules();
+        }
+
+        var d = new ResearchRules();
+        return d with
+        {
+            BaseProgressPerSeason = r.BaseProgressPerSeason ?? d.BaseProgressPerSeason,
+            StepProgress = r.StepProgress ?? d.StepProgress,
+            FacilityWeight = r.FacilityWeight ?? d.FacilityWeight,
+            StaffWeight = r.StaffWeight ?? d.StaffWeight,
+            CorrelationBaseline = r.CorrelationBaseline ?? d.CorrelationBaseline,
+            QuotaPerFacilityLevel = r.QuotaPerFacilityLevel ?? d.QuotaPerFacilityLevel,
+            BaseActiveProjects = r.BaseActiveProjects ?? d.BaseActiveProjects,
+            ApproveThreshold = r.ApproveThreshold ?? d.ApproveThreshold,
+            MaxRetries = r.MaxRetries ?? d.MaxRetries,
+            RealizationSpread = r.RealizationSpread ?? d.RealizationSpread,
+            ReadinessGainPerSeason = r.ReadinessGainPerSeason ?? d.ReadinessGainPerSeason,
+            MinorCostMultiplier = r.MinorCostMultiplier ?? d.MinorCostMultiplier,
+            MajorCostMultiplier = r.MajorCostMultiplier ?? d.MajorCostMultiplier,
+            UltimateCostMultiplier = r.UltimateCostMultiplier ?? d.UltimateCostMultiplier,
+        };
+    }
 
     private static Finances MapFinances(FinancesJson? f)
     {
