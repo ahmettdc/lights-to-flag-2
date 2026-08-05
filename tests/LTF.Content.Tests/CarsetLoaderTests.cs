@@ -132,4 +132,17 @@ public class CarsetLoaderTests
 
         Assert.Equal("GT", carset.Teams[0].Class);
     }
+
+    [Fact]
+    public void Reads_the_unlap_rule()
+    {
+        var json = TestData.MinimalValid.Replace(
+            "\"seriesName\": \"S\",",
+            "\"seriesName\": \"S\", \"driversUnlapUnderSafetyCar\": false,",
+            StringComparison.Ordinal);
+
+        var carset = CarsetLoader.LoadFromJson(json);
+
+        Assert.False(carset.Rules.DriversUnlapUnderSafetyCar);
+    }
 }

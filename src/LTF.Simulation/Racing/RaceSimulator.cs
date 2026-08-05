@@ -43,6 +43,9 @@ public static class RaceSimulator
     private const double DriverErrorCrashShare = 0.12;
     private const double CollisionHeavyShare = 0.20;
 
+    // A rolling start's getaway loss is gentler than a standing start's (M9e).
+    private const double RollingStartLossFactor = 0.3;
+
     // Representative top speed (kph): a base plus a power-unit-scaled span, weighted by track power.
     private const double BaseTopSpeedKph = 300.0;
     private const double TopSpeedSpanKph = 40.0;
@@ -95,7 +98,7 @@ public static class RaceSimulator
         // Lights out: start performance and any getaway trouble, before lap one.
         foreach (var car in cars)
         {
-            ApplyStart(car, balance, events);
+            ApplyStart(car, balance, fmt.StartType, events);
         }
 
         var state = NeutralizationState.Green;
@@ -231,7 +234,7 @@ public static class RaceSimulator
                 nextLeft = neutralLapsLeft - 1;
                 if (nextLeft <= 0)
                 {
-                    ApplyRestart(cars, stateThisLap, balance, startingCompound);
+                    ApplyRestart(cars, stateThisLap, balance, startingCompound, rules.DriversUnlapUnderSafetyCar);
                     nextState = NeutralizationState.Green;
                     nextLeft = 0;
                 }
@@ -293,17 +296,22 @@ public static class RaceSimulator
 
     // ---- Start ------------------------------------------------------------
 
-    /// <summary>Bake start performance into the car's time before lap one: a skill-based loss
-    /// off an ideal getaway plus random spread, and a rare jump start that draws a penalty.</summary>
-    private static void ApplyStart(CarRaceState car, BalanceCoefficients balance, List<RaceEvent> events)
+    /// <summary>Bake start performance into the car's time before lap one: a skill-based loss off an
+    /// ideal getaway plus random spread, and a rare jump start that draws a penalty. A rolling start
+    /// (M9e) softens the getaway loss and can't jump the start; both start types draw the same two
+    /// numbers, so the incident stream is identical whichever is used.</summary>
+    private static void ApplyStart(
+        CarRaceState car, BalanceCoefficients balance, RaceStartType startType, List<RaceEvent> events)
     {
         var attr = car.Competitor.Driver.Attributes;
         var quality = (0.5 * attr.Racecraft.Normalized) + (0.5 * attr.Consistency.Normalized);
-        var loss = balance.StartSkillSeconds * (1.0 - quality);
+        var lossFactor = startType == RaceStartType.Rolling ? RollingStartLossFactor : 1.0;
+        var loss = balance.StartSkillSeconds * (1.0 - quality) * lossFactor;
         var jitter = car.IncidentRng.NextGaussian() * balance.StartSpreadSeconds;
         car.TotalTime += Math.Max(0.0, loss + jitter);
 
-        if (car.IncidentRng.NextDouble() < balance.StartIncidentRate)
+        var jumped = car.IncidentRng.NextDouble() < balance.StartIncidentRate;
+        if (jumped && startType == RaceStartType.Standing)
         {
             car.TotalTime += balance.StartIncidentPenaltySeconds;
             events.Add(new RaceEvent
@@ -775,7 +783,8 @@ public static class RaceSimulator
     /// <summary>Resume racing. A VSC kept the gaps, so nothing changes. A safety car bunches the
     /// field nose to tail (lapped cars unlap); a red flag does the same and grants fresh tyres.</summary>
     private static void ApplyRestart(
-        List<CarRaceState> cars, NeutralizationState state, BalanceCoefficients balance, TyreCompound startingCompound)
+        List<CarRaceState> cars, NeutralizationState state, BalanceCoefficients balance, TyreCompound startingCompound,
+        bool driversUnlap)
     {
         if (state == NeutralizationState.VirtualSafetyCar)
         {
@@ -797,7 +806,14 @@ public static class RaceSimulator
         for (var i = 0; i < running.Count; i++)
         {
             var c = running[i];
-            c.LapsCompleted = leaderLaps;
+
+            // Waved past to unlap (M9e): by default lapped cars join the lead lap; when the rule is
+            // off they keep their own lap count and stay behind the lead-lap group.
+            if (driversUnlap || c.LapsCompleted == leaderLaps)
+            {
+                c.LapsCompleted = leaderLaps;
+            }
+
             c.TotalTime = leaderTime + (balance.BunchGapSeconds * i);
             if (state == NeutralizationState.RedFlag)
             {

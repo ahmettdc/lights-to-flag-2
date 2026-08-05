@@ -1104,6 +1104,92 @@ public class RaceSimulatorTests
         Assert.All(result.Classification, e => Assert.Equal("", e.ClassId));
     }
 
+    // ---- Start type + unlap rule (M9e) ------------------------------------
+
+    [Fact]
+    public void A_rolling_start_reduces_getaway_losses()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // A real getaway loss, no jitter, no jump start — so only the start-type factor moves time.
+        var balance = SimFixtures.CalmBalance with
+        {
+            StartSkillSeconds = 5.0,
+            StartSpreadSeconds = 0.0,
+            StartIncidentRate = 0.0,
+        };
+
+        var standing = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 7);
+        var rolling = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, balance, 7,
+            format: RaceFormat.Standard with { StartType = RaceStartType.Rolling });
+
+        static double TimeOf(RaceResult r, string id) => r.Classification.Single(e => e.CompetitorId == id).TotalTime;
+        Assert.True(TimeOf(rolling, "d1") < TimeOf(standing, "d1"));
+    }
+
+    [Fact]
+    public void A_rolling_start_has_no_jump_start_events()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // Every start would jump under a standing start; a rolling start suppresses them all.
+        var balance = SimFixtures.CalmBalance with { StartIncidentRate = 1.0 };
+
+        var rolling = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, balance, 7,
+            format: RaceFormat.Standard with { StartType = RaceStartType.Rolling });
+
+        Assert.DoesNotContain(rolling.Events, e => e.Kind == RaceEventKind.StartIncident);
+    }
+
+    [Fact]
+    public void The_start_and_unlap_rules_are_inert_by_default()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // Incidents on, so a safety car and restart can occur; the defaults must change nothing.
+        var balance = SimFixtures.Balance with { SafetyCarFromIncidentChance = 1.0, ReliabilityFailureRate = 0.05 };
+
+        var plain = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 7);
+        var standard = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, balance, 7,
+            format: RaceFormat.Standard with { StartType = RaceStartType.Standing });
+
+        Assert.Equal(Digest(plain), Digest(standard));
+    }
+
+    [Fact]
+    public void Keeping_lapped_cars_down_changes_a_safety_car_restart()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // A heavily ballasted backmarker (so it gets lapped) plus frequent full safety cars.
+        var format = RaceFormat.Standard with
+        {
+            Ballast = new Dictionary<string, double> { ["d4"] = 4.0 },
+            LapOverride = 40,
+        };
+        var balance = SimFixtures.Balance with
+        {
+            ReliabilityFailureRate = 0.06,
+            SafetyCarFromIncidentChance = 5.0,
+            VirtualSafetyCarShare = 0.0,
+            RedFlagShare = 0.0,
+        };
+
+        var differ = false;
+        for (var seed = 0; seed < 25 && !differ; seed++)
+        {
+            var unlap = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, seed, format: format);
+            var stayDown = RaceSimulator.Run(
+                carset.Circuits[0], grid, carset.Rules with { DriversUnlapUnderSafetyCar = false }, balance, seed, format: format);
+            differ = Digest(unlap) != Digest(stayDown);
+        }
+
+        Assert.True(differ, "the unlap rule never changed a restart across 25 seeds");
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();

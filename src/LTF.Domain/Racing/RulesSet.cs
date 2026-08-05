@@ -51,4 +51,8 @@ public sealed record RulesSet
 
     /// <summary>Grid places lost for each component used beyond the season allocation.</summary>
     public int GridPenaltyPerExtraComponent { get; init; } = 5;
+
+    /// <summary>Whether lapped cars are waved past to unlap themselves at a safety-car restart (M9).
+    /// True (default) matches the built-in behaviour; false keeps lapped cars a lap down.</summary>
+    public bool DriversUnlapUnderSafetyCar { get; init; } = true;
 }

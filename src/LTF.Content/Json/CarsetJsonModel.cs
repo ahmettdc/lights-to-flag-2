@@ -44,6 +44,7 @@ internal sealed class RulesJson
     public bool? RefuellingAllowed { get; set; }
     public int? MandatoryPitStops { get; set; }
     public bool? BothDryCompoundsRequired { get; set; }
+    public bool? DriversUnlapUnderSafetyCar { get; set; }
     public int? GridPenaltyPerExtraComponent { get; set; }
     public Dictionary<string, int>? ComponentAllocation { get; set; }
     public PointsJson? Points { get; set; }

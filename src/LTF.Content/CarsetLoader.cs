@@ -124,6 +124,7 @@ public static class CarsetLoader
             RefuellingAllowed = r.RefuellingAllowed ?? false,
             MandatoryPitStops = r.MandatoryPitStops ?? 0,
             BothDryCompoundsRequired = r.BothDryCompoundsRequired ?? false,
+            DriversUnlapUnderSafetyCar = r.DriversUnlapUnderSafetyCar ?? true,
             ComponentAllocation = allocation,
             GridPenaltyPerExtraComponent = r.GridPenaltyPerExtraComponent ?? 5,
         };
