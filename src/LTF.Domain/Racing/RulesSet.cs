@@ -32,6 +32,32 @@ public sealed record PointsScheme
 }
 
 /// <summary>
+/// The series' economic rules (M13): what a team earns and the baseline costs it carries, all in
+/// whole units of the carset's currency. Every field defaults to zero/empty, so a carset with no
+/// <c>economy</c> block behaves exactly as before — no money moves.
+/// </summary>
+public sealed record EconomyRules
+{
+    /// <summary>Prize money by finishing position in the constructors' championship (1st, 2nd, …);
+    /// empty disables prize money.</summary>
+    public IReadOnlyList<long> PrizeMoney { get; init; } = [];
+
+    /// <summary>Flat television income paid to every team each season.</summary>
+    public long TvIncome { get; init; }
+
+    /// <summary>Baseline operating cost incurred per race entered (freight, crew, consumables).</summary>
+    public long OperatingCostPerRace { get; init; }
+
+    /// <summary>Repair cost booked per crash/collision incident a team's cars are involved in.</summary>
+    public long CrashCostPerIncident { get; init; }
+
+    /// <summary>Prize money for finishing <paramref name="position"/> (1-based) in the constructors'
+    /// championship; 0 if out of the paying positions.</summary>
+    public long PrizeFor(int position) =>
+        position >= 1 && position <= PrizeMoney.Count ? PrizeMoney[position - 1] : 0;
+}
+
+/// <summary>
 /// Series regulations for a carset. The engine reads all of it; a rule that exists here
 /// has a corresponding effect in the simulation or season logic (acceptance criterion).
 /// </summary>
@@ -59,4 +85,8 @@ public sealed record RulesSet
     /// <summary>Whether lapped cars are waved past to unlap themselves at a safety-car restart (M9).
     /// True (default) matches the built-in behaviour; false keeps lapped cars a lap down.</summary>
     public bool DriversUnlapUnderSafetyCar { get; init; } = true;
+
+    /// <summary>The series' economic rules — prize money, TV income, baseline costs (M13). Empty by
+    /// default, so a carset with no economy moves no money.</summary>
+    public EconomyRules Economy { get; init; } = new();
 }

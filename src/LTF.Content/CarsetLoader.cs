@@ -128,6 +128,23 @@ public static class CarsetLoader
             DriversUnlapUnderSafetyCar = r.DriversUnlapUnderSafetyCar ?? true,
             ComponentAllocation = allocation,
             GridPenaltyPerExtraComponent = r.GridPenaltyPerExtraComponent ?? 5,
+            Economy = MapEconomy(r.Economy),
+        };
+    }
+
+    private static EconomyRules MapEconomy(EconomyJson? e)
+    {
+        if (e is null)
+        {
+            return new EconomyRules();
+        }
+
+        return new EconomyRules
+        {
+            PrizeMoney = e.PrizeMoney?.ToArray() ?? [],
+            TvIncome = e.TvIncome ?? 0,
+            OperatingCostPerRace = e.OperatingCostPerRace ?? 0,
+            CrashCostPerIncident = e.CrashCostPerIncident ?? 0,
         };
     }
 

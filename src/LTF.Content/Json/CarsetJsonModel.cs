@@ -51,6 +51,7 @@ internal sealed class RulesJson
     public int? GridPenaltyPerExtraComponent { get; set; }
     public Dictionary<string, int>? ComponentAllocation { get; set; }
     public PointsJson? Points { get; set; }
+    public EconomyJson? Economy { get; set; }
 }
 
 internal sealed class PointsJson
@@ -61,6 +62,14 @@ internal sealed class PointsJson
     public int? FastestLapPoint { get; set; }
     public int? LeadingLapPoint { get; set; }
     public int? MostLapsLedPoint { get; set; }
+}
+
+internal sealed class EconomyJson
+{
+    public List<long>? PrizeMoney { get; set; }
+    public long? TvIncome { get; set; }
+    public long? OperatingCostPerRace { get; set; }
+    public long? CrashCostPerIncident { get; set; }
 }
 
 internal sealed class BalanceJson
