@@ -43,14 +43,14 @@ public class ResearchLedgerTests
         return carset with { TechTree = tree, Rules = rules, Teams = teams };
     }
 
-    private static ResearchState WithProject => new()
+    private static ResearchState ProjectState(int correlation = 100, int retries = 0) => new()
     {
         ActiveProjects =
         [
             new DevelopmentProject
             {
                 NodeId = "aero1", TargetAxis = CarAxis.AeroLowSpeed,
-                EstimatedGainMin = 10, EstimatedGainMax = 10, CorrelationPercent = 100,
+                EstimatedGainMin = 10, EstimatedGainMax = 10, CorrelationPercent = correlation, RetriesLeft = retries,
             },
         ],
     };
@@ -58,7 +58,7 @@ public class ResearchLedgerTests
     [Fact]
     public void An_approved_project_raises_the_car_rating()
     {
-        var alpha = ResearchLedger.DevelopSeason(BaseCarset(WithProject), 7).Carset.Teams.Single(t => t.Id == "alpha");
+        var alpha = ResearchLedger.DevelopSeason(BaseCarset(ProjectState()), 7).Carset.Teams.Single(t => t.Id == "alpha");
 
         Assert.Equal(60, alpha.Car.Aerodynamics.Value);         // 50 + gain 10
         Assert.Contains("aero1", alpha.Research.UnlockedNodeIds);
@@ -68,7 +68,7 @@ public class ResearchLedgerTests
     [Fact]
     public void Approving_a_node_is_reported()
     {
-        var dev = ResearchLedger.DevelopSeason(BaseCarset(WithProject), 7)
+        var dev = ResearchLedger.DevelopSeason(BaseCarset(ProjectState()), 7)
             .Developments.Single(d => d.TeamId == "alpha");
 
         Assert.Equal(1, dev.NodesApproved);
@@ -101,9 +101,47 @@ public class ResearchLedgerTests
     [Fact]
     public void Development_is_deterministic()
     {
-        var carset = BaseCarset(WithProject);
+        var carset = BaseCarset(ProjectState());
 
         Assert.Equal(Key(ResearchLedger.DevelopSeason(carset, 7)), Key(ResearchLedger.DevelopSeason(carset, 7)));
+    }
+
+    [Fact]
+    public void A_project_that_fails_validation_is_reworked_not_applied()
+    {
+        // Zero correlation → nothing realises, so the gain never clears the approval bar.
+        var alpha = ResearchLedger.DevelopSeason(BaseCarset(ProjectState(correlation: 0, retries: 2)), 7)
+            .Carset.Teams.Single(t => t.Id == "alpha");
+
+        Assert.Equal(50, alpha.Car.Aerodynamics.Value); // unchanged — not approved
+        var project = alpha.Research.ActiveProjects.Single();
+        Assert.Equal(ValidationState.InManufacture, project.State); // sent back to rework
+        Assert.Equal(1, project.RetriesLeft);                       // one retry consumed
+    }
+
+    [Fact]
+    public void A_project_out_of_retries_is_abandoned()
+    {
+        var outcome = ResearchLedger.DevelopSeason(BaseCarset(ProjectState(correlation: 0, retries: 0)), 7);
+        var alpha = outcome.Carset.Teams.Single(t => t.Id == "alpha");
+
+        Assert.Equal(50, alpha.Car.Aerodynamics.Value);      // unchanged
+        Assert.Empty(alpha.Research.ActiveProjects);         // dropped, not restarted this season
+        Assert.Equal(1, outcome.Developments.Single(d => d.TeamId == "alpha").NodesAbandoned);
+    }
+
+    [Fact]
+    public void Regulation_readiness_accrues_when_the_series_funds_it()
+    {
+        var carset = BaseCarset(ProjectState());
+        carset = carset with
+        {
+            Rules = carset.Rules with { Research = carset.Rules.Research with { ReadinessGainPerSeason = 20 } },
+        };
+
+        var alpha = ResearchLedger.DevelopSeason(carset, 7).Carset.Teams.Single(t => t.Id == "alpha");
+
+        Assert.Equal(20, alpha.Research.RegulationReadiness);
     }
 
     private static string Key(ResearchOutcome outcome) =>

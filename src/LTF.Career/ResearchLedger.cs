@@ -3,16 +3,19 @@ using LTF.Domain.Common;
 using LTF.Domain.Management;
 using LTF.Domain.Racing;
 using LTF.Domain.Rnd;
+using LTF.Simulation;
 
 namespace LTF.Career;
 
 /// <summary>
-/// Advances every team's R&amp;D by one season (M14): each active development project accrues progress —
-/// scaled by the team's facilities and staff — and walks the validation pipeline (ADR-0024); a project
-/// that clears validation has its estimated gain applied permanently to the car (via
-/// <see cref="CarAxisMap"/>), and the team auto-starts affordable available nodes to fill its free slots,
-/// drawing their cost from its budget. The car changes only when a node is approved. Pure and
-/// deterministic; with no tech tree or no development budget the carset is returned untouched.
+/// Advances every team's R&amp;D by one season (M14). Each active development project accrues progress —
+/// scaled by the team's facilities and staff — and walks the validation pipeline (ADR-0024). When a
+/// project reaches data review its gain is realised (the estimate scaled by correlation, with a seeded
+/// spread): if it clears the approval bar it is <b>Approved for Race</b> and its gain is applied
+/// permanently to the car (via <see cref="CarAxisMap"/>); otherwise it is reworked, or abandoned once its
+/// retries run out. The car changes only on approval. Teams auto-start affordable, prerequisite-met nodes
+/// to fill free slots, and accrue regulation readiness. Deterministic (seeded); with no tech tree or no
+/// development budget the carset is returned untouched.
 /// </summary>
 public static class ResearchLedger
 {
@@ -24,11 +27,12 @@ public static class ResearchLedger
             return new ResearchOutcome { Carset = carset };
         }
 
+        var root = new DeterministicRandom(seed);
         var developments = new List<TeamDevelopment>(carset.Teams.Count);
         var teams = new List<Team>(carset.Teams.Count);
         foreach (var team in carset.Teams)
         {
-            var (developed, development) = Develop(carset.TechTree, rules, team);
+            var (developed, development) = Develop(carset.TechTree, rules, team, root.Fork(Salt(team.Id)));
             teams.Add(developed);
             developments.Add(development);
         }
@@ -36,30 +40,50 @@ public static class ResearchLedger
         return new ResearchOutcome { Carset = carset with { Teams = teams }, Developments = developments };
     }
 
-    private static (Team Team, TeamDevelopment Development) Develop(TechTree tree, ResearchRules rules, Team team)
+    private static (Team Team, TeamDevelopment Development) Develop(
+        TechTree tree, ResearchRules rules, Team team, IRandom rng)
     {
         var car = team.Car;
         var balance = team.Finances.Balance;
         var startBalance = balance;
         var unlocked = new HashSet<string>(team.Research.UnlockedNodeIds, StringComparer.Ordinal);
+        var abandonedIds = new HashSet<string>(StringComparer.Ordinal);
         var approved = new List<string>();
+        var abandoned = 0;
 
         var rate = Rate(rules, team);
 
-        // 1. Advance existing projects; a project that clears validation is applied and unlocked.
+        // 1. Advance existing projects; resolve those that reach validation.
         var active = new List<DevelopmentProject>();
         foreach (var project in team.Research.ActiveProjects)
         {
             var advanced = Advance(project, rate, rules);
-            if (advanced.State == ValidationState.ApprovedForRace)
+            if (advanced.State != ValidationState.DataReview)
             {
-                car = Apply(car, advanced);
+                active.Add(advanced);
+                continue;
+            }
+
+            var realised = Realize(advanced, rules, rng.Fork(Salt(advanced.NodeId)));
+            if (realised >= advanced.EstimatedGainMin * rules.ApproveThreshold)
+            {
+                car = Apply(car, advanced, (int)Math.Round(realised));
                 unlocked.Add(advanced.NodeId);
                 approved.Add(advanced.NodeId);
             }
+            else if (advanced.RetriesLeft > 0)
+            {
+                active.Add(advanced with
+                {
+                    State = ValidationState.InManufacture,
+                    RetriesLeft = advanced.RetriesLeft - 1,
+                    Progress = 0,
+                });
+            }
             else
             {
-                active.Add(advanced);
+                abandoned++;
+                abandonedIds.Add(advanced.NodeId);
             }
         }
 
@@ -73,7 +97,8 @@ public static class ResearchLedger
                 break;
             }
 
-            if (unlocked.Contains(node.Id) || activeIds.Contains(node.Id) || !AllMet(node, unlocked))
+            if (unlocked.Contains(node.Id) || activeIds.Contains(node.Id) || abandonedIds.Contains(node.Id)
+                || !AllMet(node, unlocked))
             {
                 continue;
             }
@@ -89,7 +114,13 @@ public static class ResearchLedger
             activeIds.Add(node.Id);
         }
 
-        var research = team.Research with { UnlockedNodeIds = unlocked.ToList(), ActiveProjects = active };
+        var readiness = Math.Clamp(team.Research.RegulationReadiness + rules.ReadinessGainPerSeason, 0, 100);
+        var research = team.Research with
+        {
+            UnlockedNodeIds = unlocked.ToList(),
+            ActiveProjects = active,
+            RegulationReadiness = readiness,
+        };
         var newTeam = team with
         {
             Car = car,
@@ -101,6 +132,7 @@ public static class ResearchLedger
             TeamId = team.Id,
             BudgetSpent = startBalance - balance,
             NodesApproved = approved.Count,
+            NodesAbandoned = abandoned,
             ApprovedNodeIds = approved,
         };
         return (newTeam, development);
@@ -114,6 +146,7 @@ public static class ResearchLedger
         return (int)(rules.BaseProgressPerSeason * factor);
     }
 
+    // Walk the pipeline as far as this season's progress carries it, stopping at data review (the gate).
     private static DevelopmentProject Advance(DevelopmentProject project, int rate, ResearchRules rules)
     {
         var progress = project.Progress + rate;
@@ -124,18 +157,20 @@ public static class ResearchLedger
             state = Next(state);
         }
 
-        var advanced = project with { Progress = progress, State = state };
-
-        // M14h: reaching data review approves the project deterministically (validation lands in M14i).
-        return state == ValidationState.DataReview
-            ? advanced with { State = ValidationState.ApprovedForRace }
-            : advanced;
+        return project with { Progress = progress, State = state };
     }
 
-    private static Car Apply(Car car, DevelopmentProject project)
+    // The realised gain: the estimate midpoint, scaled by baseline × node correlation, with a seeded spread.
+    private static double Realize(DevelopmentProject project, ResearchRules rules, IRandom rng)
     {
-        var gain = Realize(project);
-        return CarAxisMap.TargetOf(project.TargetAxis) switch
+        var estimate = (project.EstimatedGainMin + project.EstimatedGainMax) / 2.0;
+        var correlation = (rules.CorrelationBaseline / 100.0) * (project.CorrelationPercent / 100.0);
+        var noise = rng.NextGaussian() * rules.RealizationSpread;
+        return estimate * correlation * (1.0 + noise);
+    }
+
+    private static Car Apply(Car car, DevelopmentProject project, int gain) =>
+        CarAxisMap.TargetOf(project.TargetAxis) switch
         {
             CarRatingTarget.Aerodynamics => car with { Aerodynamics = Bump(car.Aerodynamics, gain) },
             CarRatingTarget.Chassis => car with { Chassis = Bump(car.Chassis, gain) },
@@ -144,15 +179,6 @@ public static class ResearchLedger
             CarRatingTarget.Reliability => car with { Reliability = Bump(car.Reliability, gain) },
             _ => car,
         };
-    }
-
-    // The realised gain — the estimate midpoint scaled by correlation. M14i adds seeded spread + a
-    // pass/fail threshold; here it always lands at the deterministic estimate.
-    private static int Realize(DevelopmentProject project)
-    {
-        var estimate = (project.EstimatedGainMin + project.EstimatedGainMax) / 2.0;
-        return (int)Math.Round(estimate * (project.CorrelationPercent / 100.0));
-    }
 
     private static Rating Bump(Rating rating, int gain) => Rating.Clamped(rating.Value + gain);
 
@@ -225,5 +251,21 @@ public static class ResearchLedger
         }
 
         return sum / staff.Count;
+    }
+
+    // A stable, ordinal FNV-1a hash of an id → fork salt. Never String.GetHashCode (process-randomised).
+    private static long Salt(string id)
+    {
+        unchecked
+        {
+            var hash = 1469598103934665603UL; // FNV-1a offset basis
+            foreach (var c in id)
+            {
+                hash ^= c;
+                hash *= 1099511628211UL; // FNV-1a prime
+            }
+
+            return (long)hash;
+        }
     }
 }
