@@ -195,6 +195,66 @@ güncelleyin ve `docs/adr/` altına yeni bir kayıt düşün.
 | **Karar** | Dış-seri (F2/F3/DTM/WEC) + free-agent **pilot havuzu**; **scout ekibi** gizli nitelik/potansiyeli keşfeder (rapor = aralık + güven; kaynak/scout yeteneği kesinliği artırır). |
 | **Dağılım** | M18 (transfer/regen kaynağı), M12 (imzalama), M14 (scout işe alım), M17 (yönlendirme), M22 (ekran + bildirim). Deterministik. Ayrıntı: `docs/adr/0017`. |
 
+### ADR-0018 — Regülasyon çağları (DRS ↔ 2026)
+
+| | |
+|---|---|
+| **Karar** | Motor **çoklu regülasyon çağı** koşar; carset seçer. `DrsEra` (2024/25) ve `ActiveAero2026` (DRS yok → aktif aero X/Z + enerji-bağlı Manuel Override + de-rating). ADR-0010 `regulations` bloğunun ilk somut parçası. |
+| **Determinizm** | Enerji/aero/override **RNG'siz aritmetik** → DrsEra byte-özdeş (geriye uyum). Kural adları jenerik; gerçek 2026 ayrı mod. |
+| **Dağılım** | 26a ✅ (çağ + Override + enerji), 26b (aktif aero X/Z), 26c (kalibrasyon + carset config). Ayrıntı: `docs/adr/0018`. |
+
+### ADR-0019 — Araç yönetim modülü (Vehicle)
+
+| | |
+|---|---|
+| **Karar** | Oyuncu **Teknik Direktör** gibi aracı yönetir (FM/MM derinliği); her parça geçmiş, her eylem kalıcı kayıt; Finance/Staff/R&D/Manufacturing/Regulations ile bağlı. Upgrades → ADR-0016/0024 araç-tarafı yüzeyi (çift çalışma yok). |
+| **Yeni** | Manufacturing (üretim kuyruğu), Inventory/lojistik, Homologation/BoP, Setup, Livery, Electronics, Development-history. |
+| **Dağılım** | M1/M5/M14/M15/M8/M13/M24, **M22 (Faz 3 Vehicle merkezi)**. Alt-sistem H. Ayrıntı: `docs/adr/0019`. |
+
+### ADR-0020 — Tesis & fabrika modeli
+
+| | |
+|---|---|
+| **Karar** | Tesisler **puan vermez**; geliştirmenin kapasite/hız/doğruluk/kalite/riskini belirler. Level 1–5; personel tamamlayıcı. Rüzgâr tüneli/CFD ATR kotasını artırmaz, verimini belirler (ADR-0010). |
+| **Dağılım** | M14 (ana), M13/M15, ADR-0015 (simülatör), M7 (pit crew), ADR-0016, M22. Alt-sistem I. Deterministik. Ayrıntı: `docs/adr/0020`. |
+
+### ADR-0021 — Medya & diyalog motoru (paddock etkileşimi)
+
+| | |
+|---|---|
+| **Karar** | Mekân-tabanlı **diyalog + medya + delegasyon**. Medya metrikleri (reputation/popularity/credibility/pressure/narrative heat), basın tetikleri, cooldown/hafıza, **bulanık ilişki gösterimi**. ADR-0013 + Rev 15 üstünde birleşir. |
+| **Dağılım** | M11/M12/M16/M17, M21 (Paddock Hub), M22, M23 (mekânlar). Alt-sistem J. Deterministik. Ayrıntı: `docs/adr/0021`. |
+
+### ADR-0022 — Dinamik Dünya Sistemi (yaşayan evren)
+
+| | |
+|---|---|
+| **Karar** | Dünya oyuncudan bağımsız yaşar: **7 ekosistem** (takım/sürücü/personel/üretici/sponsor/regülasyon/global) + haber+söylenti motoru + tarih DB + hall of fame. Mevcut ADR-0015/0017/0010/0018'in derinleşmesi. |
+| **Determinizm & hassasiyet** | Tüm evrim **tohumlu**; içerik kurgusal/isimsiz (gerçek isim yalnız mod); global olay soyut (ADR-0012). |
+| **Dağılım** | **M18 ana yüzey**, M11/M13/M14/M24, Rev 15/21. Alt-sistem K. Ayrıntı: `docs/adr/0022`. |
+
+### ADR-0023 — Veri boru hattı & modlama mimarisi
+
+| | |
+|---|---|
+| **Karar** | Ham veri **doğrudan** puana dönüşmez: `ham → doğrula → ana DB → denge katmanı (mod_balance) → carset/mod`. Kaynak/lisans izlenebilir (TracingInsights Apache-2.0 + NOTICE; StatsF1 yalnız doğrulama, scrape yok). ADR-0007 derinleşmesi. |
+| **Dağılım** | M2 (format), M10 (denge), M26/M27/M28 (araçlar), ADR-0022. Alt-sistem L. Seed'li → tekrar-oynatılabilir. Ayrıntı: `docs/adr/0023`. |
+
+### ADR-0024 — Araç puanlama modeli & R&D doğrulama
+
+| | |
+|---|---|
+| **Karar** | R&D üç ADR: **0016 (ne) + 0020 (ne kadar iyi) + 0024 (nasıl ölçülür)**. 12-eksen 500-merkezli araç puanı (M1 Car'ın Faz 2 inceltmesi); **puan anında artmaz** — In Design→…→Approved for Race sonrası kalıcılaşır; pist-doğrulama + korelasyon riski + test planları. |
+| **Bağlar** | Sürücü `technical_feedback`/`adaptability` (ADR-0015); cost-cap (ADR-0010); istihbarat **bulanık, casusluk yok** (medya/ağ); AI kişilikleri (ADR-0022); veri dosyaları (ADR-0023). |
+| **Dağılım** | **M14 (ana)**, M1/M4/M5b/M15/M8/M13/M22. Alt-sistem M. Deterministik. Ayrıntı: `docs/adr/0024`. |
+
+### ADR-0025 — Yönetim kurulu, sahiplik & baskı
+
+| | |
+|---|---|
+| **Karar** | Kısa-vade baskı ↔ uzun-vade plan gerilimi. 6 sahiplik tipi, çok-üyeli kurul, **6 bağımsız baskı metriği**, müzakere edilebilir hedefler, takvim-ritmli toplantılar. DWS (ADR-0022) sahipliğinin oyuncu-tarafı yüzeyi. |
+| **Dağılım** | **M17 (ana)**, M13/M11/M12/M24, Rev 21 (medya baskısı), Rev 15 (bildirim). Alt-sistem N. Deterministik. Ayrıntı: `docs/adr/0025`. |
+
 ---
 
 ## 3. Ürün vizyonu
@@ -394,6 +454,43 @@ M22 (arayüz).
 Dış-seri (F2/F3/DTM/WEC) + free-agent havuzu; scout ekibi gizli nitelik/potansiyeli keşfeder
 (rapor = aralık + güven; kaynak/scout yeteneği kesinliği artırır). Dağılım: M18 (transfer/regen
 kaynağı), M12 (imzalama), M14 (scout işe alım), M17 (yönlendirme), M22 (ekran + bildirim). Deterministik.
+
+#### Alt-sistem H — Araç yönetim modülü / Vehicle (ADR-0019)
+Oyuncu Teknik Direktör gibi aracı yönetir; her parça geçmiş, her eylem kalıcı kayıt. Upgrades ADR-0016
+tech tree'nin + ADR-0024 doğrulamanın araç-tarafı yüzeyi (çift çalışma yok). Yeni: Manufacturing üretim
+kuyruğu, Inventory/lojistik, Homologation/BoP, Setup, Livery, Electronics. Dağılım: M1/M5/M14/M15/M8/M13,
+**M22 (Faz 3 tam Vehicle merkezi)**, M24. M2 opsiyonel bileşen/tedarikçi verisi.
+
+#### Alt-sistem I — Tesisler & fabrika (ADR-0020)
+Tesisler puan vermez; geliştirmenin kapasite/hız/doğruluk/kalite/riskini belirler (Level 1–5, personel
+tamamlayıcı). Rüzgâr tüneli/CFD ATR kotasını artırmaz, verimini + korelasyonunu belirler. Dağılım: M14
+(ana), M13 (yatırım/bakım), M15 (kalite→güvenilirlik), ADR-0015 (simülatör), M7 (pit crew), M22.
+
+#### Alt-sistem J — Medya & diyalog (ADR-0021)
+Mekân-tabanlı diyalog + medya (reputation/popularity/credibility/pressure/narrative heat) + delegasyon.
+Basın tetikte; cooldown/hafıza; ilişki ekranı bulanık (kesin puan yok). Rev 15 bildirim merkezi burada
+Paddock Hub'a evrilir. Dağılım: M11/M12/M16/M17, M21 (Hub), M22, M23 (hafta sonu mekânları).
+
+#### Alt-sistem K — Dinamik Dünya (ADR-0022)
+Oyuncudan bağımsız yaşayan evren: 7 ekosistem (takım/sürücü/personel/üretici/sponsor/regülasyon/global) +
+haber+söylenti motoru + tarih DB + hall of fame. Tümü tohumlu; içerik kurgusal, global olay soyut. ADR-0015/
+0017/0010/0018'in derinleşmesi. Dağılım: **M18 ana yüzey**, M11/M13/M14/M24, Rev 15/21. M2 opsiyonel dünya durumu.
+
+#### Alt-sistem L — Veri boru hattı & modlama (ADR-0023)
+Ham veri doğrudan puana dönüşmez: ham → doğrula → ana DB → denge katmanı (`mod_balance`) → carset/mod.
+Kaynak/lisans izlenebilir (TracingInsights Apache-2.0 + NOTICE; StatsF1 yalnız doğrulama). Seed'li olaylar →
+tekrar-oynatılabilir. Dağılım: M2 (format), M10 (denge), M26/M27/M28 (araçlar), ADR-0022.
+
+#### Alt-sistem M — R&D derinliği / araç puanlama (ADR-0024)
+R&D üç parça: ADR-0016 (ne) + ADR-0020 (ne kadar iyi) + ADR-0024 (nasıl ölçülür). 12-eksen 500-merkezli araç
+puanı (M1 Car inceltmesi); **puan ancak "Approved for Race" sonrası artar** (pist-doğrulama + korelasyon +
+test planları). Bulanık rakip istihbaratı (casusluk yok), AI kişilikleri, veri dosyaları. Dağılım: **M14
+(ana)**, M1/M4/M5b/M15/M8/M13/M22.
+
+#### Alt-sistem N — Yönetim kurulu & baskı (ADR-0025)
+Kısa-vade baskı ↔ uzun-vade plan gerilimi. 6 sahiplik tipi, çok-üyeli kurul, 6 bağımsız baskı metriği,
+müzakere edilebilir hedefler, takvim-ritmli toplantılar (ADR-0011). DWS (ADR-0022) sahipliğinin oyuncu-tarafı
+yüzeyi. Dağılım: **M17 ana yüzey**, M13/M11/M12/M24, Rev 21 (medya baskısı), Rev 15 (bildirim).
 
 ### Faz 3 — Arayüz · M19–M25 — *Avalonia, oyun dili İngilizce*
 

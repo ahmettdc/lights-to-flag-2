@@ -22,3 +22,11 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0015](0015-driver-development.md) | Pilot gelişimi (potansiyel + yaş eğrisi + antrenman) |
 | [0016](0016-rnd-tech-tree.md) | R&D geliştirme ağacı (tech tree) |
 | [0017](0017-driver-pool-scouting.md) | Pilot havuzu & scout (keşif) sistemi |
+| [0018](0018-regulation-eras.md) | Regülasyon çağları (DRS ↔ 2026) |
+| [0019](0019-vehicle-module.md) | Araç yönetim modülü (Vehicle) |
+| [0020](0020-facilities-factory.md) | Tesis & fabrika modeli |
+| [0021](0021-media-dialogue.md) | Medya & diyalog motoru (paddock etkileşimi) |
+| [0022](0022-dynamic-world.md) | Dinamik Dünya Sistemi (yaşayan evren) |
+| [0023](0023-data-modding-pipeline.md) | Veri boru hattı & modlama mimarisi |
+| [0024](0024-car-rating-rnd-validation.md) | Araç puanlama modeli & R&D doğrulama |
+| [0025](0025-board-management-pressure.md) | Yönetim kurulu, sahiplik & baskı sistemi |
