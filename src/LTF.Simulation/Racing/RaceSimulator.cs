@@ -253,12 +253,19 @@ public static class RaceSimulator
                 }
             }
 
+            // Tally the lap leader for leading-lap points (M9b); deterministic, no random draw.
+            var lapLeader = LeaderOf(cars);
+            if (lapLeader is not null)
+            {
+                lapLeader.LapsLed++;
+            }
+
             snapshots.Add(SnapshotOf(lap, cars, stateThisLap));
             state = nextState;
             neutralLapsLeft = nextLeft;
         }
 
-        return Classify(cars, rules, snapshots, events);
+        return Classify(cars, rules, snapshots, events, fmt);
     }
 
     /// <summary>The race length in laps (M9a): a lap-count override wins; else a target duration is
@@ -810,6 +817,29 @@ public static class RaceSimulator
 
     // ---- Ordering / classification ---------------------------------------
 
+    /// <summary>The current race leader — most laps, then least time — or null if no car is running.
+    /// Used to tally laps led (M9b); mirrors the ordering in <see cref="SnapshotOf"/>.</summary>
+    private static CarRaceState? LeaderOf(List<CarRaceState> cars)
+    {
+        CarRaceState? leader = null;
+        foreach (var c in cars)
+        {
+            if (!c.Running)
+            {
+                continue;
+            }
+
+            if (leader is null
+                || c.LapsCompleted > leader.LapsCompleted
+                || (c.LapsCompleted == leader.LapsCompleted && c.TotalTime < leader.TotalTime))
+            {
+                leader = c;
+            }
+        }
+
+        return leader;
+    }
+
     /// <summary>For each running car, the car currently directly ahead of it — used to pair up
     /// collisions. Computed once per lap from the standing at the lap's start.</summary>
     private static Dictionary<string, CarRaceState> AheadMap(List<CarRaceState> cars)
@@ -868,7 +898,7 @@ public static class RaceSimulator
     }
 
     private static RaceResult Classify(
-        List<CarRaceState> cars, RulesSet rules, List<LapSnapshot> snapshots, List<RaceEvent> events)
+        List<CarRaceState> cars, RulesSet rules, List<LapSnapshot> snapshots, List<RaceEvent> events, RaceFormat fmt)
     {
         var ordered = cars
             .OrderByDescending(c => c.Status == FinishStatus.Finished)
@@ -885,6 +915,16 @@ public static class RaceSimulator
             }
         }
 
+        // The single car that led the most laps (M9b), for the most-laps-led point.
+        CarRaceState? mostLed = null;
+        foreach (var c in cars)
+        {
+            if (c.LapsLed > 0 && (mostLed is null || c.LapsLed > mostLed.LapsLed))
+            {
+                mostLed = c;
+            }
+        }
+
         var leaderTime = ordered.Count > 0 ? ordered[0].TotalTime : 0.0;
         var entries = new List<RaceClassificationEntry>(ordered.Count);
         for (var i = 0; i < ordered.Count; i++)
@@ -897,6 +937,23 @@ public static class RaceSimulator
                 && c.Status == FinishStatus.Finished && position <= 10)
             {
                 points += rules.Points.FastestLapPoint;
+            }
+
+            // M9b: pole / leading-lap / most-laps-led points, all gated on a non-zero value (so a
+            // default carset is unchanged) and awarded on the achievement itself, not on finishing.
+            if (rules.Points.PolePoint > 0 && c.Id == fmt.PoleSitterId)
+            {
+                points += rules.Points.PolePoint;
+            }
+
+            if (rules.Points.LeadingLapPoint > 0 && c.LapsLed > 0)
+            {
+                points += rules.Points.LeadingLapPoint;
+            }
+
+            if (rules.Points.MostLapsLedPoint > 0 && mostLed is not null && c.Id == mostLed.Id)
+            {
+                points += rules.Points.MostLapsLedPoint;
             }
 
             entries.Add(new RaceClassificationEntry

@@ -105,4 +105,18 @@ public class CarsetLoaderTests
         var ex = Assert.Throws<CarsetValidationException>(() => CarsetLoader.LoadFromJson(json));
         Assert.Contains("regulations.era", ex.Message);
     }
+
+    [Fact]
+    public void Reads_leading_lap_and_most_laps_led_points()
+    {
+        var json = TestData.MinimalValid.Replace(
+            "\"racePoints\": [25, 18, 15] }",
+            "\"racePoints\": [25, 18, 15], \"leadingLapPoint\": 1, \"mostLapsLedPoint\": 5 }",
+            StringComparison.Ordinal);
+
+        var carset = CarsetLoader.LoadFromJson(json);
+
+        Assert.Equal(1, carset.Rules.Points.LeadingLapPoint);
+        Assert.Equal(5, carset.Rules.Points.MostLapsLedPoint);
+    }
 }

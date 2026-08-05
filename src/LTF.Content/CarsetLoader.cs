@@ -116,6 +116,8 @@ public static class CarsetLoader
                 SprintPoints = points.SprintPoints?.ToArray() ?? [],
                 PolePoint = points.PolePoint ?? 0,
                 FastestLapPoint = points.FastestLapPoint ?? 0,
+                LeadingLapPoint = points.LeadingLapPoint ?? 0,
+                MostLapsLedPoint = points.MostLapsLedPoint ?? 0,
             },
             Qualifying = EnumOr(r.Qualifying, QualifyingFormat.Knockout),
             RetirementAge = r.RetirementAge ?? 40,

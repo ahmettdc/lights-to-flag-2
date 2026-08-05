@@ -16,6 +16,12 @@ public sealed record PointsScheme
     public int PolePoint { get; init; }
     public int FastestLapPoint { get; init; }
 
+    /// <summary>Points for leading at least one lap of the race (M9). 0 disables it.</summary>
+    public int LeadingLapPoint { get; init; }
+
+    /// <summary>Points for leading the most laps of the race (M9). 0 disables it.</summary>
+    public int MostLapsLedPoint { get; init; }
+
     /// <summary>Points for finishing <paramref name="position"/> (1-based); 0 if out of the points.</summary>
     public int PointsFor(int position) =>
         position >= 1 && position <= RacePoints.Count ? RacePoints[position - 1] : 0;

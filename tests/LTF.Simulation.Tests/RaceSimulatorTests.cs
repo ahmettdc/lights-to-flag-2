@@ -961,6 +961,63 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Points columns (M9b) ---------------------------------------------
+
+    [Fact]
+    public void The_pole_sitter_scores_the_pole_point()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { Points = carset.Rules.Points with { PolePoint = 3 } };
+        var format = RaceFormat.Standard with { PoleSitterId = "d1" };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, rules, SimFixtures.CalmBalance, 7, format: format);
+
+        var pole = result.Classification.Single(e => e.CompetitorId == "d1");
+        Assert.Equal(carset.Rules.Points.PointsFor(pole.Position) + 3, pole.Points);
+    }
+
+    [Fact]
+    public void Leading_lap_points_reward_a_lap_leader()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { Points = carset.Rules.Points with { LeadingLapPoint = 1 } };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, rules, SimFixtures.CalmBalance, 7);
+
+        // Every lap has a leader, so at least one car scores the leading-lap point on top of its finish.
+        Assert.Contains(result.Classification, e => e.Points > carset.Rules.Points.PointsFor(e.Position));
+    }
+
+    [Fact]
+    public void The_most_laps_led_point_goes_to_exactly_one_car()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { Points = carset.Rules.Points with { MostLapsLedPoint = 5 } };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, rules, SimFixtures.CalmBalance, 7);
+
+        var bonusHolders = result.Classification.Count(e => e.Points >= carset.Rules.Points.PointsFor(e.Position) + 5);
+        Assert.Equal(1, bonusHolders);
+    }
+
+    [Fact]
+    public void Points_columns_are_inert_by_default()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var plain = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 7);
+        var named = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 7,
+            format: RaceFormat.Standard with { PoleSitterId = "d1" });
+
+        // The fixture's pole/leading/most-led point values are 0, so naming a pole-sitter is a no-op.
+        Assert.Equal(Digest(plain), Digest(named));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();

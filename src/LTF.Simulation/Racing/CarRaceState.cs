@@ -74,6 +74,10 @@ internal sealed class CarRaceState
 
     public double TotalTime { get; set; }
     public int LapsCompleted { get; set; }
+
+    /// <summary>Number of laps this car has led (M9), tallied each lap for leading-lap points.</summary>
+    public int LapsLed { get; set; }
+
     public double BestLap { get; set; } = double.MaxValue;
 
     /// <summary>The most recent lap time and its sector split (telemetry, M5e).</summary>

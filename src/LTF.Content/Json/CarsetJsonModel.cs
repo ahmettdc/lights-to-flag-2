@@ -55,6 +55,8 @@ internal sealed class PointsJson
     public List<int>? SprintPoints { get; set; }
     public int? PolePoint { get; set; }
     public int? FastestLapPoint { get; set; }
+    public int? LeadingLapPoint { get; set; }
+    public int? MostLapsLedPoint { get; set; }
 }
 
 internal sealed class BalanceJson
