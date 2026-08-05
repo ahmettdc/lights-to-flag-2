@@ -47,4 +47,7 @@ public sealed record Carset
 
     /// <summary>Sponsors available to sign.</summary>
     public IReadOnlyList<Sponsor> SponsorPool { get; init; } = [];
+
+    /// <summary>The paddock's web of relationships (ADR-0013); empty until a career evolves them.</summary>
+    public RelationshipGraph Relationships { get; init; } = RelationshipGraph.Empty;
 }

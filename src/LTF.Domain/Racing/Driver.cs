@@ -71,4 +71,7 @@ public sealed record Driver
     public Rating Reputation { get; init; } = new(50);
 
     public DriverCareer Career { get; init; } = DriverCareer.None;
+
+    /// <summary>Disposition driving relationships and negotiation (ADR-0013); neutral by default.</summary>
+    public Personality Personality { get; init; } = Personality.Neutral;
 }
