@@ -21,6 +21,7 @@ public static class SeasonSimulator
         var circuitsById = carset.Circuits.ToDictionary(c => c.Id, StringComparer.Ordinal);
 
         var rounds = new List<RaceResult>(carset.Calendar.Count);
+        var poleSitters = new List<string?>(carset.Calendar.Count);
         foreach (var round in carset.Calendar)
         {
             if (!circuitsById.TryGetValue(round.CircuitId, out var circuit))
@@ -37,10 +38,11 @@ public static class SeasonSimulator
                 circuit, grid, carset.Rules, carset.Balance, roundSeed,
                 regulations: carset.Regulations, format: format);
             rounds.Add(result);
+            poleSitters.Add(quali.PoleCompetitorId);
         }
 
         var standings = ChampionshipStandings.From(carset, rounds);
-        return new SeasonResult { Standings = standings, Rounds = rounds };
+        return new SeasonResult { Standings = standings, Rounds = rounds, PoleSitters = poleSitters };
     }
 
     /// <summary>A deterministic per-round seed from the season seed and round number — well mixed so
