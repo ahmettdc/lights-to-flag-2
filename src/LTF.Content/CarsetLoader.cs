@@ -77,6 +77,7 @@ public static class CarsetLoader
         Drivers = MapList(j.Drivers, "drivers", MapDriver),
         Tyres = MapOptional(j.Tyres, "tyres", MapTyre),
         Reserves = MapOptional(j.Reserves, "reserves", MapDriver),
+        Contracts = MapOptional(j.Contracts, "contracts", MapContract),
     };
 
     private static RulesSet MapRules(RulesJson? r)
@@ -301,6 +302,50 @@ public static class CarsetLoader
             Morale = RateOr(d.Morale, 50),
             Reputation = RateOr(d.Reputation, 50),
             Career = MapCareer(d.Career),
+            Personality = MapPersonality(d.Personality),
+        };
+    }
+
+    private static Personality MapPersonality(PersonalityJson? p)
+    {
+        if (p is null)
+        {
+            return Personality.Neutral;
+        }
+
+        return new Personality
+        {
+            Ego = RateOr(p.Ego, 50),
+            Loyalty = RateOr(p.Loyalty, 50),
+            Temperament = RateOr(p.Temperament, 50),
+            Ambition = RateOr(p.Ambition, 50),
+        };
+    }
+
+    private static Contract MapContract(ContractJson c, string p) => new()
+    {
+        Kind = EnumOr(c.Kind, ContractKind.Driver),
+        PartyId = ReqStr(c.PartyId, $"{p}.partyId"),
+        TeamId = ReqStr(c.TeamId, $"{p}.teamId"),
+        SalaryPerSeason = c.SalaryPerSeason ?? 0,
+        SeasonsRemaining = c.SeasonsRemaining ?? 1,
+        SigningBonus = c.SigningBonus ?? 0,
+        Clauses = MapClauses(c.Clauses),
+    };
+
+    private static ContractClauses MapClauses(ContractClausesJson? c)
+    {
+        if (c is null)
+        {
+            return new ContractClauses();
+        }
+
+        return new ContractClauses
+        {
+            PerPointBonus = c.PerPointBonus ?? 0,
+            ChampionshipBonus = c.ChampionshipBonus ?? 0,
+            ExitClause = c.ExitClause ?? 0,
+            FirstDriverStatus = c.FirstDriverStatus ?? false,
         };
     }
 

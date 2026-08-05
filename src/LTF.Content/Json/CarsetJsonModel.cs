@@ -21,6 +21,9 @@ internal sealed class CarsetJson
 
     /// <summary>Optional regulation era + tuning (ADR-0018). Absent → the DRS era.</summary>
     public RegulationsJson? Regulations { get; set; }
+
+    /// <summary>Optional active contracts binding drivers/staff to teams (M12).</summary>
+    public List<ContractJson>? Contracts { get; set; }
 }
 
 internal sealed class RegulationsJson
@@ -160,6 +163,7 @@ internal sealed class DriverJson
     public int? Morale { get; set; }
     public int? Reputation { get; set; }
     public CareerJson? Career { get; set; }
+    public PersonalityJson? Personality { get; set; }
 }
 
 internal sealed class AttributesJson
@@ -181,4 +185,31 @@ internal sealed class CareerJson
     public int? FastestLaps { get; set; }
     public int? Championships { get; set; }
     public double? Points { get; set; }
+}
+
+internal sealed class PersonalityJson
+{
+    public int? Ego { get; set; }
+    public int? Loyalty { get; set; }
+    public int? Temperament { get; set; }
+    public int? Ambition { get; set; }
+}
+
+internal sealed class ContractJson
+{
+    public string? Kind { get; set; }
+    public string? PartyId { get; set; }
+    public string? TeamId { get; set; }
+    public long? SalaryPerSeason { get; set; }
+    public int? SeasonsRemaining { get; set; }
+    public long? SigningBonus { get; set; }
+    public ContractClausesJson? Clauses { get; set; }
+}
+
+internal sealed class ContractClausesJson
+{
+    public long? PerPointBonus { get; set; }
+    public long? ChampionshipBonus { get; set; }
+    public long? ExitClause { get; set; }
+    public bool? FirstDriverStatus { get; set; }
 }

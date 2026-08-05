@@ -50,4 +50,7 @@ public sealed record Carset
 
     /// <summary>The paddock's web of relationships (ADR-0013); empty until a career evolves them.</summary>
     public RelationshipGraph Relationships { get; init; } = RelationshipGraph.Empty;
+
+    /// <summary>Active contracts binding drivers/staff to teams (M12); empty if the carset ships none.</summary>
+    public IReadOnlyList<Contract> Contracts { get; init; } = [];
 }

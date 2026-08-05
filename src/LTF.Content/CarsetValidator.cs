@@ -1,4 +1,5 @@
 using LTF.Domain;
+using LTF.Domain.Common;
 
 namespace LTF.Content;
 
@@ -125,6 +126,30 @@ public static class CarsetValidator
         if (reg.DeRatingThreshold < 0 || reg.DeRatingThreshold > 1)
         {
             Error("regulations deRatingThreshold must be within 0..1");
+        }
+
+        // Contracts (M12): party and team must resolve; terms are non-negative.
+        foreach (var contract in carset.Contracts)
+        {
+            if (!teamIds.Contains(contract.TeamId))
+            {
+                Error($"contract for '{contract.PartyId}' references unknown team '{contract.TeamId}'");
+            }
+
+            if (contract.Kind == ContractKind.Driver && !driverIds.Contains(contract.PartyId))
+            {
+                Error($"driver contract references unknown driver '{contract.PartyId}'");
+            }
+
+            if (contract.SalaryPerSeason < 0)
+            {
+                Error($"contract for '{contract.PartyId}' has a negative salary");
+            }
+
+            if (contract.SeasonsRemaining < 0)
+            {
+                Error($"contract for '{contract.PartyId}' has negative seasons remaining");
+            }
         }
 
         return issues;
