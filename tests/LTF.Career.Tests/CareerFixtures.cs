@@ -20,9 +20,9 @@ internal static class CareerFixtures
         Id = id, FirstName = id, LastName = "Driver", Age = 25, Attributes = Attributes(),
     };
 
-    private static Car Car() => new()
+    private static Car Car(int flat = 70) => new()
     {
-        Aerodynamics = R(70), Chassis = R(70), PowerUnit = R(70), TyreGentleness = R(70), Reliability = R(70),
+        Aerodynamics = R(flat), Chassis = R(flat), PowerUnit = R(flat), TyreGentleness = R(flat), Reliability = R(flat),
     };
 
     /// <summary>A minimal two-team, four-driver carset: alpha (d1/d2) and bravo (d3/d4).</summary>
@@ -40,6 +40,22 @@ internal static class CareerFixtures
         Circuits = [new Circuit { Id = "c", Name = "C", Laps = 50, LapDistanceKm = 5.0, BaseLapTimeSeconds = 80.0 }],
         Calendar = [new CalendarRound { Round = 1, CircuitId = "c", Date = new DateOnly(2025, 3, 16) }],
     };
+
+    /// <summary>A season carset where alpha (d1/d2, car 85) is clearly faster than bravo (d3/d4,
+    /// car 70), over several rounds, so the faster team reliably takes both titles.</summary>
+    public static Carset SeasonCarset(int rounds = 8)
+    {
+        var carset = Carset();
+        var alpha = carset.Teams[0] with { Car = Car(85) };
+        var bravo = carset.Teams[1];
+
+        var start = new DateOnly(2025, 3, 16);
+        var calendar = Enumerable.Range(1, rounds)
+            .Select(r => new CalendarRound { Round = r, CircuitId = "c", Date = start.AddDays(14 * (r - 1)) })
+            .ToList();
+
+        return carset with { Teams = [alpha, bravo], Calendar = calendar };
+    }
 
     /// <summary>A race result with the given finishers in order (positions 1..n, all finished),
     /// each carrying the supplied championship points.</summary>
