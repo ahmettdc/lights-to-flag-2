@@ -903,6 +903,64 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Race format (M9a) ------------------------------------------------
+
+    [Fact]
+    public void A_standard_race_format_is_byte_identical()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var plain = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 7);
+        var standard = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 7, format: RaceFormat.Standard);
+        var nullFormat = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 7, format: null);
+
+        Assert.Equal(Digest(plain), Digest(standard));
+        Assert.Equal(Digest(plain), Digest(nullFormat));
+    }
+
+    [Fact]
+    public void A_timed_race_runs_the_duration_in_laps()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var circuit = carset.Circuits[0];
+        var format = RaceFormat.Standard with { TimedDurationSeconds = 800.0 };
+
+        var result = RaceSimulator.Run(circuit, grid, carset.Rules, SimFixtures.CalmBalance, 7, format: format);
+
+        var expected = (int)Math.Ceiling(800.0 / circuit.BaseLapTimeSeconds);
+        Assert.Equal(expected, result.Telemetry.Laps.Count);
+    }
+
+    [Fact]
+    public void A_lap_override_sets_the_race_length()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // The override wins over the circuit's own lap count and over a timed duration.
+        var format = RaceFormat.Standard with { LapOverride = 12, TimedDurationSeconds = 5000.0 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7, format: format);
+
+        Assert.Equal(12, result.Telemetry.Laps.Count);
+    }
+
+    [Fact]
+    public void A_formatted_race_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var format = RaceFormat.Standard with { LapOverride = 20 };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 2024, format: format);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 2024, format: format);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();

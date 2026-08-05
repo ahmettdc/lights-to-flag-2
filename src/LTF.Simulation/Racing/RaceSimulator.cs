@@ -21,7 +21,9 @@ namespace LTF.Simulation.Racing;
 /// M7c added on-track penalties — track limits (deterministic strike counting) and a rare unsafe
 /// pit release (drawn last on the pit stream), both gated so pre-M7c races stay bit-for-bit identical.
 /// M8 accepts an optional practice setup per car that shaves a little off each green lap and cuts
-/// the driver-error chance; with no setup (the default) the race is unchanged.
+/// the driver-error chance; with no setup (the default) the race is unchanged. M9 accepts an
+/// optional <see cref="RaceFormat"/> bundle; M9a lets it set the race length (a timed duration or a
+/// lap-count override), defaulting to the circuit's laps.
 /// </summary>
 public static class RaceSimulator
 {
@@ -55,16 +57,19 @@ public static class RaceSimulator
     public static RaceResult Run(
         Circuit circuit, IReadOnlyList<Competitor> grid, RulesSet rules, BalanceCoefficients balance,
         int seed, TyreCompound startingCompound = TyreCompound.Medium, RegulationSet? regulations = null,
-        IReadOnlyDictionary<string, PracticeSetup>? setups = null)
+        IReadOnlyDictionary<string, PracticeSetup>? setups = null, RaceFormat? format = null)
     {
         // Null regulations reproduce the DRS era exactly, so existing callers are unaffected.
         var regs = regulations ?? RegulationSet.Drs;
         var era2026 = regs.Era == RegulationEra.ActiveAero2026;
 
+        // A null format is a standard feature race, so existing callers run identically (M9).
+        var fmt = format ?? RaceFormat.Standard;
+
         var baseRng = new DeterministicRandom(seed);
         var raceControlRng = baseRng.Fork(RaceControlSalt);
         var trafficRng = baseRng.Fork(TrafficSalt);
-        var laps = circuit.Laps;
+        var laps = ResolveLaps(circuit, fmt);
         var baseTargets = PlanPitLaps(laps, rules.MandatoryPitStops);
 
         var cars = new List<CarRaceState>(grid.Count);
@@ -254,6 +259,24 @@ public static class RaceSimulator
         }
 
         return Classify(cars, rules, snapshots, events);
+    }
+
+    /// <summary>The race length in laps (M9a): a lap-count override wins; else a target duration is
+    /// converted with the circuit's representative lap time; else the circuit's own lap count. A
+    /// standard format uses none of these, so it returns <c>circuit.Laps</c> exactly as before.</summary>
+    private static int ResolveLaps(Circuit circuit, RaceFormat fmt)
+    {
+        if (fmt.LapOverride > 0)
+        {
+            return fmt.LapOverride;
+        }
+
+        if (fmt.TimedDurationSeconds > 0.0)
+        {
+            return Math.Max(1, (int)Math.Ceiling(fmt.TimedDurationSeconds / circuit.BaseLapTimeSeconds));
+        }
+
+        return circuit.Laps;
     }
 
     // ---- Start ------------------------------------------------------------
