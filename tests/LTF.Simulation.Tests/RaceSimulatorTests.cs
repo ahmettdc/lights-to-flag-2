@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using LTF.Domain.Common;
 using LTF.Domain.Racing;
@@ -362,12 +363,28 @@ public class RaceSimulatorTests
         var grid = EntryList.Build(carset);
 
         // Full balance: reliability, incidents and neutralisations all live. The whole rich
-        // telemetry + event log + classification must reproduce bit for bit — an in-process
-        // "golden" (a checked-in golden file waits until local execution is available).
+        // telemetry + event log + classification must reproduce bit for bit — in process here,
+        // and against a checked-in golden hash across commits and platforms (below).
         var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
         var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
 
         Assert.Equal(Digest(a), Digest(b));
+    }
+
+    // A checked-in golden hash of a canonical race (M10), locking the engine's exact output across
+    // commits and across Windows / macOS / Linux. If an engine change deliberately alters this race,
+    // regenerate the hash from the CI failure message and update this constant.
+    private const string GoldenDigestHash = "PENDING";
+
+    [Fact]
+    public void The_canonical_race_matches_the_golden_digest()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+
+        var hash = HashOf(Digest(result));
+        Assert.True(hash == GoldenDigestHash, $"golden digest hash mismatch — actual: {hash}");
     }
 
     // ---- Traffic & overtaking (M6) ----------------------------------------
@@ -1223,6 +1240,9 @@ public class RaceSimulatorTests
         // IsSprint defaults false, so a present-but-unused sprint table changes nothing.
         Assert.Equal(Digest(plain), Digest(feature));
     }
+
+    private static string HashOf(string s) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(s)));
 
     private static string Digest(RaceResult r)
     {
