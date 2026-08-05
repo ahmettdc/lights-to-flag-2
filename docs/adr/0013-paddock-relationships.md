@@ -39,5 +39,14 @@ M17 (patron insan yönetimi / favoritizm / takım emri), M18
 (evrim / feud / mentorluk / transfere etki), M21 (ilişki haberleri), M22 (Paddock/İlişkiler
 ekranı). Simülasyon ilişkiden habersiz kalır (katmanlama).
 
+## Durum (M12 — doğuş uygulandı)
+`Affinity` (−100…+100), `Personality` (ego/sadakat/mizaç/hırs), `Relationship` ve
+`RelationshipGraph` domain'de; grafik + kişilik carset'ten yüklenir ve kayıtta korunur.
+Yarış olay günlüğündeki **takım-içi çarpışma** affinity + morali deterministik düşürür
+(`RelationshipEvolution`), ve **sözleşme pazarlığı affinity'yi okur** (`ContractNegotiation`:
+iyi ilişki → daha ucuz imza). Simülasyon ilişkiden habersiz kaldı (yalnız olay id'leri okunur).
+**Ertelendi:** ilişki→olay (kasıtlı engelleme/feud), personel uyumu/ayrılma, favoritizm/takım
+emri, mentorluk ve transfere etki → M14/M17/M18; haber/ekranlar → M21/M22.
+
 ## Sonuç
 Paddock yaşayan bir sosyal ağ olur; sonuçları yalnız hız değil, insan dinamikleri şekillendirir.
