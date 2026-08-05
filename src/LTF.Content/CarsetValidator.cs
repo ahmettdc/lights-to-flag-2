@@ -181,6 +181,92 @@ public static class CarsetValidator
             }
         }
 
+        // R&D tech tree (M14): node graph integrity, per-team references and tuning sanity.
+        var tree = carset.TechTree;
+        var departmentIds = new HashSet<string>(tree.Departments.Select(d => d.Id), StringComparer.Ordinal);
+        var nodeIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var node in tree.Nodes)
+        {
+            if (!nodeIds.Add(node.Id))
+            {
+                Error($"duplicate tech node id '{node.Id}'");
+            }
+
+            if (!departmentIds.Contains(node.DepartmentId))
+            {
+                Error($"tech node '{node.Id}' references unknown department '{node.DepartmentId}'");
+            }
+
+            if (node.Cost < 0 || node.Quota < 0 || node.GainMin < 0 || node.GainMax < 0)
+            {
+                Error($"tech node '{node.Id}' has a negative cost, quota or gain");
+            }
+
+            if (node.GainMin > node.GainMax)
+            {
+                Error($"tech node '{node.Id}' has gainMin above gainMax");
+            }
+
+            if (node.Confidence is < 0 or > 100 || node.Correlation is < 0 or > 100)
+            {
+                Error($"tech node '{node.Id}' confidence and correlation must be within 0..100");
+            }
+        }
+
+        foreach (var node in tree.Nodes)
+        {
+            foreach (var prereq in node.Prerequisites)
+            {
+                if (!nodeIds.Contains(prereq))
+                {
+                    Error($"tech node '{node.Id}' requires unknown node '{prereq}'");
+                }
+            }
+        }
+
+        foreach (var team in carset.Teams)
+        {
+            foreach (var unlocked in team.Research.UnlockedNodeIds)
+            {
+                if (!nodeIds.Contains(unlocked))
+                {
+                    Error($"team '{team.Id}' has unlocked unknown node '{unlocked}'");
+                }
+            }
+
+            foreach (var project in team.Research.ActiveProjects)
+            {
+                if (!nodeIds.Contains(project.NodeId))
+                {
+                    Error($"team '{team.Id}' is developing unknown node '{project.NodeId}'");
+                }
+            }
+        }
+
+        // Staff pool (M14): unique ids and non-negative salaries.
+        var poolIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var member in carset.StaffPool)
+        {
+            if (!poolIds.Add(member.Id))
+            {
+                Error($"duplicate staff-pool id '{member.Id}'");
+            }
+
+            if (member.Salary < 0)
+            {
+                Error($"staff-pool member '{member.Id}' has a negative salary");
+            }
+        }
+
+        // Research rules (M14): tuning coefficients must be non-negative.
+        var research = carset.Rules.Research;
+        if (research.BaseProgressPerSeason < 0 || research.StepProgress < 0 || research.FacilityWeight < 0
+            || research.StaffWeight < 0 || research.CorrelationBaseline < 0 || research.QuotaPerFacilityLevel < 0
+            || research.MaxRetries < 0 || research.RealizationSpread < 0 || research.ReadinessGainPerSeason < 0)
+        {
+            Error("research rules coefficients must be non-negative");
+        }
+
         return issues;
     }
 }
