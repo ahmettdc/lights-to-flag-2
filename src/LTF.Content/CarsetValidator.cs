@@ -128,9 +128,10 @@ public static class CarsetValidator
             Error("regulations deRatingThreshold must be within 0..1");
         }
 
-        // Economy (M13): every payout and cost must be non-negative.
+        // Economy (M13): every payout, cost and penalty coefficient must be non-negative.
         var economy = carset.Rules.Economy;
         if (economy.TvIncome < 0 || economy.OperatingCostPerRace < 0 || economy.CrashCostPerIncident < 0
+            || economy.CostCapFinePercent < 0 || economy.CostCapPointsPerOverage < 0
             || economy.PrizeMoney.Any(p => p < 0))
         {
             Error("economy values must be non-negative");

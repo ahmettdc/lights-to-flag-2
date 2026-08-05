@@ -46,7 +46,7 @@ public class EconomyLedgerTests
         var carset = EconomyCarset();
         var season = SeasonSimulator.Run(carset, 7);
 
-        var settled = EconomyLedger.SettleSeason(carset, season);
+        var settled = EconomyLedger.SettleSeason(carset, season).Carset;
 
         Assert.Equal(1, season.Standings.Constructors.Single(c => c.TeamId == "alpha").Position); // alpha faster
         Assert.Equal(Prize[0], settled.Teams.Single(t => t.Id == "alpha").Finances.PrizeMoney);
@@ -59,7 +59,7 @@ public class EconomyLedgerTests
         var carset = EconomyCarset();
         var season = SeasonSimulator.Run(carset, 7);
 
-        var alpha = EconomyLedger.SettleSeason(carset, season).Teams.Single(t => t.Id == "alpha");
+        var alpha = EconomyLedger.SettleSeason(carset, season).Carset.Teams.Single(t => t.Id == "alpha");
 
         // No expenses here, so the balance grew by exactly prize + TV + sponsor income.
         var income = alpha.Finances.PrizeMoney + Tv + alpha.Finances.SponsorIncome;
@@ -72,7 +72,7 @@ public class EconomyLedgerTests
     {
         var carset = EconomyCarset();
         var season = SeasonSimulator.Run(carset, 7);
-        var settled = EconomyLedger.SettleSeason(carset, season);
+        var settled = EconomyLedger.SettleSeason(carset, season).Carset;
 
         // Objective is position 1: alpha (P1) earns the 5M bonus, bravo (P2) does not.
         var races = season.Rounds.Count;
@@ -91,7 +91,7 @@ public class EconomyLedgerTests
         var carset = CareerFixtures.SeasonCarset(rounds: 4); // no economy, default finances
         var season = SeasonSimulator.Run(carset, 7);
 
-        var settled = EconomyLedger.SettleSeason(carset, season);
+        var settled = EconomyLedger.SettleSeason(carset, season).Carset;
 
         Assert.All(settled.Teams, t => Assert.Equal(0L, t.Finances.Balance));
     }
@@ -102,7 +102,9 @@ public class EconomyLedgerTests
         var carset = EconomyCarset();
         var season = SeasonSimulator.Run(carset, 7);
 
-        Assert.Equal(Key(EconomyLedger.SettleSeason(carset, season)), Key(EconomyLedger.SettleSeason(carset, season)));
+        Assert.Equal(
+            Key(EconomyLedger.SettleSeason(carset, season).Carset),
+            Key(EconomyLedger.SettleSeason(carset, season).Carset));
     }
 
     private static string Key(Carset carset) =>

@@ -12,7 +12,7 @@ public class EconomyLoaderTests
           "rules": {
             "seriesName": "S",
             "points": { "racePoints": [25, 18, 15] },
-            "economy": { "prizeMoney": [100000000, 60000000, 40000000], "tvIncome": 25000000, "operatingCostPerRace": 2000000, "crashCostPerIncident": 500000 }
+            "economy": { "prizeMoney": [100000000, 60000000, 40000000], "tvIncome": 25000000, "operatingCostPerRace": 2000000, "crashCostPerIncident": 500000, "costCapFinePercent": 400, "costCapPointsPerOverage": 5000000 }
           },
           "circuits": [ { "id": "c1", "name": "C1", "laps": 50, "lapDistanceKm": 5.0, "baseLapTimeSeconds": 80.0 } ],
           "calendar": [ { "round": 1, "circuitId": "c1", "date": "2025-03-16" } ],
@@ -40,6 +40,8 @@ public class EconomyLoaderTests
         Assert.Equal(25_000_000L, economy.TvIncome);
         Assert.Equal(2_000_000L, economy.OperatingCostPerRace);
         Assert.Equal(500_000L, economy.CrashCostPerIncident);
+        Assert.Equal(400, economy.CostCapFinePercent);
+        Assert.Equal(5_000_000L, economy.CostCapPointsPerOverage);
     }
 
     [Fact]
@@ -55,6 +57,17 @@ public class EconomyLoaderTests
     public void A_negative_economy_value_is_an_error()
     {
         var json = WithEconomy.Replace("\"tvIncome\": 25000000", "\"tvIncome\": -1", StringComparison.Ordinal);
+
+        var issues = CarsetValidator.Validate(CarsetLoader.LoadFromJson(json));
+
+        Assert.Contains(issues, i => i.Severity == ValidationSeverity.Error
+            && i.Message.Contains("economy values must be non-negative", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void A_negative_cost_cap_fine_percent_is_an_error()
+    {
+        var json = WithEconomy.Replace("\"costCapFinePercent\": 400", "\"costCapFinePercent\": -5", StringComparison.Ordinal);
 
         var issues = CarsetValidator.Validate(CarsetLoader.LoadFromJson(json));
 

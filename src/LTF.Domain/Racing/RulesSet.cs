@@ -51,6 +51,15 @@ public sealed record EconomyRules
     /// <summary>Repair cost booked per crash/collision incident a team's cars are involved in.</summary>
     public long CrashCostPerIncident { get; init; }
 
+    /// <summary>Financial penalty for a cost-cap breach, as a percentage of the overspend (M13 / ADR-0010):
+    /// e.g. 100 fines the full overspend, 400 fines four times it, 0 disables the fine. Only bites when a
+    /// team actually has a cost cap.</summary>
+    public int CostCapFinePercent { get; init; }
+
+    /// <summary>Constructor points deducted per unit of cost-cap overspend (M13 / ADR-0010): the deduction
+    /// is <c>overspend / CostCapPointsPerOverage</c>. 0 disables the points penalty.</summary>
+    public long CostCapPointsPerOverage { get; init; }
+
     /// <summary>Prize money for finishing <paramref name="position"/> (1-based) in the constructors'
     /// championship; 0 if out of the paying positions.</summary>
     public long PrizeFor(int position) =>

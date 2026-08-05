@@ -8,24 +8,39 @@ namespace LTF.Career;
 
 /// <summary>
 /// Settles a team's finances at season rollover (M13): it credits the income — prize money by
-/// constructors'-championship position, flat TV income, and sponsor fees and bonuses — and subtracts
-/// the expenses — driver and staff salaries (with per-point and title bonuses) plus per-race operating
-/// cost and per-collision crash cost — leaving the net on the balance. Pure, deterministic arithmetic
-/// over the finished <see cref="SeasonResult"/> (no RNG), so the same carset and season always reach
-/// the same books. With an empty economy no money moves and the carset is untouched.
+/// constructors'-championship position, flat TV income, and sponsor fees and bonuses — subtracts the
+/// expenses — driver and staff salaries (with per-point and title bonuses) plus per-race operating cost
+/// and per-collision crash cost — and, where a series runs a cost cap, raises a <see cref="CostCapPenalty"/>
+/// for any team whose capped spending (staff, operating and crash — driver salaries sit outside the cap)
+/// overran the cap, deducting the fine from its balance. Pure, deterministic arithmetic over the finished
+/// <see cref="SeasonResult"/> (no RNG), so the same carset and season always reach the same books. With an
+/// empty economy no money moves, no penalty is raised, and the carset is untouched.
 /// </summary>
 public static class EconomyLedger
 {
-    /// <summary>Return the carset with every team's finances settled for the season.</summary>
-    public static Carset SettleSeason(Carset carset, SeasonResult season)
+    /// <summary>Settle every team's finances for the season and collect any cost-cap penalties.</summary>
+    public static SeasonSettlement SettleSeason(Carset carset, SeasonResult season)
     {
-        var teams = carset.Teams
-            .Select(t => t with { Finances = Settle(carset, season, t) })
-            .ToList();
-        return carset with { Teams = teams };
+        var penalties = new List<CostCapPenalty>();
+        var teams = new List<Team>(carset.Teams.Count);
+        foreach (var team in carset.Teams)
+        {
+            var (finances, penalty) = Settle(carset, season, team);
+            teams.Add(team with { Finances = finances });
+            if (penalty is not null)
+            {
+                penalties.Add(penalty);
+            }
+        }
+
+        return new SeasonSettlement
+        {
+            Carset = carset with { Teams = teams },
+            Penalties = penalties,
+        };
     }
 
-    private static Finances Settle(Carset carset, SeasonResult season, Team team)
+    private static (Finances Finances, CostCapPenalty? Penalty) Settle(Carset carset, SeasonResult season, Team team)
     {
         var standing = StandingOf(season, team.Id);
         var position = standing?.Position ?? 0;
@@ -37,21 +52,55 @@ public static class EconomyLedger
         var tv = economy.TvIncome;
         var sponsorIncome = SponsorIncome(team, races, points, position);
         var income = prize + tv + sponsorIncome;
-        var expense = Expense(carset, season, team, races);
 
-        return team.Finances with
+        // Driver salaries reduce the balance but sit outside the cost cap; the rest is capped spend.
+        var driverSalaries = DriverSalaries(carset, season, team);
+        var cappedSpend = StaffSalaries(team)
+            + economy.OperatingCostPerRace * races
+            + economy.CrashCostPerIncident * CrashCount(season, team);
+        var expense = driverSalaries + cappedSpend;
+
+        var penalty = CapPenalty(economy, team, cappedSpend);
+        var fine = penalty?.Fine ?? 0;
+
+        var finances = team.Finances with
         {
-            Balance = team.Finances.Balance + income - expense,
+            Balance = team.Finances.Balance + income - expense - fine,
             PrizeMoney = prize,
             SponsorIncome = sponsorIncome,
         };
+        return (finances, penalty);
     }
 
-    private static long Expense(Carset carset, SeasonResult season, Team team, int races)
+    // A cost-cap breach penalty when a team's capped spend overran its cost cap. Null when the team runs
+    // no cap or stayed within it. The fine is a percentage of the overspend; points and the aero-test
+    // restriction are recorded for later layers (M17/M18/M22) to apply.
+    private static CostCapPenalty? CapPenalty(EconomyRules economy, Team team, long cappedSpend)
     {
-        var economy = carset.Rules.Economy;
+        if (!team.Finances.HasCostCap || cappedSpend <= team.Finances.CostCap)
+        {
+            return null;
+        }
 
-        long driverSalaries = 0;
+        var overspend = cappedSpend - team.Finances.CostCap;
+        var fine = overspend * economy.CostCapFinePercent / 100;
+        var pointsDeducted = economy.CostCapPointsPerOverage > 0
+            ? (int)(overspend / economy.CostCapPointsPerOverage)
+            : 0;
+
+        return new CostCapPenalty
+        {
+            TeamId = team.Id,
+            Overspend = overspend,
+            Fine = fine,
+            PointsDeducted = pointsDeducted,
+            AeroTestRestricted = true,
+        };
+    }
+
+    private static long DriverSalaries(Carset carset, SeasonResult season, Team team)
+    {
+        long total = 0;
         foreach (var contract in carset.Contracts)
         {
             if (contract.Kind != ContractKind.Driver || contract.TeamId != team.Id)
@@ -59,24 +108,26 @@ public static class EconomyLedger
                 continue;
             }
 
-            driverSalaries += contract.SalaryPerSeason
+            total += contract.SalaryPerSeason
                 + contract.Clauses.PerPointBonus * DriverPoints(season, contract.PartyId);
             if (season.DriversChampionId == contract.PartyId)
             {
-                driverSalaries += contract.Clauses.ChampionshipBonus;
+                total += contract.Clauses.ChampionshipBonus;
             }
         }
 
-        long staffSalaries = 0;
+        return total;
+    }
+
+    private static long StaffSalaries(Team team)
+    {
+        long total = 0;
         foreach (var member in team.Staff)
         {
-            staffSalaries += member.Salary;
+            total += member.Salary;
         }
 
-        var operating = economy.OperatingCostPerRace * races;
-        var crash = economy.CrashCostPerIncident * CrashCount(season, team);
-
-        return driverSalaries + staffSalaries + operating + crash;
+        return total;
     }
 
     private static int DriverPoints(SeasonResult season, string driverId)

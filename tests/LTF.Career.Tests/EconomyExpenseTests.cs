@@ -25,6 +25,9 @@ public class EconomyExpenseTests
     private static long Balance(Carset carset, string teamId) =>
         carset.Teams.Single(t => t.Id == teamId).Finances.Balance;
 
+    private static long Balance(SeasonSettlement settlement, string teamId) =>
+        Balance(settlement.Carset, teamId);
+
     [Fact]
     public void Staff_salaries_reduce_the_balance_by_their_total()
     {

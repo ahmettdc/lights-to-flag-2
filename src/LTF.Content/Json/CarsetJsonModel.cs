@@ -70,6 +70,8 @@ internal sealed class EconomyJson
     public long? TvIncome { get; set; }
     public long? OperatingCostPerRace { get; set; }
     public long? CrashCostPerIncident { get; set; }
+    public int? CostCapFinePercent { get; set; }
+    public long? CostCapPointsPerOverage { get; set; }
 }
 
 internal sealed class BalanceJson

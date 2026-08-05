@@ -145,6 +145,8 @@ public static class CarsetLoader
             TvIncome = e.TvIncome ?? 0,
             OperatingCostPerRace = e.OperatingCostPerRace ?? 0,
             CrashCostPerIncident = e.CrashCostPerIncident ?? 0,
+            CostCapFinePercent = e.CostCapFinePercent ?? 0,
+            CostCapPointsPerOverage = e.CostCapPointsPerOverage ?? 0,
         };
     }
 
