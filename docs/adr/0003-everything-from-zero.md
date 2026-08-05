@@ -26,6 +26,15 @@ Kullanıcı marka kitini ve UI mockup'ını **Claude Design**'da hazırlayıp te
 
 Bu, M19'un (tema + marka) risklerini büyük ölçüde düşürür.
 
+## Arayüz güncellemesi (v2)
+Kullanıcı tam **UI mockup'ını** güncelledi (`design/mockups/ui.dc.html`) ve ekran-ekran UI
+spesifikasyonunu (`design/ui/uidesign.md`) + 10-ekranlık **UI eksik listesini**
+(`design/ui/uieksikler.md`) ekledi. Mockup tamamen **Team Principal** (tek kariyer modu —
+ADR-0004; sürücü-kariyeri akışı yok) ve Faz 2 sistemlerini görselleştiriyor: 12-eksen araç
+puanı (ADR-0024), tesis seviyeleri (ADR-0020), pist-doğrulama (ADR-0024), Paddock Hub diyalog
+(ADR-0021), board confidence + cap room (ADR-0025). Bu, Faz 3 (M19–M25) arayüz kaynağıdır;
+ADR-0002 gereği Avalonia'da yeniden üretilir (HTML doğrudan kullanılmaz).
+
 ## Sonuç
 Kurgusal içerik korunuyor. UI mockup'ındaki kurgusal takım/pilot isimleri M2'nin örnek
 carset'inde yeniden kullanılacak (Talon Racing, Kuro Dynamics, Kestrel Racing, Sable GP,

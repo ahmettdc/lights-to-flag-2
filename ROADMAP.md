@@ -491,6 +491,16 @@ yüzeyi. Dağılım: **M17 ana yüzey**, M13/M11/M12/M24, Rev 21 (medya baskıs�
 
 ### Faz 3 — Arayüz · M19–M25 — *Avalonia, oyun dili İngilizce*
 
+> **Arayüz kaynağı (`design/`):** güncel tam UI mockup (`design/mockups/ui.dc.html`) + ekran-ekran
+> spec (`design/ui/uidesign.md`) + 10-ekranlık **UI eksik listesi** (`design/ui/uieksikler.md`).
+> Mockup **Team-Principal-only** (tek mod — ADR-0004) ve Faz 2 sistemlerini yansıtır (12-eksen araç
+> puanı/ADR-0024, tesisler/ADR-0020, Paddock Hub/ADR-0021, board & cap room/ADR-0025). Ekran →
+> milestone: **M19** kabuk (top bar + sidebar + tasarım sistemi: durum renkleri / kart / rozet /
+> tooltip / onay / boş-yükleniyor-hata) · **M20** kariyer başlatma + ayarlar · **M21** Paddock Hub +
+> Drivers + Standings + Database + Calendar · **M22** R&D & Tesisler + Cars & PU + Staff + Finance +
+> Board & Sponsors + Transfer · **M23** yarış hafta sonu + canlı kontrol paneli · **M24** yarış-sonrası
+> rapor + istatistik · **M25** öğretici. ADR-0002 gereği Avalonia'da yeniden üretilir (HTML shipped değil).
+
 | | Kilometre taşı | İçerik |
 |---|---|---|
 | **M19** ⬛ | Kabuk + marka kiti | Navigasyon, tema sistemi. **Bildirim merkezi** (rozet + açılır panel; kategori/önem/derin bağlantı; tüm sistemlerden beslenir — Rev 15). **Marka kiti hazır** (`design/`): palet (Track Black/Lights Out Red/Flag White), SVG logo, fontlar (Saira Condensed/Chakra Petch/Archivo). Yerelleştirme altyapısı (ileride TR dil paketi). **Görsel tasarım kullanıcının Claude Design mockup'ından gelir** (`design/mockups/ui.dc.html`); HTML/CSS doğrudan kullanılmaz, Avalonia'ya birebir çevrilir (ADR-0002). Faz 3 ekranları (M20–M25) bu mockup'ı takip eder. |

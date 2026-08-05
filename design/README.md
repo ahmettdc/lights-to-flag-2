@@ -10,9 +10,16 @@ during **Phase 3 (M19–M25)**.
 | Path | What |
 |------|------|
 | `brand/` | Logos (SVG + PNG), app icon, brand `README.txt` (usage rules) |
-| `mockups/ui.dc.html` | Full UI mockup — menus, career hub, driver/team screens, race weekend |
+| `mockups/ui.dc.html` | Full **Team Principal** UI mockup — top bar, sidebar, Paddock Hub, drivers, R&D & facilities, cars & PU, staff, finance, calendar, race weekend |
 | `mockups/logo.dc.html` | Logo construction mockup |
 | `mockups/support.js` | Claude Design runtime for the exports (reference only) |
+| `ui/uidesign.md` | Screen-by-screen UI spec (ASCII mockups) — the layout source for Phase 3 |
+| `ui/uieksikler.md` | UI gap checklist — the 10 screens/areas the interface must cover |
+
+The game is **single-mode: Team Principal** (ADR-0004); the mockup has no driver-career
+flow. It already visualises the Phase-2 systems: the 12-axis car rating (ADR-0024),
+facility levels (ADR-0020), track-validation R&D (ADR-0024), the Paddock Hub dialogue
+(ADR-0021) and board confidence / cap room (ADR-0025).
 
 ## Design tokens
 
