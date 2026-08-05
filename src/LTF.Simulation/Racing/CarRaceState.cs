@@ -59,6 +59,9 @@ internal sealed class CarRaceState
     /// driver-error multiplier. Neutral by default, so a race with no practice is unchanged.</summary>
     public PracticeSetup Setup { get; set; } = PracticeSetup.None;
 
+    /// <summary>Success ballast in seconds of lap time (M9c); 0 by default, added to each green lap.</summary>
+    public double Ballast { get; set; }
+
     /// <summary>This car's planned pit laps — the mandated stops, staggered per car (M7b). A stop
     /// is taken on the first green lap at or after a target, or a few laps early under a safety car.</summary>
     public IReadOnlyList<int> PitPlan { get; set; } = [];

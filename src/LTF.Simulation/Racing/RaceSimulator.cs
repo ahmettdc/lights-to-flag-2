@@ -85,6 +85,7 @@ public static class RaceSimulator
                 topSpeed: TopSpeedFor(grid[i].Car, circuit, regs, era2026));
             car.PitPlan = StaggeredPlan(baseTargets, i, grid.Count, laps, balance);
             car.Setup = setups?.GetValueOrDefault(grid[i].Id) ?? PracticeSetup.None;
+            car.Ballast = fmt.Ballast.GetValueOrDefault(grid[i].Id);
             cars.Add(car);
         }
 
@@ -160,6 +161,10 @@ public static class RaceSimulator
                 // M8: a productive practice weekend shaves a little off every green lap. Zero
                 // without practice, so a race with no practice setup is unchanged.
                 lapTime -= car.Setup.RaceBonusSeconds;
+
+                // M9c: success ballast adds lap time. Zero without ballast, so a race with none is
+                // unchanged.
+                lapTime += car.Ballast;
 
                 // Reliability (its own stream): wear the car, then roll each component.
                 DegradeHealth(car, balance);

@@ -1018,6 +1018,53 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(plain), Digest(named));
     }
 
+    // ---- Success ballast (M9c) --------------------------------------------
+
+    [Fact]
+    public void Ballast_slows_a_car()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // Calm balance (no incidents, traffic off) isolates the single car's added lap time.
+        var format = RaceFormat.Standard with { Ballast = new Dictionary<string, double> { ["d1"] = 2.0 } };
+
+        var plain = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
+        var heavy = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7, format: format);
+
+        static double TimeOf(RaceResult r, string id) => r.Classification.Single(e => e.CompetitorId == id).TotalTime;
+        Assert.True(TimeOf(heavy, "d1") > TimeOf(plain, "d1"));
+    }
+
+    [Fact]
+    public void Ballast_is_inert_when_empty()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var plain = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 7);
+        var empty = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 7,
+            format: RaceFormat.Standard with { Ballast = new Dictionary<string, double>() });
+
+        Assert.Equal(Digest(plain), Digest(empty));
+    }
+
+    [Fact]
+    public void A_ballasted_race_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var format = RaceFormat.Standard with
+        {
+            Ballast = new Dictionary<string, double> { ["d1"] = 1.5, ["d3"] = 0.5 },
+        };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 2024, format: format);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.Balance, 2024, format: format);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();
