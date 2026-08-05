@@ -175,10 +175,16 @@ internal sealed class CarJson
 
 internal sealed class FacilitiesJson
 {
+    public int? DesignOffice { get; set; }
     public int? WindTunnel { get; set; }
+    public int? Cfd { get; set; }
+    public int? CompositeManufacturing { get; set; }
+    public int? MechanicalWorkshop { get; set; }
+    public int? QualityControl { get; set; }
     public int? Simulator { get; set; }
-    public int? Factory { get; set; }
-    public int? Correlation { get; set; }
+    public int? Dyno { get; set; }
+    public int? PitCrewCentre { get; set; }
+    public int? DataCentre { get; set; }
 }
 
 internal sealed class FinancesJson

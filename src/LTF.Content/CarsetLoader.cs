@@ -278,12 +278,21 @@ public static class CarsetLoader
 
         return new Facilities
         {
-            WindTunnel = RateOr(f.WindTunnel, 50),
-            Simulator = RateOr(f.Simulator, 50),
-            Factory = RateOr(f.Factory, 50),
-            Correlation = RateOr(f.Correlation, 50),
+            DesignOffice = Level(f.DesignOffice),
+            WindTunnel = Level(f.WindTunnel),
+            Cfd = Level(f.Cfd),
+            CompositeManufacturing = Level(f.CompositeManufacturing),
+            MechanicalWorkshop = Level(f.MechanicalWorkshop),
+            QualityControl = Level(f.QualityControl),
+            Simulator = Level(f.Simulator),
+            Dyno = Level(f.Dyno),
+            PitCrewCentre = Level(f.PitCrewCentre),
+            DataCentre = Level(f.DataCentre),
         };
     }
+
+    private static FacilityLevel Level(int? value) =>
+        value is null ? new FacilityLevel(3) : FacilityLevel.Clamped(value.Value);
 
     private static Finances MapFinances(FinancesJson? f)
     {
