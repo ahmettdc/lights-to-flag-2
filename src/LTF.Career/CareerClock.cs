@@ -38,7 +38,7 @@ public sealed record CareerClock
     /// reference year (a fixed, deterministic default).</summary>
     public static CareerClock Start(Carset carset)
     {
-        var calendar = SeasonCalendar.FromCarset(carset);
+        var calendar = SeasonCalendar.ForCareer(carset);
         var open = calendar.Events.Count > 0
             ? calendar.Events[0].Date.AddDays(-1)
             : new DateOnly(2000, 1, 1);

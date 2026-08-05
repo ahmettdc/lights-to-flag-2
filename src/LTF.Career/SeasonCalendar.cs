@@ -56,4 +56,36 @@ public sealed record SeasonCalendar
 
         return new SeasonCalendar { Events = events };
     }
+
+    /// <summary>Build the career calendar: the race weekends (as <see cref="FromCarset"/>) plus a
+    /// contract-deadline event for each expiring contract (ADR-0011/ADR-0013), dated a short window
+    /// before the final round so the player can renew before the season ends. Byte-identical to
+    /// <see cref="FromCarset"/> when no contract is expiring.</summary>
+    public static SeasonCalendar ForCareer(Carset carset)
+    {
+        var events = FromCarset(carset).Events.ToList();
+
+        if (carset.Calendar.Count > 0)
+        {
+            var deadline = carset.Calendar.Max(r => r.Date).AddDays(-DeadlineDaysBeforeFinal);
+            foreach (var contract in carset.Contracts)
+            {
+                if (contract.IsExpiring)
+                {
+                    events.Add(new CalendarEvent
+                    {
+                        Date = deadline,
+                        Kind = CalendarEventKind.ContractDeadline,
+                        Label = contract.PartyId,
+                    });
+                }
+            }
+        }
+
+        var ordered = events.OrderBy(e => e.Date).ThenBy(e => e.Round).ToList();
+        return new SeasonCalendar { Events = ordered };
+    }
+
+    /// <summary>Days before the season's final round that expiring contracts come up for renewal.</summary>
+    private const int DeadlineDaysBeforeFinal = 7;
 }
