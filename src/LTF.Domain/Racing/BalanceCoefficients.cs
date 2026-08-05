@@ -122,4 +122,17 @@ public sealed record BalanceCoefficients
 
     /// <summary>Extra time a botched pit stop costs, in seconds.</summary>
     public double SlowPitStopExtraSeconds { get; init; } = 6.0;
+
+    /// <summary>How far, in laps, cars stagger their planned stops around the shared target so the
+    /// field doesn't all pit on the same lap (the basis for undercut / overcut). 0 = everyone
+    /// pits on the shared target lap (M7a behaviour).</summary>
+    public int PitStaggerLaps { get; init; } = 3;
+
+    /// <summary>How many laps before its planned stop a car will take the stop opportunistically
+    /// while a neutralisation is out (a cheap safety-car stop).</summary>
+    public int NeutralizationPitWindowLaps { get; init; } = 6;
+
+    /// <summary>Fraction of the pit-lane time loss paid when pitting under a neutralisation — the
+    /// field is slow, so the stop costs far less relative to staying out.</summary>
+    public double NeutralizationPitDiscount { get; init; } = 0.45;
 }

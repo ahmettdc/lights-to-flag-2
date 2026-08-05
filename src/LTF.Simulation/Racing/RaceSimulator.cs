@@ -15,7 +15,8 @@ namespace LTF.Simulation.Racing;
 /// lap-time gain and its top-speed effect. The energy and aero models draw no random numbers —
 /// they are deterministic arithmetic — so the pre-2026 streams are untouched and a DRS-era race
 /// stays bit-for-bit identical to before. M7a added pit stops on a fifth per-car RNG stream
-/// (stop-time variance), so a botched stop never disturbs pace, reliability or incidents.
+/// (stop-time variance), so a botched stop never disturbs pace, reliability or incidents; M7b
+/// staggered the stops per car and lets a car take a due stop cheaply under a neutralisation.
 /// </summary>
 public static class RaceSimulator
 {
@@ -58,19 +59,21 @@ public static class RaceSimulator
         var raceControlRng = baseRng.Fork(RaceControlSalt);
         var trafficRng = baseRng.Fork(TrafficSalt);
         var laps = circuit.Laps;
-        var pitTargets = PlanPitLaps(laps, rules.MandatoryPitStops);
+        var baseTargets = PlanPitLaps(laps, rules.MandatoryPitStops);
 
         var cars = new List<CarRaceState>(grid.Count);
         for (var i = 0; i < grid.Count; i++)
         {
             var paceRng = baseRng.Fork(i + 1);
-            cars.Add(new CarRaceState(
+            var car = new CarRaceState(
                 grid[i], gridPosition: i + 1, rng: paceRng,
                 reliabilityRng: paceRng.Fork(ReliabilitySalt), incidentRng: paceRng.Fork(IncidentSalt),
                 pitRng: paceRng.Fork(PitSalt),
                 tyre: TyreState.Fresh(startingCompound), fuel: 1.0,
                 health: ComponentHealth.Fresh(), mode: EngineMode.Standard,
-                topSpeed: TopSpeedFor(grid[i].Car, circuit, regs, era2026)));
+                topSpeed: TopSpeedFor(grid[i].Car, circuit, regs, era2026));
+            car.PitPlan = StaggeredPlan(baseTargets, i, grid.Count, laps, balance);
+            cars.Add(car);
         }
 
         var snapshots = new List<LapSnapshot>(laps);
@@ -109,6 +112,14 @@ public static class RaceSimulator
                     car.LastLap = neutralLap;
                     car.LastSectors = EvenSectors(neutralLap);
                     car.Fuel = FuelModel.Burn(car.Fuel, laps);
+
+                    // M7b: take a due stop now — a stop under a neutralisation is cheap.
+                    if (car.PitStops < car.PitPlan.Count
+                        && lap >= car.PitPlan[car.PitStops] - balance.NeutralizationPitWindowLaps)
+                    {
+                        ApplyPitStop(car, lap, startingCompound, balance, events, neutralized: true);
+                    }
+
                     continue;
                 }
 
@@ -178,10 +189,10 @@ public static class RaceSimulator
                     car.Energy = Math.Min(1.0, car.Energy + regs.EnergyRegenPerLap);
                 }
 
-                // Pit stop (M7a): once the car reaches a planned stop lap, fresh tyres cost time.
-                if (car.PitStops < pitTargets.Count && lap >= pitTargets[car.PitStops])
+                // Pit stop (M7a/M7b): once the car reaches its planned stop lap, fresh tyres cost time.
+                if (car.PitStops < car.PitPlan.Count && lap >= car.PitPlan[car.PitStops])
                 {
-                    ApplyPitStop(car, lap, startingCompound, balance, events);
+                    ApplyPitStop(car, lap, startingCompound, balance, events, neutralized: false);
                 }
             }
 
@@ -283,17 +294,43 @@ public static class RaceSimulator
         return targets;
     }
 
+    /// <summary>A car's staggered pit plan: the shared targets shifted by a small per-car offset so
+    /// the field spreads its stops (undercut / overcut) instead of all pitting on the same lap.</summary>
+    private static IReadOnlyList<int> StaggeredPlan(
+        IReadOnlyList<int> baseTargets, int carIndex, int carCount, int laps, BalanceCoefficients balance)
+    {
+        if (baseTargets.Count == 0)
+        {
+            return [];
+        }
+
+        var offset = Math.Clamp(carIndex - (carCount / 2), -balance.PitStaggerLaps, balance.PitStaggerLaps);
+        var plan = new int[baseTargets.Count];
+        for (var k = 0; k < baseTargets.Count; k++)
+        {
+            plan[k] = Math.Clamp(baseTargets[k] + offset, 1, laps - 1);
+        }
+
+        return plan;
+    }
+
     /// <summary>Change to a fresh set, rotating through the dry compounds so at least two distinct
     /// compounds are used across the race (the both-compounds rule). Adds pit-lane loss, a stationary
     /// time with spread and — rarely — a botched stop. Draws only from the car's own pit stream.</summary>
     private static void ApplyPitStop(
-        CarRaceState car, int lap, TyreCompound startingCompound, BalanceCoefficients balance, List<RaceEvent> events)
+        CarRaceState car, int lap, TyreCompound startingCompound, BalanceCoefficients balance,
+        List<RaceEvent> events, bool neutralized)
     {
         car.PitStops++;
         var compound = PitCompound(car.PitStops, startingCompound);
         car.Tyre = TyreState.Fresh(compound);
 
-        var loss = balance.PitLaneTimeLossSeconds
+        // Under a neutralisation the field is slow, so the pit-lane loss is heavily discounted (M7b).
+        var laneLoss = neutralized
+            ? balance.PitLaneTimeLossSeconds * balance.NeutralizationPitDiscount
+            : balance.PitLaneTimeLossSeconds;
+
+        var loss = laneLoss
                    + balance.PitStopStationarySeconds
                    + Math.Abs(car.PitRng.NextGaussian() * balance.PitStopSpreadSeconds);
 

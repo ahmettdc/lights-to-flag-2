@@ -731,6 +731,90 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Pit strategy (M7b) -----------------------------------------------
+
+    [Fact]
+    public void Cars_stagger_their_pit_stops()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, rules, SimFixtures.CalmBalance, 7);
+
+        // The field spreads its single stop over several laps rather than all pitting together.
+        var pitLaps = result.Events.Where(e => e.Kind == RaceEventKind.Pit).Select(e => e.Lap).Distinct().ToList();
+        Assert.True(pitLaps.Count > 1, $"pit laps: {string.Join(",", pitLaps)}");
+    }
+
+    // A field that retires often (so full safety cars come out), with a wide opportunistic window.
+    private static BalanceCoefficients SafetyCarPitBalance => SimFixtures.CalmBalance with
+    {
+        ReliabilityFailureRate = 0.3,
+        SafetyCarFromIncidentChance = 5.0,
+        VirtualSafetyCarShare = 0.0,
+        RedFlagShare = 0.0,
+        NeutralizationPitWindowLaps = 25,
+    };
+
+    [Fact]
+    public void A_car_can_pit_under_a_safety_car()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 2 };
+
+        var pittedUnderSc = false;
+        for (var seed = 0; seed < 25 && !pittedUnderSc; seed++)
+        {
+            var result = RaceSimulator.Run(carset.Circuits[0], grid, rules, SafetyCarPitBalance, seed);
+            var neutralLaps = result.Telemetry.Laps
+                .Where(s => s.State != NeutralizationState.Green)
+                .Select(s => s.Lap)
+                .ToHashSet();
+            pittedUnderSc = result.Events.Any(e => e.Kind == RaceEventKind.Pit && neutralLaps.Contains(e.Lap));
+        }
+
+        Assert.True(pittedUnderSc, "no car took a stop under a neutralisation across 25 seeds");
+    }
+
+    [Fact]
+    public void Pitting_under_a_safety_car_is_cheaper()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 2 };
+
+        // Traffic is off (CalmBalance), so a changed pit loss can't propagate — only the discounted
+        // safety-car stops move total time. A bigger discount must lower it.
+        double TotalOver(double discount)
+        {
+            var balance = SafetyCarPitBalance with { NeutralizationPitDiscount = discount };
+            var sum = 0.0;
+            for (var seed = 0; seed < 15; seed++)
+            {
+                sum += RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, seed).Classification.Sum(e => e.TotalTime);
+            }
+
+            return sum;
+        }
+
+        Assert.True(TotalOver(0.3) < TotalOver(1.0), "discounted safety-car stops should reduce total race time");
+    }
+
+    [Fact]
+    public void A_race_with_safety_car_pit_strategy_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 2 };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, rules, SafetyCarPitBalance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, rules, SafetyCarPitBalance, 2024);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();
