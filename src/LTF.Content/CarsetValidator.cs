@@ -136,6 +136,26 @@ public static class CarsetValidator
             Error("economy values must be non-negative");
         }
 
+        // Sponsors and staff (M13): fees, bonuses and salaries must be non-negative.
+        foreach (var team in carset.Teams)
+        {
+            foreach (var sponsor in team.Sponsors)
+            {
+                if (sponsor.PerRaceFee < 0 || sponsor.PerPointBonus < 0 || sponsor.ObjectiveBonus < 0)
+                {
+                    Error($"sponsor '{sponsor.Id}' on team '{team.Id}' has a negative fee or bonus");
+                }
+            }
+
+            foreach (var member in team.Staff)
+            {
+                if (member.Salary < 0)
+                {
+                    Error($"staff '{member.Id}' on team '{team.Id}' has a negative salary");
+                }
+            }
+        }
+
         // Contracts (M12): party and team must resolve; terms are non-negative.
         foreach (var contract in carset.Contracts)
         {

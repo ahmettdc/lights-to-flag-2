@@ -131,8 +131,33 @@ internal sealed class TeamJson
     public List<string>? DriverIds { get; set; }
     public FacilitiesJson? Facilities { get; set; }
     public FinancesJson? Finances { get; set; }
+    public List<SponsorJson>? Sponsors { get; set; }
+    public List<StaffJson>? Staff { get; set; }
     public int? ChampionshipsWon { get; set; }
     public int? RaceWins { get; set; }
+}
+
+internal sealed class SponsorJson
+{
+    public string? Id { get; set; }
+    public string? Name { get; set; }
+    public string? Tier { get; set; }
+    public long? PerRaceFee { get; set; }
+    public long? PerPointBonus { get; set; }
+    public long? ObjectiveBonus { get; set; }
+    public int? ObjectivePosition { get; set; }
+}
+
+internal sealed class StaffJson
+{
+    public string? Id { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public string? Role { get; set; }
+    public int? Skill { get; set; }
+    public string? Nationality { get; set; }
+    public int? Age { get; set; }
+    public long? Salary { get; set; }
 }
 
 internal sealed class CarJson

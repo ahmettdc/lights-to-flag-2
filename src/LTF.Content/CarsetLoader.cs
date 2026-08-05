@@ -242,6 +242,8 @@ public static class CarsetLoader
         DriverIds = t.DriverIds?.ToArray() ?? [],
         Facilities = MapFacilities(t.Facilities),
         Finances = MapFinances(t.Finances),
+        Sponsors = MapOptional(t.Sponsors, $"{p}.sponsors", MapSponsor),
+        Staff = MapOptional(t.Staff, $"{p}.staff", MapStaff),
         ChampionshipsWon = t.ChampionshipsWon ?? 0,
         RaceWins = t.RaceWins ?? 0,
     };
@@ -294,6 +296,29 @@ public static class CarsetLoader
             CostCap = f.CostCap ?? 0,
         };
     }
+
+    private static Sponsor MapSponsor(SponsorJson s, string p) => new()
+    {
+        Id = ReqStr(s.Id, $"{p}.id"),
+        Name = ReqStr(s.Name, $"{p}.name"),
+        Tier = EnumOr(s.Tier, SponsorTier.Secondary),
+        PerRaceFee = s.PerRaceFee ?? 0,
+        PerPointBonus = s.PerPointBonus ?? 0,
+        ObjectiveBonus = s.ObjectiveBonus ?? 0,
+        ObjectivePosition = s.ObjectivePosition ?? 0,
+    };
+
+    private static Staff MapStaff(StaffJson s, string p) => new()
+    {
+        Id = ReqStr(s.Id, $"{p}.id"),
+        FirstName = ReqStr(s.FirstName, $"{p}.firstName"),
+        LastName = ReqStr(s.LastName, $"{p}.lastName"),
+        Role = ReqEnum<StaffRole>(s.Role, $"{p}.role"),
+        Skill = Rate(s.Skill, $"{p}.skill"),
+        Nationality = s.Nationality ?? "",
+        Age = s.Age ?? 0,
+        Salary = s.Salary ?? 0,
+    };
 
     private static Driver MapDriver(DriverJson d, string p)
     {
