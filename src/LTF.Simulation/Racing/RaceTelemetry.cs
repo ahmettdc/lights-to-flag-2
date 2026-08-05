@@ -31,6 +31,10 @@ public sealed record CarLapSample
     public required double TyreWear { get; init; }
     public required double Fuel { get; init; }
     public required EngineMode EngineMode { get; init; }
+
+    /// <summary>Battery charge as a fraction of the budget (0..1). Full in the DRS era; drawn down
+    /// and regenerated across the lap in the 2026 era.</summary>
+    public required double Energy { get; init; }
 }
 
 /// <summary>The running order at the end of one lap, and the race-control state during it.</summary>

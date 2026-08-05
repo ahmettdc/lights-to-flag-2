@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Text;
 using LTF.Domain.Common;
+using LTF.Domain.Racing;
 using LTF.Simulation.Racing;
 using Xunit;
 
@@ -442,6 +443,134 @@ public class RaceSimulatorTests
             b.Classification.Select(e => (e.CompetitorId, e.TotalTime)));
     }
 
+    // ---- Regulation eras: 2026 active aero + Manual Override (26a) ---------
+
+    [Fact]
+    public void A_null_regulation_set_matches_the_drs_era()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 70);
+        // Traffic and every incident live, so the whole race — overtakes included — is exercised.
+        var balance = carset.Balance with { CombatThresholdSeconds = 3.0, OvertakeBaseChance = 0.8 };
+
+        // A DRS-era set carrying deliberately odd 2026 energy fields: they must be ignored entirely.
+        var drsWithNoise = new RegulationSet
+        {
+            Era = RegulationEra.DrsEra,
+            EnergyRegenPerLap = 0.99,
+            ManualOverrideEnergyCost = 0.99,
+            ManualOverrideBoost = 9.0,
+            DeRatingThreshold = 0.9,
+            DeRatingPenaltySeconds = 99.0,
+        };
+
+        var implicitDrs = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 2024);
+        var explicitDrs = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 2024, regulations: RegulationSet.Drs);
+        var noisyDrs = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 2024, regulations: drsWithNoise);
+
+        Assert.Equal(Digest(implicitDrs), Digest(explicitDrs));
+        Assert.Equal(Digest(implicitDrs), Digest(noisyDrs));
+    }
+
+    [Fact]
+    public void The_2026_era_overtakes_via_manual_override()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 90);
+        var balance = SimFixtures.CalmBalance with
+        {
+            CombatThresholdSeconds = 3.0,
+            OvertakeBaseChance = 1.0,
+            DirtyAirLossSeconds = 0.3,
+            PassMarginSeconds = 0.3,
+        };
+
+        var result = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7, regulations: RegulationSet.Aero2026);
+
+        var overtakes = result.Events.Where(e => e.Kind == RaceEventKind.Overtake).ToList();
+        Assert.NotEmpty(overtakes);
+        // At least one pass was made on a deployed Manual Override (the 2026 aid).
+        Assert.Contains(overtakes, e => e.Description == "Overtake (override)");
+    }
+
+    [Fact]
+    public void Manual_override_is_limited_by_the_energy_budget()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 60);
+        var balance = SimFixtures.CalmBalance with { CombatThresholdSeconds = 3.0, OvertakeBaseChance = 0.8 };
+
+        // Plentiful: the battery refills fully every lap, so the override is always available.
+        var plentiful = new RegulationSet
+        {
+            Era = RegulationEra.ActiveAero2026,
+            EnergyRegenPerLap = 1.0,
+            ManualOverrideEnergyCost = 0.1,
+            ManualOverrideBoost = 0.6,
+            DeRatingThreshold = 0.0,
+        };
+        // Scarce: no regen and a costly override, so the battery empties and the boost dries up.
+        // De-rating is switched off so only the override gating drives the difference.
+        var scarce = plentiful with { EnergyRegenPerLap = 0.0, ManualOverrideEnergyCost = 0.5 };
+
+        var plentifulCount = 0;
+        var scarceCount = 0;
+        for (var seed = 0; seed < 20; seed++)
+        {
+            plentifulCount += RaceSimulator.Run(circuit, grid, carset.Rules, balance, seed, regulations: plentiful)
+                .Events.Count(e => e.Kind == RaceEventKind.Overtake);
+            scarceCount += RaceSimulator.Run(circuit, grid, carset.Rules, balance, seed, regulations: scarce)
+                .Events.Count(e => e.Kind == RaceEventKind.Overtake);
+        }
+
+        Assert.True(plentifulCount > scarceCount, $"plentiful={plentifulCount} scarce={scarceCount}");
+    }
+
+    [Fact]
+    public void Energy_stays_full_in_the_drs_era()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 90);
+        var balance = SimFixtures.CalmBalance with { CombatThresholdSeconds = 3.0, OvertakeBaseChance = 1.0 };
+
+        var result = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7);
+
+        Assert.All(result.Telemetry.Laps, s => Assert.All(s.Order, o => Assert.Equal(1.0, o.Energy)));
+    }
+
+    [Fact]
+    public void Energy_is_drawn_down_in_2026_traffic()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 90);
+        var balance = SimFixtures.CalmBalance with { CombatThresholdSeconds = 3.0, OvertakeBaseChance = 1.0 };
+
+        var result = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7, regulations: RegulationSet.Aero2026);
+
+        var minEnergy = result.Telemetry.Laps.SelectMany(s => s.Order).Min(o => o.Energy);
+        Assert.True(minEnergy < 1.0, $"minEnergy={minEnergy}");
+        Assert.True(minEnergy >= 0.0, $"minEnergy={minEnergy}");
+    }
+
+    [Fact]
+    public void A_2026_race_is_deterministic()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 70);
+        var balance = carset.Balance with { CombatThresholdSeconds = 3.0, OvertakeBaseChance = 0.8 };
+
+        var a = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 2024, regulations: RegulationSet.Aero2026);
+        var b = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 2024, regulations: RegulationSet.Aero2026);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();
@@ -469,7 +598,8 @@ public class RaceSimulatorTests
                   .Append(o.Sector1.ToString("R")).Append(',').Append(o.Sector2.ToString("R")).Append(',')
                   .Append(o.Sector3.ToString("R")).Append(',')
                   .Append(o.TyreCompound).Append(',').Append(o.TyreWear.ToString("R")).Append(',')
-                  .Append(o.Fuel.ToString("R")).Append(',').Append(o.EngineMode).Append('|');
+                  .Append(o.Fuel.ToString("R")).Append(',').Append(o.EngineMode).Append(',')
+                  .Append(o.Energy.ToString("R")).Append('|');
             }
         }
 

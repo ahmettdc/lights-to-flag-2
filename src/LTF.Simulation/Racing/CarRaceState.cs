@@ -62,6 +62,10 @@ internal sealed class CarRaceState
     /// <summary>Representative top speed (kph), fixed for this car on this circuit.</summary>
     public double TopSpeed { get; }
 
+    /// <summary>Battery charge as a fraction of the budget (0..1). Managed only in the 2026 era
+    /// (regen, Manual Override deployment, de-rating); stays full in the DRS era, where it is inert.</summary>
+    public double Energy { get; set; } = 1.0;
+
     public bool Running { get; set; } = true;
     public FinishStatus Status { get; set; } = FinishStatus.Finished;
     public string? RetirementReason { get; set; }

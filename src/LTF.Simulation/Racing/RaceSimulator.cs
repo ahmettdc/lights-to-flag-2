@@ -10,7 +10,10 @@ namespace LTF.Simulation.Racing;
 /// forked off the race seed, plus a race-control stream for neutralisations, so the same
 /// seed and grid reproduce the same race bit for bit. M5a laid the pace skeleton, M5b added
 /// reliability, M5c the start / driver errors / collisions, and M5d the safety car, VSC and
-/// red-flag neutralisations.
+/// red-flag neutralisations. M6 added traffic and overtaking; 26a made the overtaking aid and
+/// energy regulation-era-aware (DRS ↔ 2026 Manual Override). The energy model draws no random
+/// numbers — it is deterministic arithmetic — so the pre-2026 streams are untouched and a
+/// DRS-era race stays bit-for-bit identical to before.
 /// </summary>
 public static class RaceSimulator
 {
@@ -42,8 +45,12 @@ public static class RaceSimulator
 
     public static RaceResult Run(
         Circuit circuit, IReadOnlyList<Competitor> grid, RulesSet rules, BalanceCoefficients balance,
-        int seed, TyreCompound startingCompound = TyreCompound.Medium)
+        int seed, TyreCompound startingCompound = TyreCompound.Medium, RegulationSet? regulations = null)
     {
+        // Null regulations reproduce the DRS era exactly, so existing callers are unaffected.
+        var regs = regulations ?? RegulationSet.Drs;
+        var era2026 = regs.Era == RegulationEra.ActiveAero2026;
+
         var baseRng = new DeterministicRandom(seed);
         var raceControlRng = baseRng.Fork(RaceControlSalt);
         var trafficRng = baseRng.Fork(TrafficSalt);
@@ -114,6 +121,12 @@ public static class RaceSimulator
                               + EngineModes.PaceDelta(car.Mode, balance)
                               + LimpPenalty(car.Health, balance);
 
+                // 2026 only: a depleted battery de-rates the car (deterministic, no random draw).
+                if (era2026)
+                {
+                    lapTime += DeRatingPenalty(car, regs);
+                }
+
                 // Reliability (its own stream): wear the car, then roll each component.
                 DegradeHealth(car, balance);
                 if (TryFail(car, lap, balance, events))
@@ -151,12 +164,18 @@ public static class RaceSimulator
 
                 car.Tyre = TyreModel.Advance(car.Tyre, circuit, car.Competitor.Driver.Attributes, balance);
                 car.Fuel = FuelModel.Burn(car.Fuel, laps);
+
+                // 2026 only: harvest energy back over the lap (Manual Override spends it in traffic).
+                if (era2026)
+                {
+                    car.Energy = Math.Min(1.0, car.Energy + regs.EnergyRegenPerLap);
+                }
             }
 
             // Traffic: cars in each other's wake battle for position (skipped under neutralisation).
             if (!neutralized)
             {
-                ResolveTraffic(cars, circuit, balance, trafficRng, lap, events);
+                ResolveTraffic(cars, circuit, balance, regs, era2026, trafficRng, lap, events);
             }
 
             // Decide the next state before snapshotting, so a restart's bunching is captured now.
@@ -435,10 +454,14 @@ public static class RaceSimulator
 
     /// <summary>Resolve dirty air and overtaking for the running order this lap. A car within
     /// combat range of the car ahead loses time in its wake; a genuinely faster car rolls to
-    /// pass — success moves it ahead and logs the overtake, failure leaves it held up. Skipped
-    /// under neutralisation and when traffic is disabled (combat threshold 0).</summary>
+    /// pass — success moves it ahead and logs the overtake, failure leaves it held up. The
+    /// overtaking aid is era-aware: the DRS era uses the slipstream boost, while 2026 deploys a
+    /// Manual Override drawn from the battery (no charge, no boost — and deploying spends energy
+    /// whatever the outcome). The random draw is identical in both eras, so a DRS-era race is
+    /// unchanged. Skipped under neutralisation and when traffic is disabled (combat threshold 0).</summary>
     private static void ResolveTraffic(
-        List<CarRaceState> cars, Circuit circuit, BalanceCoefficients balance, IRandom rng, int lap, List<RaceEvent> events)
+        List<CarRaceState> cars, Circuit circuit, BalanceCoefficients balance, RegulationSet regs, bool era2026,
+        IRandom rng, int lap, List<RaceEvent> events)
     {
         if (balance.CombatThresholdSeconds <= 0.0)
         {
@@ -467,13 +490,34 @@ public static class RaceSimulator
                 continue;
             }
 
-            if (rng.NextDouble() < OvertakeChance(follower, leader, circuit, balance))
+            // Overtaking aid: DRS slipstream (pre-2026) or a battery-limited Manual Override (2026).
+            double boost;
+            var description = "Overtake";
+            if (era2026)
+            {
+                if (follower.Energy >= regs.ManualOverrideEnergyCost)
+                {
+                    follower.Energy -= regs.ManualOverrideEnergyCost;
+                    boost = regs.ManualOverrideBoost;
+                    description = "Overtake (override)";
+                }
+                else
+                {
+                    boost = 0.0; // battery too low to deploy the override — no boost this lap
+                }
+            }
+            else
+            {
+                boost = balance.SlipstreamBoost;
+            }
+
+            if (rng.NextDouble() < OvertakeChance(follower, leader, circuit, balance, boost))
             {
                 follower.TotalTime = leader.TotalTime - balance.PassMarginSeconds;
                 events.Add(new RaceEvent
                 {
                     Kind = RaceEventKind.Overtake, Lap = lap, CompetitorId = follower.Id,
-                    OtherCompetitorId = leader.Id, Description = "Overtake",
+                    OtherCompetitorId = leader.Id, Description = description,
                 });
             }
             else
@@ -484,13 +528,25 @@ public static class RaceSimulator
     }
 
     private static double OvertakeChance(
-        CarRaceState follower, CarRaceState leader, Circuit circuit, BalanceCoefficients balance)
+        CarRaceState follower, CarRaceState leader, Circuit circuit, BalanceCoefficients balance, double boost)
     {
         var paceAdvantage = Math.Clamp((leader.LastLap - follower.LastLap) / PaceAdvantageScale, 0.0, 1.0);
         var attack = 0.5 + follower.Competitor.Driver.Attributes.Racecraft.Normalized;
         var defence = 1.5 - leader.Competitor.Driver.Attributes.Racecraft.Normalized;
-        var slipstream = 1.0 + balance.SlipstreamBoost;
+        var slipstream = 1.0 + boost;
         return balance.OvertakeBaseChance * circuit.Overtaking.Normalized * paceAdvantage * attack * defence * slipstream;
+    }
+
+    /// <summary>2026 de-rating: extra lap time from a depleted battery; 0 until energy drops below
+    /// the threshold, then growing as it approaches empty. Mirrors <see cref="LimpPenalty"/>.</summary>
+    private static double DeRatingPenalty(CarRaceState car, RegulationSet regs)
+    {
+        if (car.Energy >= regs.DeRatingThreshold)
+        {
+            return 0.0;
+        }
+
+        return regs.DeRatingPenaltySeconds * ((regs.DeRatingThreshold - car.Energy) / regs.DeRatingThreshold);
     }
 
     /// <summary>Resume racing. A VSC kept the gaps, so nothing changes. A safety car bunches the
@@ -593,6 +649,7 @@ public static class RaceSimulator
                 TyreWear = c.Tyre.Wear,
                 Fuel = c.Fuel,
                 EngineMode = c.Mode,
+                Energy = c.Energy,
             });
         }
 
