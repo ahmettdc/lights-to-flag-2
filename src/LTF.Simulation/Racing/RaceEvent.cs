@@ -15,6 +15,7 @@ public enum RaceEventKind
     SafetyCar,
     RedFlag,
     Overtake,
+    Pit,
 }
 
 /// <summary>

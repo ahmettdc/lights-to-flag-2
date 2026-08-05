@@ -14,7 +14,8 @@ namespace LTF.Simulation.Racing;
 /// energy regulation-era-aware (DRS ↔ 2026 Manual Override) and 26b added the 2026 active-aero
 /// lap-time gain and its top-speed effect. The energy and aero models draw no random numbers —
 /// they are deterministic arithmetic — so the pre-2026 streams are untouched and a DRS-era race
-/// stays bit-for-bit identical to before.
+/// stays bit-for-bit identical to before. M7a added pit stops on a fifth per-car RNG stream
+/// (stop-time variance), so a botched stop never disturbs pace, reliability or incidents.
 /// </summary>
 public static class RaceSimulator
 {
@@ -22,6 +23,7 @@ public static class RaceSimulator
     private const long IncidentSalt = 0x494E_4344;    // "INCD"
     private const long RaceControlSalt = 0x5241_4345; // "RACE"
     private const long TrafficSalt = 0x5452_4143;     // "TRAC"
+    private const long PitSalt = 0x5049_5453;         // "PITS"
 
     // Below this health the weakest component starts costing lap time (limp mode).
     private const double LimpThreshold = 0.30;
@@ -56,6 +58,7 @@ public static class RaceSimulator
         var raceControlRng = baseRng.Fork(RaceControlSalt);
         var trafficRng = baseRng.Fork(TrafficSalt);
         var laps = circuit.Laps;
+        var pitTargets = PlanPitLaps(laps, rules.MandatoryPitStops);
 
         var cars = new List<CarRaceState>(grid.Count);
         for (var i = 0; i < grid.Count; i++)
@@ -64,6 +67,7 @@ public static class RaceSimulator
             cars.Add(new CarRaceState(
                 grid[i], gridPosition: i + 1, rng: paceRng,
                 reliabilityRng: paceRng.Fork(ReliabilitySalt), incidentRng: paceRng.Fork(IncidentSalt),
+                pitRng: paceRng.Fork(PitSalt),
                 tyre: TyreState.Fresh(startingCompound), fuel: 1.0,
                 health: ComponentHealth.Fresh(), mode: EngineMode.Standard,
                 topSpeed: TopSpeedFor(grid[i].Car, circuit, regs, era2026)));
@@ -173,6 +177,12 @@ public static class RaceSimulator
                 {
                     car.Energy = Math.Min(1.0, car.Energy + regs.EnergyRegenPerLap);
                 }
+
+                // Pit stop (M7a): once the car reaches a planned stop lap, fresh tyres cost time.
+                if (car.PitStops < pitTargets.Count && lap >= pitTargets[car.PitStops])
+                {
+                    ApplyPitStop(car, lap, startingCompound, balance, events);
+                }
             }
 
             // Traffic: cars in each other's wake battle for position (skipped under neutralisation).
@@ -247,6 +257,73 @@ public static class RaceSimulator
                 Description = "Jump start (penalty)",
             });
         }
+    }
+
+    // ---- Pit stops (M7a) --------------------------------------------------
+
+    private static readonly TyreCompound[] DryRotation =
+        [TyreCompound.Medium, TyreCompound.Hard, TyreCompound.Soft];
+
+    /// <summary>The laps a car targets for its planned stops: the mandated number, spread evenly
+    /// through the race. Empty when the rules mandate no stop. A car pits on the first green lap at
+    /// or after a target, so a neutralised target lap doesn't make it miss the stop.</summary>
+    private static IReadOnlyList<int> PlanPitLaps(int laps, int mandatoryStops)
+    {
+        if (mandatoryStops <= 0 || laps < 2)
+        {
+            return [];
+        }
+
+        var targets = new int[mandatoryStops];
+        for (var k = 0; k < mandatoryStops; k++)
+        {
+            targets[k] = Math.Clamp((int)Math.Round((double)laps * (k + 1) / (mandatoryStops + 1)), 1, laps - 1);
+        }
+
+        return targets;
+    }
+
+    /// <summary>Change to a fresh set, rotating through the dry compounds so at least two distinct
+    /// compounds are used across the race (the both-compounds rule). Adds pit-lane loss, a stationary
+    /// time with spread and — rarely — a botched stop. Draws only from the car's own pit stream.</summary>
+    private static void ApplyPitStop(
+        CarRaceState car, int lap, TyreCompound startingCompound, BalanceCoefficients balance, List<RaceEvent> events)
+    {
+        car.PitStops++;
+        var compound = PitCompound(car.PitStops, startingCompound);
+        car.Tyre = TyreState.Fresh(compound);
+
+        var loss = balance.PitLaneTimeLossSeconds
+                   + balance.PitStopStationarySeconds
+                   + Math.Abs(car.PitRng.NextGaussian() * balance.PitStopSpreadSeconds);
+
+        var slow = car.PitRng.NextDouble() < balance.SlowPitStopChance;
+        if (slow)
+        {
+            loss += balance.SlowPitStopExtraSeconds;
+        }
+
+        car.TotalTime += loss;
+        events.Add(new RaceEvent
+        {
+            Kind = RaceEventKind.Pit,
+            Lap = lap,
+            CompetitorId = car.Id,
+            Description = (slow ? "Slow pit stop → " : "Pit stop → ") + compound,
+        });
+    }
+
+    /// <summary>The fresh compound for a stop, rotated off the starting compound so the stint plan
+    /// always uses at least two distinct dry compounds.</summary>
+    private static TyreCompound PitCompound(int stopNumber, TyreCompound starting)
+    {
+        var startIndex = Array.IndexOf(DryRotation, starting);
+        if (startIndex < 0)
+        {
+            startIndex = 0; // a wet / intermediate start rotates off the medium base
+        }
+
+        return DryRotation[(startIndex + stopNumber) % DryRotation.Length];
     }
 
     // ---- Reliability (M5b) ------------------------------------------------

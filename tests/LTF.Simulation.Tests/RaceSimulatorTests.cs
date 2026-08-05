@@ -640,6 +640,97 @@ public class RaceSimulatorTests
         Assert.True(era2026.Classification.Max(e => e.TopSpeed) > drs.Classification.Max(e => e.TopSpeed));
     }
 
+    // ---- Pit stops (M7a) --------------------------------------------------
+
+    [Fact]
+    public void No_mandatory_stop_means_no_pit_stops()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        // Fixture rules mandate zero stops, so a calm race pits nobody.
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
+
+        Assert.DoesNotContain(result.Events, e => e.Kind == RaceEventKind.Pit);
+    }
+
+    [Fact]
+    public void Cars_pit_the_mandated_number_of_times()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 2 };
+
+        // Calm balance: every car reaches the flag, so every finisher completes its two stops.
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, rules, SimFixtures.CalmBalance, 7);
+
+        var pits = result.Events.Where(e => e.Kind == RaceEventKind.Pit).ToList();
+        Assert.NotEmpty(pits);
+        foreach (var e in result.Classification.Where(c => c.Status == FinishStatus.Finished))
+        {
+            Assert.Equal(2, pits.Count(p => p.CompetitorId == e.CompetitorId));
+        }
+    }
+
+    [Fact]
+    public void A_pit_stop_fits_fresh_tyres_of_a_different_compound()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+
+        var result = RaceSimulator.Run(
+            carset.Circuits[0], grid, rules, SimFixtures.CalmBalance, 7, startingCompound: TyreCompound.Medium);
+
+        // The stop switches off the starting Medium onto a fresh (age 0) Hard set.
+        Assert.Contains(
+            result.Telemetry.Laps.SelectMany(s => s.Order),
+            o => o.TyreCompound == TyreCompound.Hard && o.TyreAge == 0);
+    }
+
+    [Fact]
+    public void Pitting_costs_race_time_when_tyres_do_not_wear()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // No tyre wear, so the pit loss is not offset by fresh-tyre pace — the stop is a net loss.
+        var balance = SimFixtures.CalmBalance with { TyreWearPerLap = 0.0 };
+
+        var noPit = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules with { MandatoryPitStops = 0 }, balance, 7);
+        var onePit = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules with { MandatoryPitStops = 1 }, balance, 7);
+
+        Assert.True(onePit.Classification[0].TotalTime > noPit.Classification[0].TotalTime,
+            $"onePit={onePit.Classification[0].TotalTime} noPit={noPit.Classification[0].TotalTime}");
+    }
+
+    [Fact]
+    public void Slow_pit_stops_are_logged_when_certain()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+        var balance = SimFixtures.CalmBalance with { SlowPitStopChance = 1.0 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, 7);
+
+        var pits = result.Events.Where(e => e.Kind == RaceEventKind.Pit).ToList();
+        Assert.NotEmpty(pits);
+        Assert.All(pits, e => Assert.StartsWith("Slow pit stop", e.Description, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void A_race_with_pit_stops_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 2 };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, rules, carset.Balance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, rules, carset.Balance, 2024);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();

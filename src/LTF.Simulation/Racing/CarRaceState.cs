@@ -11,13 +11,14 @@ internal sealed class CarRaceState
 {
     public CarRaceState(
         Competitor competitor, int gridPosition, IRandom rng, IRandom reliabilityRng, IRandom incidentRng,
-        TyreState tyre, double fuel, ComponentHealth health, EngineMode mode, double topSpeed)
+        IRandom pitRng, TyreState tyre, double fuel, ComponentHealth health, EngineMode mode, double topSpeed)
     {
         Competitor = competitor;
         GridPosition = gridPosition;
         Rng = rng;
         ReliabilityRng = reliabilityRng;
         IncidentRng = incidentRng;
+        PitRng = pitRng;
         Tyre = tyre;
         Fuel = fuel;
         Health = health;
@@ -41,6 +42,13 @@ internal sealed class CarRaceState
     /// <summary>Another independent stream for on-track incidents (start, driver errors,
     /// collisions), kept separate for the same reason.</summary>
     public IRandom IncidentRng { get; }
+
+    /// <summary>An independent stream for pit-stop timing variance (M7), so a botched stop never
+    /// disturbs the pace, reliability or incident draws.</summary>
+    public IRandom PitRng { get; }
+
+    /// <summary>Number of pit stops made so far (M7).</summary>
+    public int PitStops { get; set; }
 
     public TyreState Tyre { get; set; }
     public double Fuel { get; set; }

@@ -107,4 +107,19 @@ public sealed record BalanceCoefficients
 
     /// <summary>How far ahead, in seconds, a successful overtaker ends up.</summary>
     public double PassMarginSeconds { get; init; } = 0.3;
+
+    /// <summary>Time lost driving through the pit lane at the speed limit, vs. staying out (M7).</summary>
+    public double PitLaneTimeLossSeconds { get; init; } = 20.0;
+
+    /// <summary>Mean stationary time for a pit stop, in seconds.</summary>
+    public double PitStopStationarySeconds { get; init; } = 2.6;
+
+    /// <summary>Random spread of stationary time, in seconds (always adds — a stop can't gain time).</summary>
+    public double PitStopSpreadSeconds { get; init; } = 0.4;
+
+    /// <summary>Probability a pit stop is botched (cross-threaded wheel, stuck gun).</summary>
+    public double SlowPitStopChance { get; init; } = 0.04;
+
+    /// <summary>Extra time a botched pit stop costs, in seconds.</summary>
+    public double SlowPitStopExtraSeconds { get; init; } = 6.0;
 }
