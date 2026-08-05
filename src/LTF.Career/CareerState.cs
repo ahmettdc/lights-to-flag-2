@@ -15,12 +15,14 @@ public sealed record DriverCareerRecord
     public int Reputation { get; init; } = 50;
 }
 
-/// <summary>One team's persistent history line in a save (M11e).</summary>
+/// <summary>One team's persistent history line in a save (M11e), plus its finances (M13): the balance
+/// and cost cap that the economy moves between seasons.</summary>
 public sealed record TeamHistoryRecord
 {
     public required string TeamId { get; init; }
     public int ChampionshipsWon { get; init; }
     public int RaceWins { get; init; }
+    public Finances Finances { get; init; } = new();
 }
 
 /// <summary>One relationship in a save (M12), stored with a plain integer affinity so the save format
@@ -70,6 +72,7 @@ public sealed record CareerState
                 TeamId = t.Id,
                 ChampionshipsWon = t.ChampionshipsWon,
                 RaceWins = t.RaceWins,
+                Finances = t.Finances,
             })
             .ToList(),
         Relationships = carset.Relationships.Relationships
@@ -104,7 +107,7 @@ public sealed record CareerState
             .ToList();
         var teams = carset.Teams
             .Select(t => histories.TryGetValue(t.Id, out var h)
-                ? t with { ChampionshipsWon = h.ChampionshipsWon, RaceWins = h.RaceWins }
+                ? t with { ChampionshipsWon = h.ChampionshipsWon, RaceWins = h.RaceWins, Finances = h.Finances }
                 : t)
             .ToList();
 
