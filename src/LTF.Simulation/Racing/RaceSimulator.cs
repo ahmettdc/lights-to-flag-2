@@ -1,6 +1,7 @@
 using LTF.Domain.Common;
 using LTF.Domain.Racing;
 using LTF.Simulation.Laps;
+using LTF.Simulation.Practice;
 
 namespace LTF.Simulation.Racing;
 
@@ -19,6 +20,8 @@ namespace LTF.Simulation.Racing;
 /// staggered the stops per car and lets a car take a due stop cheaply under a neutralisation;
 /// M7c added on-track penalties — track limits (deterministic strike counting) and a rare unsafe
 /// pit release (drawn last on the pit stream), both gated so pre-M7c races stay bit-for-bit identical.
+/// M8 accepts an optional practice setup per car that shaves a little off each green lap and cuts
+/// the driver-error chance; with no setup (the default) the race is unchanged.
 /// </summary>
 public static class RaceSimulator
 {
@@ -51,7 +54,8 @@ public static class RaceSimulator
 
     public static RaceResult Run(
         Circuit circuit, IReadOnlyList<Competitor> grid, RulesSet rules, BalanceCoefficients balance,
-        int seed, TyreCompound startingCompound = TyreCompound.Medium, RegulationSet? regulations = null)
+        int seed, TyreCompound startingCompound = TyreCompound.Medium, RegulationSet? regulations = null,
+        IReadOnlyDictionary<string, PracticeSetup>? setups = null)
     {
         // Null regulations reproduce the DRS era exactly, so existing callers are unaffected.
         var regs = regulations ?? RegulationSet.Drs;
@@ -75,6 +79,7 @@ public static class RaceSimulator
                 health: ComponentHealth.Fresh(), mode: EngineMode.Standard,
                 topSpeed: TopSpeedFor(grid[i].Car, circuit, regs, era2026));
             car.PitPlan = StaggeredPlan(baseTargets, i, grid.Count, laps, balance);
+            car.Setup = setups?.GetValueOrDefault(grid[i].Id) ?? PracticeSetup.None;
             cars.Add(car);
         }
 
@@ -146,6 +151,10 @@ public static class RaceSimulator
                     lapTime += ActiveAeroDelta(car.Competitor.Car, circuit, regs);
                     lapTime += DeRatingPenalty(car, regs);
                 }
+
+                // M8: a productive practice weekend shaves a little off every green lap. Zero
+                // without practice, so a race with no practice setup is unchanged.
+                lapTime -= car.Setup.RaceBonusSeconds;
 
                 // Reliability (its own stream): wear the car, then roll each component.
                 DegradeHealth(car, balance);
@@ -463,7 +472,10 @@ public static class RaceSimulator
         var proneness = 1.0 - attr.Consistency.Normalized;
         var wet = 1.0 + (conditions.Track.Wetness * 2.0);
         var firstLap = lap == 1 ? balance.FirstLapIncidentMultiplier : 1.0;
-        var chance = balance.DriverErrorBaseRate * proneness * wet * firstLap;
+
+        // M8: race-simulation practice makes a driver less error-prone (factor ≤ 1); 1.0 (no
+        // change) without practice, so the incident stream is untouched in a no-practice race.
+        var chance = balance.DriverErrorBaseRate * proneness * wet * firstLap * car.Setup.ErrorFactor;
 
         if (car.IncidentRng.NextDouble() >= chance)
         {

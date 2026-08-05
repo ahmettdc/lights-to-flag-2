@@ -148,4 +148,12 @@ public sealed record BalanceCoefficients
 
     /// <summary>Time penalty, in seconds, added for an unsafe pit release.</summary>
     public double UnsafePitReleasePenaltySeconds { get; init; } = 5.0;
+
+    /// <summary>Best-case lap-time gain, in seconds, from a fully productive practice program;
+    /// scaled down by how much data the session actually yielded (M8).</summary>
+    public double PracticeSetupGainSeconds { get; init; } = 0.30;
+
+    /// <summary>Best-case reduction in driver-error chance (as a fraction) from a race-simulation
+    /// practice program; scaled by session data quality (M8).</summary>
+    public double PracticeErrorReduction { get; init; } = 0.25;
 }

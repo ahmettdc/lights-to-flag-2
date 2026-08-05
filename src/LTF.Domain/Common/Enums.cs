@@ -18,6 +18,20 @@ public enum TyreCompound
     Wet,
 }
 
+/// <summary>What a team works on in a practice session; the choice shapes the benefit carried
+/// into the weekend (M8).</summary>
+public enum PracticeProgram
+{
+    /// <summary>Chase car balance and one-lap pace — the biggest qualifying gain.</summary>
+    SetupWork,
+
+    /// <summary>Learn the tyres over a stint — a steadier race-pace gain.</summary>
+    TyreEvaluation,
+
+    /// <summary>Rehearse the race — a smaller pace gain, but fewer driver mistakes.</summary>
+    RaceSimulation,
+}
+
 /// <summary>How a qualifying session decides the grid.</summary>
 public enum QualifyingFormat
 {

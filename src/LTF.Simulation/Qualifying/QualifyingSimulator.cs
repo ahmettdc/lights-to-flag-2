@@ -1,6 +1,7 @@
 using LTF.Domain.Common;
 using LTF.Domain.Racing;
 using LTF.Simulation.Laps;
+using LTF.Simulation.Practice;
 
 namespace LTF.Simulation.Qualifying;
 
@@ -16,7 +17,8 @@ namespace LTF.Simulation.Qualifying;
 /// </list>
 /// Laps are run in low-fuel trim on fresh soft tyres. In a knockout the grid-deciding time is
 /// the best lap in the deepest part a driver reached, so a Q2-eliminated car always starts
-/// ahead of a Q1-eliminated one regardless of raw lap time.
+/// ahead of a Q1-eliminated one regardless of raw lap time. An optional practice-setup map
+/// (M8) shaves each car's laps by its qualifying benefit; passing none leaves the grid unchanged.
 /// </summary>
 public static class QualifyingSimulator
 {
@@ -33,7 +35,8 @@ public static class QualifyingSimulator
     private const int SingleSessionLaps = 3;
 
     public static QualifyingResult Run(
-        Circuit circuit, IReadOnlyList<Competitor> grid, RulesSet rules, BalanceCoefficients balance, int seed)
+        Circuit circuit, IReadOnlyList<Competitor> grid, RulesSet rules, BalanceCoefficients balance, int seed,
+        IReadOnlyDictionary<string, PracticeSetup>? setups = null)
     {
         var baseRng = new DeterministicRandom(seed);
         var streams = new Dictionary<string, IRandom>(grid.Count, StringComparer.Ordinal);
@@ -45,10 +48,11 @@ public static class QualifyingSimulator
 
         return rules.Qualifying switch
         {
-            QualifyingFormat.Knockout => Knockout(circuit, grid, balance, streams),
-            QualifyingFormat.SingleLap => SingleShot(circuit, grid, balance, streams, laps: 1, QualifyingFormat.SingleLap),
+            QualifyingFormat.Knockout => Knockout(circuit, grid, balance, streams, setups),
+            QualifyingFormat.SingleLap =>
+                SingleShot(circuit, grid, balance, streams, laps: 1, QualifyingFormat.SingleLap, setups),
             QualifyingFormat.SingleSession =>
-                SingleShot(circuit, grid, balance, streams, SingleSessionLaps, QualifyingFormat.SingleSession),
+                SingleShot(circuit, grid, balance, streams, SingleSessionLaps, QualifyingFormat.SingleSession, setups),
             _ => throw new ArgumentOutOfRangeException(nameof(rules), rules.Qualifying, "unknown qualifying format"),
         };
     }
@@ -56,30 +60,31 @@ public static class QualifyingSimulator
     // ---- Knockout (Q1/Q2/Q3) ----------------------------------------------
 
     private static QualifyingResult Knockout(
-        Circuit circuit, IReadOnlyList<Competitor> grid, BalanceCoefficients balance, Dictionary<string, IRandom> streams)
+        Circuit circuit, IReadOnlyList<Competitor> grid, BalanceCoefficients balance,
+        Dictionary<string, IRandom> streams, IReadOnlyDictionary<string, PracticeSetup>? setups)
     {
         var field = grid.Count;
         if (field < MinKnockoutField)
         {
             // Too few cars for three parts — decide it on a single lap, still labelled knockout.
-            return SingleShot(circuit, grid, balance, streams, laps: 1, QualifyingFormat.Knockout);
+            return SingleShot(circuit, grid, balance, streams, laps: 1, QualifyingFormat.Knockout, setups);
         }
 
         var advance1 = Math.Clamp((int)Math.Round(field * Q1AdvanceFraction), 1, field - 1);
         var advance2 = Math.Clamp((int)Math.Round(field * Q2AdvanceFraction), 1, advance1 - 1);
 
         // Part 1: everyone runs; the slowest are knocked out.
-        var part1 = RankPart(circuit, grid, balance, streams);
+        var part1 = RankPart(circuit, grid, balance, streams, setups);
         var toPart2 = part1.Take(advance1).Select(r => r.Competitor).ToList();
         var out1 = part1.Skip(advance1).ToList();
 
         // Part 2: the Q1 survivors run again.
-        var part2 = RankPart(circuit, toPart2, balance, streams);
+        var part2 = RankPart(circuit, toPart2, balance, streams, setups);
         var toPart3 = part2.Take(advance2).Select(r => r.Competitor).ToList();
         var out2 = part2.Skip(advance2).ToList();
 
         // Part 3: the Q2 survivors decide pole.
-        var part3 = RankPart(circuit, toPart3, balance, streams);
+        var part3 = RankPart(circuit, toPart3, balance, streams, setups);
 
         var entries = new List<QualifyingEntry>(field);
         var pos = 1;
@@ -93,12 +98,13 @@ public static class QualifyingSimulator
 
     private static QualifyingResult SingleShot(
         Circuit circuit, IReadOnlyList<Competitor> grid, BalanceCoefficients balance,
-        Dictionary<string, IRandom> streams, int laps, QualifyingFormat format)
+        Dictionary<string, IRandom> streams, int laps, QualifyingFormat format,
+        IReadOnlyDictionary<string, PracticeSetup>? setups)
     {
         var ranked = new List<Ran>(grid.Count);
         foreach (var c in grid)
         {
-            var (lap, sectors) = BestLap(circuit, c, balance, streams[c.Id], laps);
+            var (lap, sectors) = BestLap(circuit, c, balance, streams[c.Id], laps, setups);
             ranked.Add(new Ran(c, lap, sectors));
         }
 
@@ -114,12 +120,13 @@ public static class QualifyingSimulator
 
     /// <summary>Rank the given runners by a single flying lap each, fastest first.</summary>
     private static List<Ran> RankPart(
-        Circuit circuit, IReadOnlyList<Competitor> runners, BalanceCoefficients balance, Dictionary<string, IRandom> streams)
+        Circuit circuit, IReadOnlyList<Competitor> runners, BalanceCoefficients balance,
+        Dictionary<string, IRandom> streams, IReadOnlyDictionary<string, PracticeSetup>? setups)
     {
         var ranked = new List<Ran>(runners.Count);
         foreach (var c in runners)
         {
-            var (lap, sectors) = FlyingLap(circuit, c, balance, streams[c.Id]);
+            var (lap, sectors) = FlyingLap(circuit, c, balance, streams[c.Id], setups);
             ranked.Add(new Ran(c, lap, sectors));
         }
 
@@ -129,13 +136,14 @@ public static class QualifyingSimulator
 
     /// <summary>The best of <paramref name="laps"/> flying laps for a single competitor.</summary>
     private static (double Lap, SectorTimes Sectors) BestLap(
-        Circuit circuit, Competitor competitor, BalanceCoefficients balance, IRandom rng, int laps)
+        Circuit circuit, Competitor competitor, BalanceCoefficients balance, IRandom rng, int laps,
+        IReadOnlyDictionary<string, PracticeSetup>? setups)
     {
         var bestLap = double.MaxValue;
         var bestSectors = default(SectorTimes);
         for (var k = 0; k < laps; k++)
         {
-            var (lap, sectors) = FlyingLap(circuit, competitor, balance, rng);
+            var (lap, sectors) = FlyingLap(circuit, competitor, balance, rng, setups);
             if (lap < bestLap)
             {
                 bestLap = lap;
@@ -146,9 +154,11 @@ public static class QualifyingSimulator
         return (bestLap, bestSectors);
     }
 
-    /// <summary>One qualifying lap: low fuel, fresh softs, dry — a representative pole run.</summary>
+    /// <summary>One qualifying lap: low fuel, fresh softs, dry — a representative pole run, less any
+    /// qualifying benefit the car earned in practice.</summary>
     private static (double Lap, SectorTimes Sectors) FlyingLap(
-        Circuit circuit, Competitor competitor, BalanceCoefficients balance, IRandom rng)
+        Circuit circuit, Competitor competitor, BalanceCoefficients balance, IRandom rng,
+        IReadOnlyDictionary<string, PracticeSetup>? setups)
     {
         var conditions = new LapConditions
         {
@@ -157,7 +167,8 @@ public static class QualifyingSimulator
             Track = TrackConditions.Dry,
         };
         var sectors = LapTimeModel.Simulate(circuit, competitor, balance, conditions, rng);
-        return (sectors.Total, sectors);
+        var bonus = setups is not null && setups.TryGetValue(competitor.Id, out var s) ? s.QualifyingBonusSeconds : 0.0;
+        return (sectors.Total - bonus, sectors);
     }
 
     // ---- Assembly ---------------------------------------------------------
