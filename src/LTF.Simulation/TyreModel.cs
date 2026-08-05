@@ -34,20 +34,26 @@ public static class TyreModel
         _ => 1.0,
     };
 
-    /// <summary>How much wear (0–1) this set takes in one lap here, for this driver.</summary>
-    public static double WearRate(TyreState tyre, Circuit circuit, DriverAttributes driver, BalanceCoefficients balance)
+    /// <summary>How much wear (0–1) this set takes in one lap here, for this driver and car. The
+    /// car's tyre-gentleness eases wear only when the carset opts in via
+    /// <see cref="BalanceCoefficients.TyreGentlenessWearInfluence"/> (0 by default → the car has no
+    /// effect and this is byte-identical to before M14).</summary>
+    public static double WearRate(
+        TyreState tyre, Circuit circuit, DriverAttributes driver, Rating carTyreGentleness, BalanceCoefficients balance)
     {
         var stress = 0.5 + circuit.TyreStress.Normalized;              // 0.5 … 1.5
-        var management = 0.7 + (driver.TyreManagement.Normalized * 0.6); // 0.7 … 1.3
+        var management = 0.7 + (driver.TyreManagement.Normalized * 0.6) // driver's care
+                             + (carTyreGentleness.Normalized * balance.TyreGentlenessWearInfluence); // the car's (M14)
         return balance.TyreWearPerLap * stress * CompoundWearFactor(tyre.Compound) / management;
     }
 
     /// <summary>Age the set by one lap, accumulating wear (clamped at fully worn).</summary>
-    public static TyreState Advance(TyreState tyre, Circuit circuit, DriverAttributes driver, BalanceCoefficients balance) =>
+    public static TyreState Advance(
+        TyreState tyre, Circuit circuit, DriverAttributes driver, Rating carTyreGentleness, BalanceCoefficients balance) =>
         tyre with
         {
             Age = tyre.Age + 1,
-            Wear = Math.Min(1.0, tyre.Wear + WearRate(tyre, circuit, driver, balance)),
+            Wear = Math.Min(1.0, tyre.Wear + WearRate(tyre, circuit, driver, carTyreGentleness, balance)),
         };
 
     /// <summary>Seconds this set adds to the lap right now (compound + wear + graining).</summary>

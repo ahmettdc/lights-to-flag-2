@@ -204,7 +204,8 @@ public static class RaceSimulator
                     car.BestLap = lapTime;
                 }
 
-                car.Tyre = TyreModel.Advance(car.Tyre, circuit, car.Competitor.Driver.Attributes, balance);
+                car.Tyre = TyreModel.Advance(
+                    car.Tyre, circuit, car.Competitor.Driver.Attributes, car.Competitor.Car.TyreGentleness, balance);
                 car.Fuel = FuelModel.Burn(car.Fuel, laps);
 
                 // 2026 only: harvest energy back over the lap (Manual Override spends it in traffic).

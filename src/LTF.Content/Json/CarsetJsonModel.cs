@@ -85,6 +85,7 @@ internal sealed class BalanceJson
     public double? OvertakeBaseChance { get; set; }
     public double? WetPaceLoss { get; set; }
     public double? FuelLoadPenaltySeconds { get; set; }
+    public double? TyreGentlenessWearInfluence { get; set; }
 }
 
 internal sealed class TyreJson

@@ -156,4 +156,10 @@ public sealed record BalanceCoefficients
     /// <summary>Best-case reduction in driver-error chance (as a fraction) from a race-simulation
     /// practice program; scaled by session data quality (M8).</summary>
     public double PracticeErrorReduction { get; init; } = 0.25;
+
+    /// <summary>How much a car's tyre-gentleness rating eases tyre wear (M14). 0 (default) means the
+    /// car has no effect and wear is exactly as before — it is the R&amp;D-improvable tyre lever, so a
+    /// carset opts in by setting it above zero; a gentler car then wears its tyres more slowly and is
+    /// quicker deep into a stint.</summary>
+    public double TyreGentlenessWearInfluence { get; init; }
 }

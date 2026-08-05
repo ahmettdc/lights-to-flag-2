@@ -169,6 +169,7 @@ public static class CarsetLoader
             OvertakeBaseChance = b.OvertakeBaseChance ?? d.OvertakeBaseChance,
             WetPaceLoss = b.WetPaceLoss ?? d.WetPaceLoss,
             FuelLoadPenaltySeconds = b.FuelLoadPenaltySeconds ?? d.FuelLoadPenaltySeconds,
+            TyreGentlenessWearInfluence = b.TyreGentlenessWearInfluence ?? d.TyreGentlenessWearInfluence,
         };
     }
 
