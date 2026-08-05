@@ -961,7 +961,10 @@ public static class RaceSimulator
             classCount++;
             classCounts[classId] = classCount;
 
-            var points = c.Status == FinishStatus.Finished ? rules.Points.PointsFor(position) : 0;
+            // M9f: a sprint scores from the sprint table, a feature from the race table.
+            var points = c.Status == FinishStatus.Finished
+                ? (fmt.IsSprint ? rules.Points.SprintPointsFor(position) : rules.Points.PointsFor(position))
+                : 0;
             if (rules.Points.FastestLapPoint > 0 && fastest is not null && c.Id == fastest.Id
                 && c.Status == FinishStatus.Finished && position <= 10)
             {

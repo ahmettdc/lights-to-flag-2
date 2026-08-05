@@ -25,6 +25,10 @@ public sealed record PointsScheme
     /// <summary>Points for finishing <paramref name="position"/> (1-based); 0 if out of the points.</summary>
     public int PointsFor(int position) =>
         position >= 1 && position <= RacePoints.Count ? RacePoints[position - 1] : 0;
+
+    /// <summary>Sprint points for finishing <paramref name="position"/> (1-based); 0 if out (M9).</summary>
+    public int SprintPointsFor(int position) =>
+        position >= 1 && position <= SprintPoints.Count ? SprintPoints[position - 1] : 0;
 }
 
 /// <summary>

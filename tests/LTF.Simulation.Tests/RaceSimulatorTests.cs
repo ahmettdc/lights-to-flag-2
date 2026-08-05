@@ -1164,22 +1164,23 @@ public class RaceSimulatorTests
     {
         var carset = SimFixtures.Carset();
         var grid = EntryList.Build(carset);
-        // A heavily ballasted backmarker (so it gets lapped) plus frequent full safety cars.
+        // A hugely ballasted backmarker gets lapped within a few laps — well before it might retire —
+        // and a modest failure rate brings out the odd full safety car to restart behind.
         var format = RaceFormat.Standard with
         {
-            Ballast = new Dictionary<string, double> { ["d4"] = 4.0 },
-            LapOverride = 40,
+            Ballast = new Dictionary<string, double> { ["d4"] = 25.0 },
+            LapOverride = 30,
         };
         var balance = SimFixtures.Balance with
         {
-            ReliabilityFailureRate = 0.06,
+            ReliabilityFailureRate = 0.05,
             SafetyCarFromIncidentChance = 5.0,
             VirtualSafetyCarShare = 0.0,
             RedFlagShare = 0.0,
         };
 
         var differ = false;
-        for (var seed = 0; seed < 25 && !differ; seed++)
+        for (var seed = 0; seed < 40 && !differ; seed++)
         {
             var unlap = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, seed, format: format);
             var stayDown = RaceSimulator.Run(
@@ -1187,7 +1188,40 @@ public class RaceSimulatorTests
             differ = Digest(unlap) != Digest(stayDown);
         }
 
-        Assert.True(differ, "the unlap rule never changed a restart across 25 seeds");
+        Assert.True(differ, "the unlap rule never changed a restart across 40 seeds");
+    }
+
+    // ---- Sprint points (M9f) ----------------------------------------------
+
+    [Fact]
+    public void A_sprint_race_uses_the_sprint_points_table()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // A distinct sprint table so we can tell which table scored the race.
+        var rules = carset.Rules with { Points = carset.Rules.Points with { SprintPoints = [8, 7] } };
+
+        var result = RaceSimulator.Run(
+            carset.Circuits[0], grid, rules, SimFixtures.CalmBalance, 7,
+            format: RaceFormat.Standard with { IsSprint = true });
+
+        Assert.Equal(8, result.Classification[0].Points);
+    }
+
+    [Fact]
+    public void A_feature_race_ignores_the_sprint_table()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { Points = carset.Rules.Points with { SprintPoints = [8, 7] } };
+
+        var plain = RaceSimulator.Run(carset.Circuits[0], grid, rules, SimFixtures.Balance, 7);
+        var feature = RaceSimulator.Run(
+            carset.Circuits[0], grid, rules, SimFixtures.Balance, 7,
+            format: RaceFormat.Standard with { IsSprint = false });
+
+        // IsSprint defaults false, so a present-but-unused sprint table changes nothing.
+        Assert.Equal(Digest(plain), Digest(feature));
     }
 
     private static string Digest(RaceResult r)
