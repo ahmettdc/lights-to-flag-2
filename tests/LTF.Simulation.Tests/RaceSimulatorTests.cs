@@ -815,6 +815,94 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Penalties (M7c) --------------------------------------------------
+
+    [Fact]
+    public void Repeated_off_track_moments_draw_a_track_limits_penalty()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        // A high error rate (calm otherwise) so a driver piles up off-track moments and, once past
+        // the allowance, earns a track-limits penalty.
+        var balance = SimFixtures.CalmBalance with { DriverErrorBaseRate = 0.4 };
+
+        var drew = false;
+        for (var seed = 0; seed < 25 && !drew; seed++)
+        {
+            var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, seed);
+            drew = result.Events.Any(e => e.Kind == RaceEventKind.Penalty
+                && e.Description.Contains("Track limits", StringComparison.Ordinal));
+        }
+
+        Assert.True(drew, "no track-limits penalty across 25 seeds");
+    }
+
+    [Fact]
+    public void Track_limits_never_penalise_a_clean_field()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        // No driver errors at all (calm), so no off-track moments and never a track-limits penalty.
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7);
+
+        Assert.DoesNotContain(result.Events, e => e.Kind == RaceEventKind.Penalty);
+    }
+
+    [Fact]
+    public void An_unsafe_pit_release_draws_a_penalty()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+        // Every release is unsafe, so every pitting car earns exactly one unsafe-release penalty.
+        var balance = SimFixtures.CalmBalance with { UnsafePitReleaseChance = 1.0 };
+
+        var result = RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, 7);
+
+        var pits = result.Events.Count(e => e.Kind == RaceEventKind.Pit);
+        var releases = result.Events.Count(e => e.Kind == RaceEventKind.Penalty
+            && e.Description.Contains("Unsafe pit release", StringComparison.Ordinal));
+        Assert.True(pits > 0, "expected at least one pit stop");
+        Assert.Equal(pits, releases);
+    }
+
+    [Fact]
+    public void An_unsafe_pit_release_costs_race_time()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+        // No tyre wear, traffic off: the same race, so the only difference is the penalty per stop.
+        var baseBalance = SimFixtures.CalmBalance with { TyreWearPerLap = 0.0 };
+
+        var safe = RaceSimulator.Run(carset.Circuits[0], grid, rules, baseBalance, 7);
+        var unsafeRun = RaceSimulator.Run(
+            carset.Circuits[0], grid, rules, baseBalance with { UnsafePitReleaseChance = 1.0 }, 7);
+
+        // Each of the field's cars pits once, so the field's total time rises by exactly one penalty per car.
+        var delta = unsafeRun.Classification.Sum(e => e.TotalTime) - safe.Classification.Sum(e => e.TotalTime);
+        Assert.Equal(grid.Count * baseBalance.UnsafePitReleasePenaltySeconds, delta, precision: 3);
+    }
+
+    [Fact]
+    public void A_race_with_penalties_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+        var balance = SimFixtures.CalmBalance with
+        {
+            DriverErrorBaseRate = 0.4,
+            UnsafePitReleaseChance = 0.5,
+        };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, 2024);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     private static string Digest(RaceResult r)
     {
         var sb = new StringBuilder();

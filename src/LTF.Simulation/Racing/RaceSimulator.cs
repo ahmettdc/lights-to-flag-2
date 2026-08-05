@@ -16,7 +16,9 @@ namespace LTF.Simulation.Racing;
 /// they are deterministic arithmetic — so the pre-2026 streams are untouched and a DRS-era race
 /// stays bit-for-bit identical to before. M7a added pit stops on a fifth per-car RNG stream
 /// (stop-time variance), so a botched stop never disturbs pace, reliability or incidents; M7b
-/// staggered the stops per car and lets a car take a due stop cheaply under a neutralisation.
+/// staggered the stops per car and lets a car take a due stop cheaply under a neutralisation;
+/// M7c added on-track penalties — track limits (deterministic strike counting) and a rare unsafe
+/// pit release (drawn last on the pit stream), both gated so pre-M7c races stay bit-for-bit identical.
 /// </summary>
 public static class RaceSimulator
 {
@@ -270,7 +272,7 @@ public static class RaceSimulator
         }
     }
 
-    // ---- Pit stops (M7a) --------------------------------------------------
+    // ---- Pit stops (M7a–M7c) ----------------------------------------------
 
     private static readonly TyreCompound[] DryRotation =
         [TyreCompound.Medium, TyreCompound.Hard, TyreCompound.Soft];
@@ -348,6 +350,21 @@ public static class RaceSimulator
             CompetitorId = car.Id,
             Description = (slow ? "Slow pit stop → " : "Pit stop → ") + compound,
         });
+
+        // Unsafe release (M7c): rarely the car is let go into an unsafe gap and takes a time
+        // penalty. Drawn last — after the stationary jitter and the slow-stop check — so those
+        // earlier draws keep their order and a first stop's timing is unchanged from M7a/M7b.
+        if (car.PitRng.NextDouble() < balance.UnsafePitReleaseChance)
+        {
+            car.TotalTime += balance.UnsafePitReleasePenaltySeconds;
+            events.Add(new RaceEvent
+            {
+                Kind = RaceEventKind.Penalty,
+                Lap = lap,
+                CompetitorId = car.Id,
+                Description = "Unsafe pit release (time penalty)",
+            });
+        }
     }
 
     /// <summary>The fresh compound for a stop, rotated off the starting compound so the stint plan
@@ -473,7 +490,25 @@ public static class RaceSimulator
             Kind = RaceEventKind.DriverError, Lap = lap, CompetitorId = car.Id,
             Description = "Off-track moment",
         });
-        return balance.DriverErrorTimeLossSeconds * (0.3 + severity);
+
+        var timeLoss = balance.DriverErrorTimeLossSeconds * (0.3 + severity);
+
+        // Track limits (M7c): repeated off-track moments earn a time penalty once the allowance is
+        // used up, then the count resets. Purely deterministic counting — no random draw — so the
+        // incident stream is untouched and pre-M7c races stay bit-for-bit identical.
+        car.TrackLimitStrikes++;
+        if (car.TrackLimitStrikes > balance.TrackLimitAllowance)
+        {
+            car.TrackLimitStrikes = 0;
+            timeLoss += balance.TrackLimitPenaltySeconds;
+            events.Add(new RaceEvent
+            {
+                Kind = RaceEventKind.Penalty, Lap = lap, CompetitorId = car.Id,
+                Description = "Track limits (time penalty)",
+            });
+        }
+
+        return timeLoss;
     }
 
     /// <summary>Roll for contact with the car ahead. Heavy contact ends this car's race and

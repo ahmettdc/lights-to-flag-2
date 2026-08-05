@@ -16,6 +16,7 @@ public enum RaceEventKind
     RedFlag,
     Overtake,
     Pit,
+    Penalty,
 }
 
 /// <summary>

@@ -56,6 +56,7 @@ internal static class SimFixtures
             StartSpreadSeconds = 0.0,
             SafetyCarFromIncidentChance = 0.0,
             CombatThresholdSeconds = 0.0,
+            UnsafePitReleaseChance = 0.0,
         };
 
     public static Carset Carset()

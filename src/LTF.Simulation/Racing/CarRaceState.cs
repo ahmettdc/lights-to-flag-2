@@ -50,6 +50,10 @@ internal sealed class CarRaceState
     /// <summary>Number of pit stops made so far (M7).</summary>
     public int PitStops { get; set; }
 
+    /// <summary>Off-track moments accumulated so far this race; once it exceeds the allowance a
+    /// track-limits time penalty is applied and the count resets (M7c).</summary>
+    public int TrackLimitStrikes { get; set; }
+
     /// <summary>This car's planned pit laps — the mandated stops, staggered per car (M7b). A stop
     /// is taken on the first green lap at or after a target, or a few laps early under a safety car.</summary>
     public IReadOnlyList<int> PitPlan { get; set; } = [];

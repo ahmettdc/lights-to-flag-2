@@ -135,4 +135,17 @@ public sealed record BalanceCoefficients
     /// <summary>Fraction of the pit-lane time loss paid when pitting under a neutralisation — the
     /// field is slow, so the stop costs far less relative to staying out.</summary>
     public double NeutralizationPitDiscount { get; init; } = 0.45;
+
+    /// <summary>How many off-track moments a driver is allowed before track limits draw a penalty.
+    /// The strike after this count triggers a time penalty and resets the count (M7c).</summary>
+    public int TrackLimitAllowance { get; init; } = 3;
+
+    /// <summary>Time penalty, in seconds, added when a driver exceeds the track-limit allowance.</summary>
+    public double TrackLimitPenaltySeconds { get; init; } = 5.0;
+
+    /// <summary>Probability a pit stop ends in an unsafe release (a penalty), drawn once per stop.</summary>
+    public double UnsafePitReleaseChance { get; init; } = 0.02;
+
+    /// <summary>Time penalty, in seconds, added for an unsafe pit release.</summary>
+    public double UnsafePitReleasePenaltySeconds { get; init; } = 5.0;
 }
