@@ -3,6 +3,7 @@
         xmlns:shell="using:LTF.App.Shell"
         x:Class="LTF.App.MainWindow"
         Title="Lights to Flag 2"
+        Icon="/Assets/Branding/icon-512.png"
         Width="1280" Height="800"
         MinWidth="1024" MinHeight="640"
         WindowStartupLocation="CenterScreen"
