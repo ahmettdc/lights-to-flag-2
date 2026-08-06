@@ -71,5 +71,11 @@ public static class EnglishStrings
         [StringKeys.BoardReactionAccepted] = "The board agrees.",
         [StringKeys.BoardReactionCountered] = "The board counters.",
         [StringKeys.BoardReactionRejected] = "The board holds firm.",
+
+        [StringKeys.LoadGameTitle] = "LOAD GAME",
+        [StringKeys.LoadGameEmpty] = "No saved careers yet.",
+        [StringKeys.LoadGameLoad] = "LOAD",
+        [StringKeys.LoadGameDelete] = "DELETE",
+        [StringKeys.LoadGameBack] = "BACK",
     };
 }

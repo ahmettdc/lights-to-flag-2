@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
@@ -21,7 +22,24 @@ namespace LTF.App.Tests;
 /// </summary>
 public class RootViewTests
 {
-    private static RootViewModel MakeRoot() => new(CarsetCatalog.Discover(), new SampleNotificationSource());
+    private static RootViewModel MakeRoot()
+    {
+        var catalog = CarsetCatalog.Discover();
+        var saves = new SaveStore(catalog, Directory.CreateTempSubdirectory().FullName);
+        return new RootViewModel(new AppServices(catalog, saves, new SampleNotificationSource()));
+    }
+
+    [Fact]
+    public void Continue_becomes_available_after_a_career_is_entered()
+    {
+        var root = MakeRoot();
+        Assert.False(((MainMenuViewModel)root.Content!).CanContinue);
+
+        root.EnterCareer(SessionLoader.LoadFlagship());
+        root.ExitToMenu();
+
+        Assert.True(((MainMenuViewModel)root.Content!).CanContinue);
+    }
 
     [Fact]
     public void Root_starts_on_the_main_menu() =>

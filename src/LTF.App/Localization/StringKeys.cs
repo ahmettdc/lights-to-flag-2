@@ -76,4 +76,11 @@ public static class StringKeys
     public const string BoardReactionAccepted = "board.reaction.accepted";
     public const string BoardReactionCountered = "board.reaction.countered";
     public const string BoardReactionRejected = "board.reaction.rejected";
+
+    // Load game.
+    public const string LoadGameTitle = "loadgame.title";
+    public const string LoadGameEmpty = "loadgame.empty";
+    public const string LoadGameLoad = "loadgame.load";
+    public const string LoadGameDelete = "loadgame.delete";
+    public const string LoadGameBack = "loadgame.back";
 }

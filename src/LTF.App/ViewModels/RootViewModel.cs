@@ -9,23 +9,20 @@ namespace LTF.App.ViewModels;
 
 /// <summary>
 /// The application root. Holds the single <see cref="Content"/> the window shows and swaps it between the
-/// menu layer (the main menu, plus the new-career / load / settings / quick-race screens added across
-/// M20) and the in-game <see cref="ShellViewModel"/>. Menu view-models never touch a <c>Window</c> — they
-/// call back through <see cref="IAppShellController"/>, which this implements. Built once at startup by
-/// <see cref="App"/>, or directly in headless tests. M20a wires the main menu and the menu↔shell switch;
-/// the temporary <see cref="ShowNewCareer"/>/<see cref="ContinueCareer"/> bodies load the flagship until
-/// the real flows land (M20b/M20d).
+/// menu layer (main menu, new-career wizard, load-game, and — in later phases — settings and Quick Race) and
+/// the in-game <see cref="ShellViewModel"/>. Menu view-models never touch a <c>Window</c> — they call back
+/// through <see cref="IAppShellController"/>, which this implements. Built once at startup by <see cref="App"/>
+/// (over the real stores) or directly in headless tests (over temp stores). Entering a career autosaves it,
+/// so Continue and Load see it; loading restores the saved date via <see cref="SaveStore.Load"/>.
 /// </summary>
 public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 {
-    private readonly CarsetCatalog _catalog;
-    private readonly INotificationSource _notifications;
+    private readonly AppServices _services;
     private readonly Action? _quit;
 
-    public RootViewModel(CarsetCatalog catalog, INotificationSource notifications, Action? quit = null)
+    public RootViewModel(AppServices services, Action? quit = null)
     {
-        _catalog = catalog;
-        _notifications = notifications;
+        _services = services;
         _quit = quit;
         ShowMainMenu();
     }
@@ -34,18 +31,20 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
     [ObservableProperty]
     private object? _content;
 
-    public void ShowMainMenu() => Content = new MainMenuViewModel(this, canContinue: false);
+    public void ShowMainMenu() => Content = new MainMenuViewModel(this, _services.Saves.HasAnySave());
 
-    public void ShowNewCareer() => Content = new NewCareerViewModel(this, _catalog);
+    public void ShowNewCareer() => Content = new NewCareerViewModel(this, _services.Catalog);
 
-    public void ContinueCareer() =>
-        // TODO(M20d): resume SaveStore.MostRecent(). Temporary: load the flagship (gated off in the menu).
-        EnterCareer(SessionLoader.LoadFlagship());
-
-    public void ShowLoadGame()
+    public void ContinueCareer()
     {
-        // TODO(M20d): show the load-game slot list.
+        var slot = _services.Saves.MostRecent();
+        if (slot is not null)
+        {
+            EnterCareer(_services.Saves.Load(slot));
+        }
     }
+
+    public void ShowLoadGame() => Content = new LoadGameViewModel(this, _services.Saves);
 
     public void ShowQuickRace()
     {
@@ -59,9 +58,10 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 
     public void EnterCareer(ShellSession session)
     {
+        _services.Saves.Save(session);
         var snapshot = new SessionSnapshot(session);
         var navigation = new NavigationService();
-        Content = new ShellViewModel(navigation, snapshot, _notifications);
+        Content = new ShellViewModel(navigation, snapshot, _services.Notifications);
     }
 
     public void ExitToMenu() => ShowMainMenu();

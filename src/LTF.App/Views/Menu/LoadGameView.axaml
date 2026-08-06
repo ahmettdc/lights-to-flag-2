@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels.Menu"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Menu.LoadGameView"
+             x:DataType="vm:LoadGameViewModel">
+
+  <Border Background="{DynamicResource BrushAppBackground}" Padding="40">
+    <DockPanel MaxWidth="640" HorizontalAlignment="Center">
+
+      <TextBlock DockPanel.Dock="Top" Text="{loc:Tr loadgame.title}"
+                 FontFamily="{DynamicResource FontHeading}" FontSize="28"
+                 Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,18" />
+
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,18,0,0">
+        <Button Grid.Column="0" Classes="ghost"
+                Command="{Binding BackCommand}" Content="{loc:Tr loadgame.back}" />
+        <Button Grid.Column="2" Classes="ghost"
+                Command="{Binding DeleteCommand}" Content="{loc:Tr loadgame.delete}" />
+        <Button Grid.Column="3" Classes="primary" Margin="8,0,0,0"
+                Command="{Binding LoadCommand}" Content="{loc:Tr loadgame.load}" />
+      </Grid>
+
+      <Panel>
+        <TextBlock IsVisible="{Binding IsEmpty}" Text="{loc:Tr loadgame.empty}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontFamily="{DynamicResource FontBody}" FontSize="13"
+                   Foreground="{DynamicResource BrushTextDim}" />
+
+        <ListBox IsVisible="{Binding !IsEmpty}"
+                 ItemsSource="{Binding Slots}" SelectedItem="{Binding SelectedSlot}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:SaveSlotViewModel">
+              <StackPanel Spacing="2" Margin="4">
+                <TextBlock Text="{Binding TeamName}"
+                           FontFamily="{DynamicResource FontHeading}" FontSize="15"
+                           Foreground="{DynamicResource BrushTextPrimary}" />
+                <TextBlock Text="{Binding Date}"
+                           FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+                <TextBlock Text="{Binding LastSaved}"
+                           FontSize="11" Foreground="{DynamicResource BrushTextDim}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Panel>
+
+    </DockPanel>
+  </Border>
+
+</UserControl>

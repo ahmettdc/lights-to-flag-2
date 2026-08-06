@@ -20,8 +20,10 @@ public partial class App : Application
             // swaps to the shell when a career is entered. Headless tests skip this block (no desktop
             // lifetime) and drive a RootViewModel directly. File I/O lives behind RootViewModel's flows.
             var catalog = CarsetCatalog.Discover();
+            var saves = new SaveStore(catalog, AppPaths.SavesDir);
             var notifications = new SampleNotificationSource();
-            var root = new RootViewModel(catalog, notifications, quit: () => desktop.Shutdown());
+            var services = new AppServices(catalog, saves, notifications);
+            var root = new RootViewModel(services, quit: () => desktop.Shutdown());
 
             desktop.MainWindow = new MainWindow { DataContext = root };
         }
