@@ -31,6 +31,55 @@ internal sealed class CarsetJson
 
     /// <summary>Optional free-agent staff pool available to hire (M14).</summary>
     public List<StaffJson>? StaffPool { get; set; }
+
+    /// <summary>Optional id of the team the player runs (M17). Absent → no player team (all-AI).</summary>
+    public string? PlayerTeamId { get; set; }
+
+    /// <summary>Optional per-team boards, ownership and pressure (M17 / ADR-0025).</summary>
+    public List<BoardJson>? Boards { get; set; }
+}
+
+internal sealed class BoardJson
+{
+    public string? TeamId { get; set; }
+    public string? Ownership { get; set; }
+    public List<BoardMemberJson>? Members { get; set; }
+    public PressureMetricsJson? Pressure { get; set; }
+    public List<ObjectiveJson>? Objectives { get; set; }
+    public int? FiringRisk { get; set; }
+}
+
+internal sealed class BoardMemberJson
+{
+    public string? Id { get; set; }
+    public string? Name { get; set; }
+    public int? SportingPriority { get; set; }
+    public int? FinancialPriority { get; set; }
+    public int? LongTermPriority { get; set; }
+    public int? BrandPriority { get; set; }
+    public int? DriverDevPriority { get; set; }
+    public int? ConfidenceInPlayer { get; set; }
+    public int? RiskTolerance { get; set; }
+    public List<string>? Traits { get; set; }
+}
+
+internal sealed class PressureMetricsJson
+{
+    public int? BoardConfidence { get; set; }
+    public int? SportingPressure { get; set; }
+    public int? FinancialPressure { get; set; }
+    public int? SponsorPressure { get; set; }
+    public int? MediaPressure { get; set; }
+    public int? InternalPressure { get; set; }
+}
+
+internal sealed class ObjectiveJson
+{
+    public string? Kind { get; set; }
+    public string? Visibility { get; set; }
+    public int? Target { get; set; }
+    public long? LinkedBudget { get; set; }
+    public int? LinkedRisk { get; set; }
 }
 
 internal sealed class RegulationsJson

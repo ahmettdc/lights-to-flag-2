@@ -299,6 +299,40 @@ public static class CarsetValidator
             }
         }
 
+        // Player team + boards (M17 / ADR-0025): the player's team and every board must resolve to a
+        // team, a team carries at most one board, and linked objective figures are sane.
+        if (carset.PlayerTeamId.Length > 0 && !teamIds.Contains(carset.PlayerTeamId))
+        {
+            Error($"playerTeamId references unknown team '{carset.PlayerTeamId}'");
+        }
+
+        var boardTeams = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var board in carset.Boards)
+        {
+            if (!teamIds.Contains(board.TeamId))
+            {
+                Error($"board references unknown team '{board.TeamId}'");
+            }
+
+            if (!boardTeams.Add(board.TeamId))
+            {
+                Error($"duplicate board for team '{board.TeamId}'");
+            }
+
+            foreach (var objective in board.Objectives)
+            {
+                if (objective.LinkedBudget < 0)
+                {
+                    Error($"board objective for team '{board.TeamId}' has a negative linked budget");
+                }
+
+                if (objective.LinkedRisk is < 0 or > 100)
+                {
+                    Error($"board objective for team '{board.TeamId}' has linked risk outside 0..100");
+                }
+            }
+        }
+
         return issues;
     }
 }

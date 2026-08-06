@@ -82,6 +82,8 @@ public static class CarsetLoader
         Contracts = MapOptional(j.Contracts, "contracts", MapContract),
         TechTree = MapTechTree(j.TechTree),
         StaffPool = MapOptional(j.StaffPool, "staffPool", MapStaff),
+        PlayerTeamId = j.PlayerTeamId ?? "",
+        Boards = MapOptional(j.Boards, "boards", MapBoard),
     };
 
     private static RulesSet MapRules(RulesJson? r)
@@ -557,6 +559,73 @@ public static class CarsetLoader
         };
     }
 
+    private static TeamBoard MapBoard(BoardJson b, string p) => new()
+    {
+        TeamId = ReqStr(b.TeamId, $"{p}.teamId"),
+        Ownership = EnumOr(b.Ownership, OwnershipType.RacingOwner),
+        Members = MapOptional(b.Members, $"{p}.members", MapBoardMember),
+        Metrics = MapPressureMetrics(b.Pressure),
+        Objectives = MapOptional(b.Objectives, $"{p}.objectives", MapObjective),
+        FiringRisk = PressOr(b.FiringRisk, 0),
+    };
+
+    private static BoardMember MapBoardMember(BoardMemberJson m, string p) => new()
+    {
+        Id = ReqStr(m.Id, $"{p}.id"),
+        Name = m.Name ?? "",
+        SportingPriority = RateOr(m.SportingPriority, 50),
+        FinancialPriority = RateOr(m.FinancialPriority, 50),
+        LongTermPriority = RateOr(m.LongTermPriority, 50),
+        BrandPriority = RateOr(m.BrandPriority, 50),
+        DriverDevPriority = RateOr(m.DriverDevPriority, 50),
+        ConfidenceInPlayer = PressOr(m.ConfidenceInPlayer, 50),
+        RiskTolerance = RateOr(m.RiskTolerance, 50),
+        Traits = MapTraits(m.Traits, p),
+    };
+
+    private static PressureMetrics MapPressureMetrics(PressureMetricsJson? m)
+    {
+        if (m is null)
+        {
+            return PressureMetrics.Neutral;
+        }
+
+        return new PressureMetrics
+        {
+            BoardConfidence = PressOr(m.BoardConfidence, 50),
+            SportingPressure = PressOr(m.SportingPressure, 50),
+            FinancialPressure = PressOr(m.FinancialPressure, 50),
+            SponsorPressure = PressOr(m.SponsorPressure, 50),
+            MediaPressure = PressOr(m.MediaPressure, 50),
+            InternalPressure = PressOr(m.InternalPressure, 50),
+        };
+    }
+
+    private static Objective MapObjective(ObjectiveJson o, string p) => new()
+    {
+        Kind = ReqEnum<ObjectiveKind>(o.Kind, $"{p}.kind"),
+        Visibility = EnumOr(o.Visibility, ObjectiveVisibility.Open),
+        Target = o.Target ?? 0,
+        LinkedBudget = o.LinkedBudget ?? 0,
+        LinkedRisk = o.LinkedRisk ?? 0,
+    };
+
+    private static BoardMemberTraits MapTraits(List<string>? traits, string p)
+    {
+        if (traits is null)
+        {
+            return BoardMemberTraits.None;
+        }
+
+        var result = BoardMemberTraits.None;
+        foreach (var trait in traits)
+        {
+            result |= ReqEnum<BoardMemberTraits>(trait, $"{p}.traits");
+        }
+
+        return result;
+    }
+
     // --- Helpers ---
 
     private static IReadOnlyList<T> MapList<TJson, T>(
@@ -607,6 +676,9 @@ public static class CarsetLoader
 
     private static Rating RateOr(int? value, int fallback) =>
         value is null ? new Rating(fallback) : Rating.Clamped(value.Value);
+
+    private static Pressure PressOr(int? value, int fallback) =>
+        value is null ? new Pressure(fallback) : Pressure.Clamped(value.Value);
 
     private static TEnum ReqEnum<TEnum>(string? value, string field) where TEnum : struct, Enum
     {
