@@ -11,21 +11,24 @@ namespace LTF.Career;
 /// constructors'-championship position, flat TV income, and sponsor fees and bonuses — subtracts the
 /// expenses — driver and staff salaries (with per-point and title bonuses) plus per-race operating cost
 /// and per-collision crash cost — and, where a series runs a cost cap, raises a <see cref="CostCapPenalty"/>
-/// for any team whose capped spending (staff, operating and crash — driver salaries sit outside the cap)
-/// overran the cap, deducting the fine from its balance. Pure, deterministic arithmetic over the finished
+/// for any team whose capped spending (staff, operating, crash and any R&amp;D spend a career folds in —
+/// driver salaries sit outside the cap) overran the cap, deducting the fine from its balance. Pure, deterministic arithmetic over the finished
 /// <see cref="SeasonResult"/> (no RNG), so the same carset and season always reach the same books. With an
 /// empty economy no money moves, no penalty is raised, and the carset is untouched.
 /// </summary>
 public static class EconomyLedger
 {
-    /// <summary>Settle every team's finances for the season and collect any cost-cap penalties.</summary>
-    public static SeasonSettlement SettleSeason(Carset carset, SeasonResult season)
+    /// <summary>Settle every team's finances for the season and collect any cost-cap penalties. A career
+    /// may pass each team's R&amp;D spend so it counts against the cost cap (M17); absent, no R&amp;D is folded in
+    /// and the books are byte-identical to M13.</summary>
+    public static SeasonSettlement SettleSeason(
+        Carset carset, SeasonResult season, IReadOnlyDictionary<string, long>? rndSpend = null)
     {
         var penalties = new List<CostCapPenalty>();
         var teams = new List<Team>(carset.Teams.Count);
         foreach (var team in carset.Teams)
         {
-            var (finances, penalty) = Settle(carset, season, team);
+            var (finances, penalty) = Settle(carset, season, team, rndSpend);
             teams.Add(team with { Finances = finances });
             if (penalty is not null)
             {
@@ -40,7 +43,8 @@ public static class EconomyLedger
         };
     }
 
-    private static (Finances Finances, CostCapPenalty? Penalty) Settle(Carset carset, SeasonResult season, Team team)
+    private static (Finances Finances, CostCapPenalty? Penalty) Settle(
+        Carset carset, SeasonResult season, Team team, IReadOnlyDictionary<string, long>? rndSpend)
     {
         var standing = StandingOf(season, team.Id);
         var position = standing?.Position ?? 0;
@@ -53,11 +57,13 @@ public static class EconomyLedger
         var sponsorIncome = SponsorIncome(team, races, points, position);
         var income = prize + tv + sponsorIncome;
 
-        // Driver salaries reduce the balance but sit outside the cost cap; the rest is capped spend.
+        // Driver salaries reduce the balance but sit outside the cost cap; the rest is capped spend. A
+        // career may fold R&D spend in too (M17); with none supplied this adds nothing.
         var driverSalaries = DriverSalaries(carset, season, team);
         var cappedSpend = StaffSalaries(team)
             + economy.OperatingCostPerRace * races
-            + economy.CrashCostPerIncident * CrashCount(season, team);
+            + economy.CrashCostPerIncident * CrashCount(season, team)
+            + (rndSpend?.GetValueOrDefault(team.Id) ?? 0);
         var expense = driverSalaries + cappedSpend;
 
         var penalty = CapPenalty(economy, team, cappedSpend);
