@@ -72,6 +72,23 @@ public class CostCapConsequencesTests
         Assert.Equal(a.Fine, b.Fine);
     }
 
+    [Fact]
+    public void Rnd_spend_counts_against_the_cap_but_is_not_charged_to_the_balance()
+    {
+        var carset = CapCarset(staffSalary: 90_000_000); // 90M of staff alone stays under the 100M cap
+        var season = SeasonSimulator.Run(carset, 7);
+        var rndSpend = new Dictionary<string, long> { ["alpha"] = 20_000_000 };
+
+        var withoutRnd = EconomyLedger.SettleSeason(carset, season)
+            .Carset.Teams.Single(t => t.Id == "alpha").Finances.Balance;
+        var settlement = EconomyLedger.SettleSeason(carset, season, rndSpend);
+        var withRnd = settlement.Carset.Teams.Single(t => t.Id == "alpha").Finances.Balance;
+
+        // Folding 20M R&D tips alpha over the cap (90M + 20M > 100M); the only change to the balance is the
+        // resulting fine — the R&D itself is not re-charged, since the research ledger already paid for it.
+        Assert.Equal(withoutRnd - settlement.Penalties.Single().Fine, withRnd);
+    }
+
     // --- f2: applying the deferred points to the constructors' table ---
 
     [Fact]

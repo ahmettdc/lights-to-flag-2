@@ -57,14 +57,15 @@ public static class EconomyLedger
         var sponsorIncome = SponsorIncome(team, races, points, position);
         var income = prize + tv + sponsorIncome;
 
-        // Driver salaries reduce the balance but sit outside the cost cap; the rest is capped spend. A
-        // career may fold R&D spend in too (M17); with none supplied this adds nothing.
+        // Driver salaries reduce the balance but sit outside the cost cap; staff, operating and crash are
+        // capped spend that also reduces the balance. R&D counts against the cap too (M17), but the research
+        // ledger already paid for it out of the balance, so it is not re-charged here — only checked.
         var driverSalaries = DriverSalaries(carset, season, team);
-        var cappedSpend = StaffSalaries(team)
+        var operationalSpend = StaffSalaries(team)
             + economy.OperatingCostPerRace * races
-            + economy.CrashCostPerIncident * CrashCount(season, team)
-            + (rndSpend?.GetValueOrDefault(team.Id) ?? 0);
-        var expense = driverSalaries + cappedSpend;
+            + economy.CrashCostPerIncident * CrashCount(season, team);
+        var cappedSpend = operationalSpend + (rndSpend?.GetValueOrDefault(team.Id) ?? 0);
+        var expense = driverSalaries + operationalSpend;
 
         var penalty = CapPenalty(economy, team, cappedSpend);
         var fine = penalty?.Fine ?? 0;

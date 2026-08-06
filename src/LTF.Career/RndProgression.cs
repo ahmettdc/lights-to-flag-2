@@ -14,18 +14,24 @@ namespace LTF.Career;
 public sealed class RndProgression : IBetweenRounds
 {
     private readonly int _seasonSeed;
+    private readonly IDevelopmentDirectives? _directives;
     private readonly Dictionary<string, TeamDevelopment> _developments = new(StringComparer.Ordinal);
     private int _testOrdinal;
 
-    public RndProgression(int seasonSeed) => _seasonSeed = seasonSeed;
+    public RndProgression(int seasonSeed, IDevelopmentDirectives? directives = null)
+    {
+        _seasonSeed = seasonSeed;
+        _directives = directives;
+    }
 
     /// <summary>Each team's development totalled across the season's rounds and test days.</summary>
     public IReadOnlyList<TeamDevelopment> Developments => _developments.Values.ToList();
 
     public Carset AfterRound(Carset current, BetweenRoundsContext context)
     {
-        // This round's slice of the season's development.
-        var outcome = ResearchLedger.DevelopStep(current, _seasonSeed, context.RoundIndex, context.RoundCount);
+        // This round's slice of the season's development, under the player's directive (if any).
+        var outcome = ResearchLedger.DevelopStep(
+            current, _seasonSeed, context.RoundIndex, context.RoundCount, _directives);
         Accumulate(outcome.Developments);
         current = outcome.Carset;
 
@@ -38,7 +44,7 @@ public sealed class RndProgression : IBetweenRounds
             if (testDay.Date > from && testDay.Date <= to)
             {
                 var pulse = ResearchLedger.DevelopStep(
-                    current, _seasonSeed, context.RoundCount + _testOrdinal, context.RoundCount);
+                    current, _seasonSeed, context.RoundCount + _testOrdinal, context.RoundCount, _directives);
                 _testOrdinal++;
                 Accumulate(pulse.Developments);
                 current = pulse.Carset;

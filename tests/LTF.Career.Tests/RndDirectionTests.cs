@@ -108,6 +108,23 @@ public class RndDirectionTests
             Key(ResearchLedger.DevelopSeason(carset, 7, directive)));
     }
 
+    [Fact]
+    public void A_progression_passes_its_directive_to_development()
+    {
+        var carset = TwoNodeCarset();
+        var context = new BetweenRoundsContext
+        {
+            Round = carset.Calendar[0], RoundIndex = 0, RoundCount = 1, NextRoundDate = null, Seed = 7,
+        };
+
+        var plain = new RndProgression(7).AfterRound(carset, context).Teams.Single(t => t.Id == "alpha");
+        var directive = new RndDirection("alpha", new ConceptDirection { AeroLean = 100 });
+        var steered = new RndProgression(7, directive).AfterRound(carset, context).Teams.Single(t => t.Id == "alpha");
+
+        Assert.Equal("power1", plain.Research.ActiveProjects.Single().NodeId);  // catalog order
+        Assert.Equal("aero1", steered.Research.ActiveProjects.Single().NodeId); // the directive steered it
+    }
+
     private static string Key(ResearchOutcome outcome) =>
         string.Join(";", outcome.Carset.Teams.Select(t =>
             $"{t.Id}:{t.Car.Aerodynamics.Value},{t.Car.PowerUnit.Value},{t.Finances.Balance}," +
