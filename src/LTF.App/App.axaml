@@ -15,6 +15,7 @@
         <ResourceInclude Source="avares://LTF.App/Theme/Controls/Badge.axaml" />
         <ResourceInclude Source="avares://LTF.App/Theme/Controls/ProgressBar.axaml" />
         <ResourceInclude Source="avares://LTF.App/Theme/Controls/Tooltip.axaml" />
+        <ResourceInclude Source="avares://LTF.App/Theme/Controls/States.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

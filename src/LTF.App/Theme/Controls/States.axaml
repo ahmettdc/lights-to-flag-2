@@ -1,0 +1,101 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:LTF.App.Controls"
+                    xmlns:conv="using:Avalonia.Data.Converters">
+
+  <!-- Empty state: centred title + message. -->
+  <ControlTheme x:Key="{x:Type c:EmptyState}" TargetType="c:EmptyState">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="Transparent" Padding="24">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6" MaxWidth="380">
+            <TextBlock Text="{TemplateBinding Title}"
+                       FontFamily="{DynamicResource FontHeading}" FontSize="18"
+                       Foreground="{DynamicResource BrushTextSecondary}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="{TemplateBinding Message}"
+                       IsVisible="{TemplateBinding Message, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                       FontFamily="{DynamicResource FontBody}" FontSize="13"
+                       Foreground="{DynamicResource BrushTextDim}"
+                       TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Loading state: centred title + message. -->
+  <ControlTheme x:Key="{x:Type c:LoadingState}" TargetType="c:LoadingState">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="Transparent" Padding="24">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6" MaxWidth="380">
+            <TextBlock Text="{TemplateBinding Title}"
+                       FontFamily="{DynamicResource FontNumeric}" FontSize="15"
+                       Foreground="{DynamicResource BrushTextMuted}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="{TemplateBinding Message}"
+                       IsVisible="{TemplateBinding Message, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                       FontFamily="{DynamicResource FontBody}" FontSize="13"
+                       Foreground="{DynamicResource BrushTextDim}"
+                       TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Error state: centred title + message + optional Retry button. -->
+  <ControlTheme x:Key="{x:Type c:ErrorState}" TargetType="c:ErrorState">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="Transparent" Padding="24">
+          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" MaxWidth="380">
+            <TextBlock Text="{TemplateBinding Title}"
+                       FontFamily="{DynamicResource FontHeading}" FontSize="18"
+                       Foreground="{DynamicResource BrushStatusBad}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="{TemplateBinding Message}"
+                       IsVisible="{TemplateBinding Message, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                       FontFamily="{DynamicResource FontBody}" FontSize="13"
+                       Foreground="{DynamicResource BrushTextDim}"
+                       TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" />
+            <Button Name="PART_RetryButton"
+                    Classes="secondary" Content="Retry"
+                    Command="{TemplateBinding RetryCommand}"
+                    IsVisible="{TemplateBinding RetryCommand, Converter={x:Static conv:ObjectConverters.IsNotNull}}"
+                    HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Toast: a rounded card in the overlay layer, bottom-centre, tinted by tone. -->
+  <ControlTheme x:Key="{x:Type c:Toast}" TargetType="c:Toast">
+    <Setter Property="Background" Value="{DynamicResource BrushStatCell}" />
+    <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+    <Setter Property="Margin" Value="0,0,0,44" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{DynamicResource BrushBorderStrong}" BorderThickness="1"
+                CornerRadius="8" Padding="16,10">
+          <TextBlock Text="{TemplateBinding Message}"
+                     Foreground="{TemplateBinding Foreground}"
+                     FontFamily="{DynamicResource FontBody}" FontSize="13" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^[Tone=Success]">
+      <Setter Property="Foreground" Value="{DynamicResource BrushStatusGood}" />
+    </Style>
+    <Style Selector="^[Tone=Error]">
+      <Setter Property="Foreground" Value="{DynamicResource BrushStatusBad}" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>
