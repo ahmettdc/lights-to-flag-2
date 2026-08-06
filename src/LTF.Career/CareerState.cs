@@ -24,9 +24,14 @@ public sealed record TeamHistoryRecord
     public int ChampionshipsWon { get; init; }
     public int RaceWins { get; init; }
     public Finances Finances { get; init; } = new();
+}
 
-    /// <summary>The team's seat roster (M18); empty unless the series develops drivers, in which case the
-    /// transfer market may have moved seats and this is authoritative.</summary>
+/// <summary>One team's seat roster in a save (M18): the driver ids it fields. Kept off
+/// <see cref="TeamHistoryRecord"/> (which is compared by value) and captured only when the series develops
+/// drivers, in which case the transfer market may have moved seats and this is authoritative.</summary>
+public sealed record TeamRosterRecord
+{
+    public required string TeamId { get; init; }
     public IReadOnlyList<string> DriverIds { get; init; } = [];
 }
 
@@ -175,6 +180,10 @@ public sealed record CareerState
     /// <summary>The reserve/rookie pool's full snapshot (M18); empty unless the series develops drivers.</summary>
     public IReadOnlyList<DriverRosterRecord> ReservePool { get; init; } = [];
 
+    /// <summary>Each team's seat roster (M18); empty unless the series develops drivers, in which case the
+    /// transfer market may have moved seats and this is authoritative.</summary>
+    public IReadOnlyList<TeamRosterRecord> TeamRosters { get; init; } = [];
+
     /// <summary>Snapshot a carset's mutable progress at a given game date and seed.</summary>
     public static CareerState Capture(Carset carset, DateOnly date, int seed)
     {
@@ -203,7 +212,6 @@ public sealed record CareerState
                     ChampionshipsWon = t.ChampionshipsWon,
                     RaceWins = t.RaceWins,
                     Finances = t.Finances,
-                    DriverIds = develops ? t.DriverIds : [],
                 })
                 .ToList(),
             Relationships = carset.Relationships.Relationships
@@ -226,6 +234,9 @@ public sealed record CareerState
             Boards = carset.Boards.Count == 0 ? [] : carset.Boards.Select(CaptureBoard).ToList(),
             Roster = develops ? carset.Drivers.Select(CaptureRoster).ToList() : [],
             ReservePool = develops ? carset.Reserves.Select(CaptureRoster).ToList() : [],
+            TeamRosters = develops
+                ? carset.Teams.Select(t => new TeamRosterRecord { TeamId = t.Id, DriverIds = t.DriverIds }).ToList()
+                : [],
         };
     }
 
@@ -291,6 +302,7 @@ public sealed record CareerState
         var records = Drivers.ToDictionary(r => r.DriverId, StringComparer.Ordinal);
         var histories = Teams.ToDictionary(r => r.TeamId, StringComparer.Ordinal);
         var research = Research.ToDictionary(r => r.TeamId, StringComparer.Ordinal);
+        var rosters = TeamRosters.ToDictionary(r => r.TeamId, StringComparer.Ordinal);
 
         // A developing career captured its full roster — evolved ages/attributes and the regen drivers the
         // carset never shipped — so that snapshot is authoritative; otherwise the id-keyed deltas overlay
@@ -312,14 +324,13 @@ public sealed record CareerState
             .Select(t =>
             {
                 var updated = histories.TryGetValue(t.Id, out var h)
-                    ? t with
-                    {
-                        ChampionshipsWon = h.ChampionshipsWon,
-                        RaceWins = h.RaceWins,
-                        Finances = h.Finances,
-                        DriverIds = evolved && h.DriverIds.Count > 0 ? h.DriverIds : t.DriverIds,
-                    }
+                    ? t with { ChampionshipsWon = h.ChampionshipsWon, RaceWins = h.RaceWins, Finances = h.Finances }
                     : t;
+                if (rosters.TryGetValue(t.Id, out var roster) && roster.DriverIds.Count > 0)
+                {
+                    updated = updated with { DriverIds = roster.DriverIds };
+                }
+
                 return research.TryGetValue(t.Id, out var r) ? RestoreResearch(updated, r) : updated;
             })
             .ToList();
