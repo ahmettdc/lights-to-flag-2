@@ -1,7 +1,16 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:views="using:LTF.App.Views.Screens"
              x:Class="LTF.App.App"
              RequestedThemeVariant="Dark">
+
+  <Application.DataTemplates>
+    <!-- Screen view-model -> view. Real screens register their own templates in M21/M22. -->
+    <DataTemplate DataType="{x:Type screens:PlaceholderScreenViewModel}">
+      <views:PlaceholderScreenView />
+    </DataTemplate>
+  </Application.DataTemplates>
 
   <Application.Resources>
     <ResourceDictionary>

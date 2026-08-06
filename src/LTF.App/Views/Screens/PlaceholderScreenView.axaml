@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels.Screens"
+             x:Class="LTF.App.Views.Screens.PlaceholderScreenView"
+             x:DataType="vm:PlaceholderScreenViewModel">
+
+  <Border Background="{DynamicResource BrushAppBackground}">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+      <TextBlock Text="{Binding Title}"
+                 FontFamily="{DynamicResource FontHeading}" FontSize="30"
+                 Foreground="{DynamicResource BrushTextPrimary}"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding Subtitle}"
+                 FontFamily="{DynamicResource FontBody}" FontSize="13"
+                 Foreground="{DynamicResource BrushTextDim}"
+                 HorizontalAlignment="Center" />
+    </StackPanel>
+  </Border>
+
+</UserControl>
