@@ -1,6 +1,7 @@
 using System.Linq;
 using LTF.Domain;
 using LTF.Domain.Management;
+using LTF.Domain.Racing;
 using LTF.Domain.Rnd;
 using Xunit;
 
