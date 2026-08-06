@@ -39,7 +39,8 @@ public sealed record SeasonCalendar
     /// <summary>Every event, ordered by date then round.</summary>
     public required IReadOnlyList<CalendarEvent> Events { get; init; }
 
-    /// <summary>Build the queue from a carset's calendar: one race weekend per round, in date order.</summary>
+    /// <summary>Build the queue from a carset's calendar: one race weekend per round, plus any test days
+    /// (M15), in date order. Byte-identical to the M11 race-only queue when the carset ships no test days.</summary>
     public static SeasonCalendar FromCarset(Carset carset)
     {
         var events = carset.Calendar
@@ -54,7 +55,15 @@ public sealed record SeasonCalendar
             })
             .ToList();
 
-        return new SeasonCalendar { Events = events };
+        events.AddRange(carset.TestDays.Select(t => new CalendarEvent
+        {
+            Date = t.Date,
+            Kind = CalendarEventKind.TestDay,
+            Label = t.CircuitId,
+        }));
+
+        var ordered = events.OrderBy(e => e.Date).ThenBy(e => e.Round).ToList();
+        return new SeasonCalendar { Events = ordered };
     }
 
     /// <summary>Build the career calendar: the race weekends (as <see cref="FromCarset"/>) plus a

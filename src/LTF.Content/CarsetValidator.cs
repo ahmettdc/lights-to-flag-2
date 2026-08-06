@@ -290,6 +290,15 @@ public static class CarsetValidator
             Error("componentReliabilityWearInfluence must be non-negative");
         }
 
+        // Test days (M15): each must run at a known circuit.
+        foreach (var test in carset.TestDays)
+        {
+            if (!circuitIds.Contains(test.CircuitId))
+            {
+                Error($"test day references unknown circuit '{test.CircuitId}'");
+            }
+        }
+
         return issues;
     }
 }

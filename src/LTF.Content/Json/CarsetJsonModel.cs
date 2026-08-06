@@ -15,6 +15,7 @@ internal sealed class CarsetJson
     public List<TyreJson>? Tyres { get; set; }
     public List<CircuitJson>? Circuits { get; set; }
     public List<CalendarRoundJson>? Calendar { get; set; }
+    public List<TestDayJson>? TestDays { get; set; }
     public List<TeamJson>? Teams { get; set; }
     public List<DriverJson>? Drivers { get; set; }
     public List<DriverJson>? Reserves { get; set; }
@@ -128,6 +129,12 @@ internal sealed class CalendarRoundJson
     public string? CircuitId { get; set; }
     public string? Date { get; set; }
     public bool? Sprint { get; set; }
+}
+
+internal sealed class TestDayJson
+{
+    public string? Date { get; set; }
+    public string? CircuitId { get; set; }
 }
 
 internal sealed class TeamJson

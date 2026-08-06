@@ -74,6 +74,7 @@ public static class CarsetLoader
         Regulations = MapRegulations(j.Regulations),
         Circuits = MapList(j.Circuits, "circuits", MapCircuit),
         Calendar = MapList(j.Calendar, "calendar", MapRound),
+        TestDays = MapOptional(j.TestDays, "testDays", MapTestDay),
         Teams = MapList(j.Teams, "teams", MapTeam),
         Drivers = MapList(j.Drivers, "drivers", MapDriver),
         Tyres = MapOptional(j.Tyres, "tyres", MapTyre),
@@ -250,6 +251,12 @@ public static class CarsetLoader
         CircuitId = ReqStr(r.CircuitId, $"{p}.circuitId"),
         Date = ReqDate(r.Date, $"{p}.date"),
         IsSprint = r.Sprint ?? false,
+    };
+
+    private static TestDay MapTestDay(TestDayJson t, string p) => new()
+    {
+        Date = ReqDate(t.Date, $"{p}.date"),
+        CircuitId = ReqStr(t.CircuitId, $"{p}.circuitId"),
     };
 
     private static Team MapTeam(TeamJson t, string p) => new()
