@@ -44,3 +44,9 @@ Nordwind, Aurelia Corse, Marchetti Corse; Mateo Ferreira, Idris Whitlock, Freya 
 verisiyle (statsf1.com referans) kalibre edilir — gerçekçi takvim, pist özellikleri,
 performans sıralaması ve puan sistemi. Gerçek isimli sezon ayrı bir mod olarak dağıtılmaz
 (bkz. ADR-0007).
+
+## Marka in-app (M19 landed)
+Marka kiti M19'da uygulamaya girdi: palet/fırçalar + 3 OFL font (Saira Condensed / Chakra
+Petch / Archivo) + logo/ikon kiti `avares://` ile gömülü; pencere ikonu `icon-512.png`. Kabuk
+teması (Dark-only) bu kimliği kullanır (ADR-0026). İçerik hâlâ kurgusal — kabuk üst barı
+flagship kurgusal carset'ten canlı değer gösterir.

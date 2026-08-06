@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
+using LTF.App.Localization;
 using LTF.App.Mvvm;
 using LTF.App.Services;
 
@@ -47,6 +48,17 @@ public sealed partial class TopBarViewModel : ViewModelBase
     public int InboxCount { get; }
 
     public bool HasInbox => InboxCount > 0;
+
+    // Localised chrome labels (English pack today; a Turkish pack slots in behind Localizer — ADR-0026).
+    public string ContinueLabel => $"{Localizer.Current.Get(StringKeys.TopContinue)} »";
+
+    public string InboxLabel => Localizer.Current.Get(StringKeys.TopInbox);
+
+    public string SearchPlaceholder => Localizer.Current.Get(StringKeys.TopSearchPlaceholder);
+
+    public string CapRoomLabel => Localizer.Current.Get(StringKeys.TopCapRoom);
+
+    public string BoardConfLabel => Localizer.Current.Get(StringKeys.TopBoardConf);
 
     [RelayCommand]
     private void Continue()

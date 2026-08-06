@@ -23,3 +23,9 @@ gelir. Bu çıktı doğrudan kullanılmaz; tasarım referansı alınıp Avalonia
 - Reddedilen alternatifler: WPF (Windows'a hapsolmak), Electron/TypeScript (motoru
   taşımak), Godot (yönetim tabloları için zahmetli), Blazor Hybrid (WebView, farklı
   test hikâyesi — tek .NET/Avalonia yığını tercih edildi).
+
+## Durum (M19 landed)
+Avalonia kabuğu M19'da kuruldu (üst bar / sidebar / durum çubuğu + içerik + bildirim
+merkezi + marka teması/fontlar + yerelleştirme), headless `[AvaloniaFact]` testleriyle üç
+platformda doğrulandı. Kabuğun UI mimari kararları **ADR-0026**'da. Mockup Avalonia'ya
+çevrildi; HTML shipped edilmez (teyit).

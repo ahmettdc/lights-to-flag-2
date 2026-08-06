@@ -26,6 +26,10 @@ public class LocalizerTests
         Assert.Equal("!nope.missing!", _loc.Get("nope.missing"));
 
     [Fact]
+    public void Tr_markup_extension_resolves_a_key() =>
+        Assert.Equal("DRIVERS", (string)new TrExtension(StringKeys.NavDrivers).ProvideValue(null!));
+
+    [Fact]
     public void Every_defined_string_key_has_an_english_value()
     {
         var keys = typeof(StringKeys)

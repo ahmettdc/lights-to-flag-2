@@ -30,3 +30,4 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0023](0023-data-modding-pipeline.md) | Veri boru hattı & modlama mimarisi |
 | [0024](0024-car-rating-rnd-validation.md) | Araç puanlama modeli & R&D doğrulama |
 | [0025](0025-board-management-pressure.md) | Yönetim kurulu, sahiplik & baskı sistemi |
+| [0026](0026-phase3-ui-architecture.md) | Faz 3 UI mimarisi (Avalonia MVVM kabuk) |
