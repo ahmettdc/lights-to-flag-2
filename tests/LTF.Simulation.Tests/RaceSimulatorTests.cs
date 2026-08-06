@@ -480,6 +480,97 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Refuelling (R40) -------------------------------------------------
+
+    [Fact]
+    public void Refuelling_changes_the_race_once_the_series_allows_it()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+
+        // Only RefuellingAllowed + RefuellingTimeSeconds differ, and neither draws a random number,
+        // so the streams are identical and any digest difference is the refuel (stop time + a heavier,
+        // slower car afterwards).
+        var noFuel = RaceSimulator.Run(carset.Circuits[0], grid, rules, carset.Balance, 2024);
+        var refuel = RaceSimulator.Run(
+            carset.Circuits[0], grid, rules with { RefuellingAllowed = true },
+            carset.Balance with { RefuellingTimeSeconds = 5.0 }, 2024);
+
+        Assert.NotEqual(Digest(noFuel), Digest(refuel));
+    }
+
+    // ---- Blocking / defending (R41) ---------------------------------------
+
+    [Fact]
+    public void Blocking_suppresses_overtakes_once_a_carset_opts_in()
+    {
+        var carset = SimFixtures.EqualFieldCarset();
+        var grid = EntryList.Build(carset);
+        var circuit = SimFixtures.Circuit(overtaking: 90);
+
+        // The proven close-field overtake setup (see Overtakes_happen_in_a_close_field). Only
+        // BlockingCoefficient differs (it draws no random number); a strong defender coefficient
+        // holds cars up, so fewer passes get through.
+        var balance = SimFixtures.CalmBalance with
+        {
+            CombatThresholdSeconds = 3.0,
+            OvertakeBaseChance = 1.0,
+            SlipstreamBoost = 0.4,
+            PassMarginSeconds = 0.3,
+            DirtyAirLossSeconds = 0.3,
+        };
+        var open = RaceSimulator.Run(circuit, grid, carset.Rules, balance, 7);
+        var blocked = RaceSimulator.Run(
+            circuit, grid, carset.Rules, balance with { BlockingCoefficient = 50.0 }, 7);
+
+        var openPasses = open.Events.Count(e => e.Kind == RaceEventKind.Overtake);
+        var blockedPasses = blocked.Events.Count(e => e.Kind == RaceEventKind.Overtake);
+        Assert.True(
+            blockedPasses < openPasses,
+            $"blocking should suppress passes: {openPasses} → {blockedPasses}");
+    }
+
+    // ---- Per-component wear rates (R42) -----------------------------------
+
+    [Fact]
+    public void Faster_engine_wear_changes_the_race_once_a_carset_opts_in()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        // The default balance already wears components each lap; only EngineWearFactor differs
+        // (arithmetic, no draw), so a heavier engine-wear rate reaches limp/failure sooner → a
+        // different race.
+        var uniform = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        var engineHeavy = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules,
+            carset.Balance with { EngineWearFactor = 5.0 }, 2024);
+
+        Assert.NotEqual(Digest(uniform), Digest(engineHeavy));
+    }
+
+    [Fact]
+    public void A_race_with_the_remaining_levers_on_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1, RefuellingAllowed = true };
+        var balance = carset.Balance with
+        {
+            RefuellingTimeSeconds = 5.0,
+            BlockingCoefficient = 0.5,
+            EngineWearFactor = 2.0,
+            GearboxWearFactor = 1.3,
+            BrakeWearFactor = 0.8,
+        };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, 2024);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     // ---- Traffic & overtaking (M6) ----------------------------------------
 
     [Fact]

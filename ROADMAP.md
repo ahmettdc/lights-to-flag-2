@@ -405,6 +405,17 @@ parçaları gösterir.
 > davranışı ve altın hash aynı kalır); flagship global-prix `componentWearPaceLossSeconds` ile açtı.
 > Ertelenen `EngineWear`/`ChassisWear` (parça-başı yıpranma hızları) ayrı bir gelecek adımı.
 
+> **R40–R42 (Faz 1 sonrası revizyonlar) ✅ — kalan motor katsayıları:**
+> **R40 yakıt ikmali** — zaten var olan ama motorun görmezden geldiği `RulesSet.RefuellingAllowed`
+> artık etkili: seri izin verdiğinde pit stop depoyu doldurur (`RefuellingTimeSeconds` süre ekler,
+> araç sonrasında daha ağır/yavaş). Varsayılan kapalı → atıl; modern flagship kapalı kalır.
+> **R41 blokaj/savunma** — `BlockingCoefficient`: yetenekli savunan sürücü geçişi zorlaştırır
+> (overtake şansı `1 + coeff × savunucu racecraft`'a bölünür); 0 varsayılanı atıl. Flagship 0.3 ile açtı.
+> **R42 parça-başı yıpranma hızı** — `EngineWearFactor`/`GearboxWearFactor`/`BrakeWearFactor`
+> (ertelenen `EngineWear`'ı karşılar), varsayılan 1.0 → tekdüze (eskisi gibi). Flagship engine 1.2 ile açtı.
+> Üçü de yeni RNG çekmez, altın hash değişmez. Kalan yapısal öğeler (paylaşımlı pit boksu,
+> quali-on-race-fuel, bileşim envanteri, stop-go, sezon-içi upgrade hızları) ayrı/daha büyük iş.
+
 ### Faz 2 — Kariyer ve yönetim katmanı · M11–M18 ← *2. öncelik*
 
 > Bu faz iki kesişen sistem taşır (aşağıda ayrı blokta): **Takvim-tabanlı kariyer**

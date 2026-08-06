@@ -138,7 +138,9 @@ public static class RaceSimulator
                     if (car.PitStops < car.PitPlan.Count
                         && lap >= car.PitPlan[car.PitStops] - balance.NeutralizationPitWindowLaps)
                     {
-                        ApplyPitStop(car, lap, startingCompound, balance, events, neutralized: true);
+                        ApplyPitStop(
+                            car, lap, startingCompound, balance, events,
+                            neutralized: true, refuellingAllowed: rules.RefuellingAllowed);
                     }
 
                     continue;
@@ -227,7 +229,9 @@ public static class RaceSimulator
                 // Pit stop (M7a/M7b): once the car reaches its planned stop lap, fresh tyres cost time.
                 if (car.PitStops < car.PitPlan.Count && lap >= car.PitPlan[car.PitStops])
                 {
-                    ApplyPitStop(car, lap, startingCompound, balance, events, neutralized: false);
+                    ApplyPitStop(
+                        car, lap, startingCompound, balance, events,
+                        neutralized: false, refuellingAllowed: rules.RefuellingAllowed);
                 }
             }
 
@@ -384,7 +388,7 @@ public static class RaceSimulator
     /// time with spread and — rarely — a botched stop. Draws only from the car's own pit stream.</summary>
     private static void ApplyPitStop(
         CarRaceState car, int lap, TyreCompound startingCompound, BalanceCoefficients balance,
-        List<RaceEvent> events, bool neutralized)
+        List<RaceEvent> events, bool neutralized, bool refuellingAllowed)
     {
         car.PitStops++;
         var compound = PitCompound(car.PitStops, startingCompound);
@@ -410,6 +414,15 @@ public static class RaceSimulator
         // DamageRepairSeconds is 0, so a default race is unchanged.
         loss += balance.DamageRepairSeconds * car.Damage;
         car.Damage = 0.0;
+
+        // R40: when the series allows refuelling, the stop brims the tank — costing time for the fuel
+        // added and leaving the car heavier (slower via FuelModel.Penalty) for the next stint. Gated
+        // on the rule (off by default) and arithmetic only, so a no-refuelling race is unchanged.
+        if (refuellingAllowed)
+        {
+            loss += balance.RefuellingTimeSeconds * (1.0 - car.Fuel);
+            car.Fuel = 1.0;
+        }
 
         car.TotalTime += loss;
         events.Add(new RaceEvent
@@ -482,9 +495,21 @@ public static class RaceSimulator
 
         foreach (var kind in Components)
         {
-            car.Health.Degrade(kind, loss);
+            car.Health.Degrade(kind, loss * ComponentWearFactor(kind, balance));
         }
     }
+
+    /// <summary>Per-component wear-rate multiplier (R42): 1.0 (default) wears every component at the
+    /// same rate as before; a carset can make one wear faster or slower. Clamped ≥ 0 so a bad value
+    /// can never heal a component. All 1.0 ⇒ bit-identical to the old uniform wear.</summary>
+    private static double ComponentWearFactor(ComponentKind kind, BalanceCoefficients balance) =>
+        Math.Max(0.0, kind switch
+        {
+            ComponentKind.Engine => balance.EngineWearFactor,
+            ComponentKind.Gearbox => balance.GearboxWearFactor,
+            ComponentKind.Brakes => balance.BrakeWearFactor,
+            _ => 1.0,
+        });
 
     /// <summary>Roll each component for a terminal failure this lap. Returns true (and retires
     /// the car, recording the event) on the first component that lets go.</summary>
@@ -815,7 +840,12 @@ public static class RaceSimulator
         var attack = 0.5 + follower.Competitor.Driver.Attributes.Racecraft.Normalized;
         var defence = 1.5 - leader.Competitor.Driver.Attributes.Racecraft.Normalized;
         var slipstream = 1.0 + boost;
-        return balance.OvertakeBaseChance * circuit.Overtaking.Normalized * paceAdvantage * attack * defence * slipstream;
+
+        // R41: a skilled defender makes the pass harder — the chance is divided by a factor that is
+        // exactly 1 at BlockingCoefficient 0 (inert), growing with the leader's (defender's) racecraft.
+        var blocking = 1.0 + (balance.BlockingCoefficient * leader.Competitor.Driver.Attributes.Racecraft.Normalized);
+        return balance.OvertakeBaseChance * circuit.Overtaking.Normalized * paceAdvantage * attack * defence * slipstream
+               / blocking;
     }
 
     /// <summary>2026 de-rating: extra lap time from a depleted battery; 0 until energy drops below

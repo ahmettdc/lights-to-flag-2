@@ -171,6 +171,11 @@ internal sealed class BalanceJson
     public double? DamageAeroLoss { get; set; }
     public double? DamageRepairSeconds { get; set; }
     public double? ComponentWearPaceLossSeconds { get; set; }
+    public double? RefuellingTimeSeconds { get; set; }
+    public double? BlockingCoefficient { get; set; }
+    public double? EngineWearFactor { get; set; }
+    public double? GearboxWearFactor { get; set; }
+    public double? BrakeWearFactor { get; set; }
 }
 
 internal sealed class TyreJson

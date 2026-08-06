@@ -218,6 +218,11 @@ public static class CarsetLoader
             DamageAeroLoss = b.DamageAeroLoss ?? d.DamageAeroLoss,
             DamageRepairSeconds = b.DamageRepairSeconds ?? d.DamageRepairSeconds,
             ComponentWearPaceLossSeconds = b.ComponentWearPaceLossSeconds ?? d.ComponentWearPaceLossSeconds,
+            RefuellingTimeSeconds = b.RefuellingTimeSeconds ?? d.RefuellingTimeSeconds,
+            BlockingCoefficient = b.BlockingCoefficient ?? d.BlockingCoefficient,
+            EngineWearFactor = b.EngineWearFactor ?? d.EngineWearFactor,
+            GearboxWearFactor = b.GearboxWearFactor ?? d.GearboxWearFactor,
+            BrakeWearFactor = b.BrakeWearFactor ?? d.BrakeWearFactor,
         };
     }
 

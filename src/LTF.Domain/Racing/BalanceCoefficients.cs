@@ -180,4 +180,25 @@ public sealed record BalanceCoefficients
     /// by setting it above zero, after which a tired car is gradually slower all race, not just when
     /// it is about to fail.</summary>
     public double ComponentWearPaceLossSeconds { get; init; }
+
+    /// <summary>Extra pit-stop time, in seconds, per full tank of fuel added when the series allows
+    /// refuelling (R40). Only applies when <see cref="RulesSet.RefuellingAllowed"/> is set (off by
+    /// default), so a no-refuelling series is unchanged. 0 means refuelling is instant.</summary>
+    public double RefuellingTimeSeconds { get; init; }
+
+    /// <summary>How much a defending driver's racecraft suppresses a following car's overtake chance
+    /// (R41): the chance is divided by <c>1 + BlockingCoefficient × defender racecraft</c>. 0 (default)
+    /// means defending has no extra effect and racing is exactly as before.</summary>
+    public double BlockingCoefficient { get; init; }
+
+    /// <summary>Per-lap wear-rate multiplier for the engine (R42). 1.0 (default) wears it at the
+    /// baseline rate, identical to before; above 1 wears it faster (earlier limp / failure), below 1
+    /// slower. Clamped at ≥ 0 by the simulator.</summary>
+    public double EngineWearFactor { get; init; } = 1.0;
+
+    /// <summary>Per-lap wear-rate multiplier for the gearbox (R42). 1.0 (default) = baseline.</summary>
+    public double GearboxWearFactor { get; init; } = 1.0;
+
+    /// <summary>Per-lap wear-rate multiplier for the brakes (R42). 1.0 (default) = baseline.</summary>
+    public double BrakeWearFactor { get; init; } = 1.0;
 }
