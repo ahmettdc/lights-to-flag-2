@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "id": "global-prix",
   "name": "Global Prix Series",
+  "playerTeamId": "talon",
   "rules": {
     "seriesName": "Global Prix World Championship",
     "qualifying": "Knockout",
@@ -1278,6 +1279,93 @@
         "feedback": 74
       },
       "reputation": 76
+    }
+  ],
+  "boards": [
+    {
+      "teamId": "talon",
+      "ownership": "ManufacturerBacked",
+      "pressure": {
+        "boardConfidence": 62,
+        "sportingPressure": 45,
+        "financialPressure": 35,
+        "sponsorPressure": 40,
+        "mediaPressure": 50,
+        "internalPressure": 30
+      },
+      "firingRisk": 10,
+      "members": [
+        {
+          "id": "vale",
+          "name": "Marcus Vale",
+          "sportingPriority": 80,
+          "financialPriority": 45,
+          "longTermPriority": 60,
+          "brandPriority": 70,
+          "driverDevPriority": 50,
+          "confidenceInPlayer": 66,
+          "riskTolerance": 58,
+          "traits": ["Ambitious", "PubliclySupportive"]
+        },
+        {
+          "id": "harlow",
+          "name": "Diane Harlow",
+          "sportingPriority": 40,
+          "financialPriority": 85,
+          "longTermPriority": 55,
+          "brandPriority": 50,
+          "driverDevPriority": 35,
+          "confidenceInPlayer": 54,
+          "riskTolerance": 32,
+          "traits": ["Impatient", "RiskAverse"]
+        },
+        {
+          "id": "okonkwo",
+          "name": "Tunde Okonkwo",
+          "sportingPriority": 60,
+          "financialPriority": 40,
+          "longTermPriority": 80,
+          "brandPriority": 55,
+          "driverDevPriority": 75,
+          "confidenceInPlayer": 63,
+          "riskTolerance": 64,
+          "traits": ["Ambitious"]
+        }
+      ],
+      "objectives": [
+        {
+          "kind": "ConstructorPosition",
+          "visibility": "Open",
+          "target": 1
+        },
+        {
+          "kind": "RaceWins",
+          "visibility": "Open",
+          "target": 8,
+          "linkedBudget": 12000000,
+          "linkedRisk": 45
+        }
+      ]
+    }
+  ],
+  "regulationProposals": [
+    {
+      "id": "floor-edge-raise",
+      "description": "Raise the floor edges to trim ground-effect downforce",
+      "favoredAxis": "AeroFloor",
+      "magnitude": 40
+    },
+    {
+      "id": "power-unit-freeze",
+      "description": "Extend the power-unit homologation freeze",
+      "favoredAxis": "PowerUnit",
+      "magnitude": 30
+    },
+    {
+      "id": "pit-lane-speed-cut",
+      "description": "Lower the pit-lane speed limit",
+      "favoredAxis": "PitOperations",
+      "magnitude": 20
     }
   ]
 }

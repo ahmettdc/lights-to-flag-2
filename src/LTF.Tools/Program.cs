@@ -213,6 +213,27 @@ static int Sweep(string[] args)
             $"Components: {penaltyRounds} round(s) carry grid penalties, {placesLost} places lost to over-allocation."));
     }
 
+    // Team-Principal summary (M17) — only when the carset names a player team and ships boards.
+    if (carset.PlayerTeamId.Length > 0 && carset.Boards.Count > 0)
+    {
+        var boss = BossCareerSweep.Run(carset, seasons, seed);
+        var teamNames = carset.Teams.ToDictionary(t => t.Id, t => t.Name, StringComparer.Ordinal);
+        var playerName = teamNames.TryGetValue(boss.PlayerTeamId, out var pn) ? pn : boss.PlayerTeamId;
+
+        Console.WriteLine();
+        Console.WriteLine($"{"Season",6} {"Confidence",10} {"Firing",6} {"Passed",6} {"Signed",6}");
+        foreach (var s in boss.PlayerBoard)
+        {
+            Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+                $"{s.Season + 1,6} {s.BoardConfidence,10} {s.FiringRisk,6} {s.ProposalsPassed,6} {s.ContractsSigned,6}"));
+        }
+
+        Console.WriteLine();
+        Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+            $"Board: {Clip(playerName, 24)} final confidence {boss.FinalBoardConfidence}, " +
+            $"ever near the sack: {(boss.EverAtRisk ? "yes" : "no")} over {boss.Seasons} seasons."));
+    }
+
     return 0;
 }
 
