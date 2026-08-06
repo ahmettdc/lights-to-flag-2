@@ -6,9 +6,11 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using LTF.App.Services;
 using LTF.App.Session;
+using LTF.App.Settings;
 using LTF.App.Shell;
 using LTF.App.ViewModels;
 using LTF.App.ViewModels.Menu;
+using LTF.App.ViewModels.Settings;
 using LTF.App.Views;
 using LTF.App.Views.Menu;
 using Xunit;
@@ -25,8 +27,10 @@ public class RootViewTests
     private static RootViewModel MakeRoot()
     {
         var catalog = CarsetCatalog.Discover();
-        var saves = new SaveStore(catalog, Directory.CreateTempSubdirectory().FullName);
-        return new RootViewModel(new AppServices(catalog, saves, new SampleNotificationSource()));
+        var dir = Directory.CreateTempSubdirectory().FullName;
+        var saves = new SaveStore(catalog, dir);
+        var settings = new SettingsStore(Path.Combine(dir, "settings.json"));
+        return new RootViewModel(new AppServices(catalog, saves, settings, new SampleNotificationSource()));
     }
 
     [Fact]
@@ -39,6 +43,18 @@ public class RootViewTests
         root.ExitToMenu();
 
         Assert.True(((MainMenuViewModel)root.Content!).CanContinue);
+    }
+
+    [Fact]
+    public void Settings_opens_and_returns_to_the_menu()
+    {
+        var root = MakeRoot();
+
+        root.ShowSettings();
+        Assert.IsType<SettingsViewModel>(root.Content);
+
+        ((SettingsViewModel)root.Content!).BackCommand.Execute(null);
+        Assert.IsType<MainMenuViewModel>(root.Content);
     }
 
     [Fact]

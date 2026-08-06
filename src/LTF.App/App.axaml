@@ -5,6 +5,8 @@
              xmlns:vm="using:LTF.App.ViewModels"
              xmlns:menuvm="using:LTF.App.ViewModels.Menu"
              xmlns:menuviews="using:LTF.App.Views.Menu"
+             xmlns:setvm="using:LTF.App.ViewModels.Settings"
+             xmlns:setviews="using:LTF.App.Views.Settings"
              xmlns:shell="using:LTF.App.Shell"
              xmlns:conv="using:LTF.App.Converters"
              x:Class="LTF.App.App"
@@ -21,6 +23,9 @@
     </DataTemplate>
     <DataTemplate DataType="{x:Type menuvm:LoadGameViewModel}">
       <menuviews:LoadGameView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type setvm:SettingsViewModel}">
+      <setviews:SettingsView />
     </DataTemplate>
     <DataTemplate DataType="{x:Type vm:ShellViewModel}">
       <shell:ShellView />

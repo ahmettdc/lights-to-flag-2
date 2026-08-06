@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 using LTF.App.Navigation;
 using LTF.App.Services;
 using LTF.App.Session;
+using LTF.App.Settings;
 using LTF.App.Shell;
 using LTF.App.ViewModels;
 using LTF.App.ViewModels.Screens;
@@ -61,8 +62,10 @@ public class ShellHeadlessTests
     public void Main_window_starts_on_the_menu_then_hosts_the_shell_on_entering_a_career()
     {
         var catalog = CarsetCatalog.Discover();
-        var saves = new SaveStore(catalog, Directory.CreateTempSubdirectory().FullName);
-        var root = new RootViewModel(new AppServices(catalog, saves, new SampleNotificationSource()));
+        var dir = Directory.CreateTempSubdirectory().FullName;
+        var saves = new SaveStore(catalog, dir);
+        var settings = new SettingsStore(Path.Combine(dir, "settings.json"));
+        var root = new RootViewModel(new AppServices(catalog, saves, settings, new SampleNotificationSource()));
         var window = new global::LTF.App.MainWindow { DataContext = root };
 
         window.Show();

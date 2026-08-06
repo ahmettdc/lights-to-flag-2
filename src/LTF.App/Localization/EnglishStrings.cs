@@ -77,5 +77,23 @@ public static class EnglishStrings
         [StringKeys.LoadGameLoad] = "LOAD",
         [StringKeys.LoadGameDelete] = "DELETE",
         [StringKeys.LoadGameBack] = "BACK",
+
+        [StringKeys.SettingsTitle] = "SETTINGS",
+        [StringKeys.SettingsGameplay] = "GAMEPLAY",
+        [StringKeys.SettingsAutosave] = "Autosave after each session",
+        [StringKeys.SettingsDifficulty] = "Difficulty",
+        [StringKeys.SettingsRaceSpeed] = "Race speed",
+        [StringKeys.SettingsAccessibility] = "ACCESSIBILITY",
+        [StringKeys.SettingsInterfaceScale] = "Interface scale",
+        [StringKeys.SettingsTextSize] = "Text size",
+        [StringKeys.SettingsReduceMotion] = "Reduce motion",
+        [StringKeys.SettingsHighContrast] = "High-contrast palette",
+        [StringKeys.SettingsAudio] = "AUDIO",
+        [StringKeys.SettingsMaster] = "Master",
+        [StringKeys.SettingsMusic] = "Music",
+        [StringKeys.SettingsSfx] = "Effects",
+        [StringKeys.SettingsSave] = "SAVE",
+        [StringKeys.SettingsBack] = "BACK",
+        [StringKeys.SettingsReset] = "RESET",
     };
 }

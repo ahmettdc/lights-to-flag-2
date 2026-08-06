@@ -83,4 +83,23 @@ public static class StringKeys
     public const string LoadGameLoad = "loadgame.load";
     public const string LoadGameDelete = "loadgame.delete";
     public const string LoadGameBack = "loadgame.back";
+
+    // Settings.
+    public const string SettingsTitle = "settings.title";
+    public const string SettingsGameplay = "settings.gameplay";
+    public const string SettingsAutosave = "settings.autosave";
+    public const string SettingsDifficulty = "settings.difficulty";
+    public const string SettingsRaceSpeed = "settings.raceSpeed";
+    public const string SettingsAccessibility = "settings.accessibility";
+    public const string SettingsInterfaceScale = "settings.interfaceScale";
+    public const string SettingsTextSize = "settings.textSize";
+    public const string SettingsReduceMotion = "settings.reduceMotion";
+    public const string SettingsHighContrast = "settings.highContrast";
+    public const string SettingsAudio = "settings.audio";
+    public const string SettingsMaster = "settings.master";
+    public const string SettingsMusic = "settings.music";
+    public const string SettingsSfx = "settings.sfx";
+    public const string SettingsSave = "settings.save";
+    public const string SettingsBack = "settings.back";
+    public const string SettingsReset = "settings.reset";
 }

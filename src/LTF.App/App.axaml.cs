@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using LTF.App.Services;
 using LTF.App.Session;
+using LTF.App.Settings;
 using LTF.App.ViewModels;
 
 namespace LTF.App;
@@ -21,8 +22,9 @@ public partial class App : Application
             // lifetime) and drive a RootViewModel directly. File I/O lives behind RootViewModel's flows.
             var catalog = CarsetCatalog.Discover();
             var saves = new SaveStore(catalog, AppPaths.SavesDir);
+            var settings = new SettingsStore(AppPaths.SettingsFile);
             var notifications = new SampleNotificationSource();
-            var services = new AppServices(catalog, saves, notifications);
+            var services = new AppServices(catalog, saves, settings, notifications);
             var root = new RootViewModel(services, quit: () => desktop.Shutdown());
 
             desktop.MainWindow = new MainWindow { DataContext = root };

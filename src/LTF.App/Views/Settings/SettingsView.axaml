@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels.Settings"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Settings.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="LetterSpacing" Value="2" />
+      <Setter Property="Margin" Value="0,10,0,2" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextDim}" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Background="{DynamicResource BrushAppBackground}" Padding="40">
+    <DockPanel MaxWidth="560" HorizontalAlignment="Center">
+
+      <TextBlock DockPanel.Dock="Top" Text="{loc:Tr settings.title}"
+                 FontFamily="{DynamicResource FontHeading}" FontSize="28"
+                 Foreground="{DynamicResource BrushTextPrimary}" />
+
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,18,0,0">
+        <Button Grid.Column="0" Classes="ghost"
+                Command="{Binding ResetToDefaultsCommand}" Content="{loc:Tr settings.reset}" />
+        <Button Grid.Column="2" Classes="ghost"
+                Command="{Binding BackCommand}" Content="{loc:Tr settings.back}" />
+        <Button Grid.Column="3" Classes="primary" Margin="8,0,0,0"
+                Command="{Binding SaveCommand}" Content="{loc:Tr settings.save}" />
+      </Grid>
+
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="0,14,0,0">
+
+          <TextBlock Classes="section" Text="{loc:Tr settings.gameplay}" />
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.autosave}" />
+            <CheckBox Grid.Column="1" IsChecked="{Binding Autosave}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.difficulty}" />
+            <ComboBox Grid.Column="1" MinWidth="150"
+                      ItemsSource="{Binding DifficultyOptions}" SelectedItem="{Binding Difficulty}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.raceSpeed}" />
+            <ComboBox Grid.Column="1" MinWidth="150"
+                      ItemsSource="{Binding RaceSpeedOptions}" SelectedItem="{Binding RaceSpeed}" />
+          </Grid>
+
+          <TextBlock Classes="section" Text="{loc:Tr settings.accessibility}" />
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.interfaceScale}" />
+            <Slider Grid.Column="1" Width="180" Minimum="0.8" Maximum="1.5"
+                    Value="{Binding InterfaceScale}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.textSize}" />
+            <ComboBox Grid.Column="1" MinWidth="150"
+                      ItemsSource="{Binding TextSizeOptions}" SelectedItem="{Binding TextSize}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.reduceMotion}" />
+            <CheckBox Grid.Column="1" IsChecked="{Binding ReduceMotion}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.highContrast}" />
+            <CheckBox Grid.Column="1" IsChecked="{Binding HighContrast}" />
+          </Grid>
+
+          <TextBlock Classes="section" Text="{loc:Tr settings.audio}" />
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.master}" />
+            <Slider Grid.Column="1" Width="180" Minimum="0" Maximum="100" Value="{Binding MasterVolume}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.music}" />
+            <Slider Grid.Column="1" Width="180" Minimum="0" Maximum="100" Value="{Binding MusicVolume}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+            <TextBlock Classes="label" Text="{loc:Tr settings.sfx}" />
+            <Slider Grid.Column="1" Width="180" Minimum="0" Maximum="100" Value="{Binding SfxVolume}" />
+          </Grid>
+
+        </StackPanel>
+      </ScrollViewer>
+
+    </DockPanel>
+  </Border>
+
+</UserControl>
