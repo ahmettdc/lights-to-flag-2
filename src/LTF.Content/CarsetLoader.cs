@@ -512,6 +512,7 @@ public static class CarsetLoader
                 WetWeather = Rate(a.WetWeather, $"{p}.attributes.wetWeather"),
                 Feedback = Rate(a.Feedback, $"{p}.attributes.feedback"),
             },
+            Potential = d.Potential ?? 0,
             Morale = RateOr(d.Morale, 50),
             Reputation = RateOr(d.Reputation, 50),
             Career = MapCareer(d.Career),

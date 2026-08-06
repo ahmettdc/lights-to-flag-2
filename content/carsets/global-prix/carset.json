@@ -7,6 +7,8 @@
     "seriesName": "Global Prix World Championship",
     "qualifying": "Knockout",
     "retirementAge": 40,
+    "driverDevelopment": { "peakAgeStart": 27, "peakAgeEnd": 32, "growthPerSeason": 0.4, "physicalDeclinePerSeason": 2.0, "experienceDeclinePerSeason": 0.7, "developmentSpread": 1.0 },
+    "regulationUnreadinessPenalty": 0.05,
     "refuellingAllowed": false,
     "mandatoryPitStops": 1,
     "bothDryCompoundsRequired": true,
@@ -1280,6 +1282,16 @@
       },
       "reputation": 76
     }
+  ],
+  "reserves": [
+    { "id": "aoki_haru", "firstName": "Haru", "lastName": "Aoki", "age": 19, "nationality": "JP",
+      "attributes": { "pace": 66, "racecraft": 62, "consistency": 64, "tyreManagement": 63, "wetWeather": 61, "feedback": 68 }, "potential": 84 },
+    { "id": "novak_petra", "firstName": "Petra", "lastName": "Novak", "age": 20, "nationality": "CZ",
+      "attributes": { "pace": 64, "racecraft": 65, "consistency": 63, "tyreManagement": 66, "wetWeather": 67, "feedback": 64 }, "potential": 82 },
+    { "id": "silva_bruno", "firstName": "Bruno", "lastName": "Silva", "age": 18, "nationality": "BR",
+      "attributes": { "pace": 68, "racecraft": 60, "consistency": 61, "tyreManagement": 62, "wetWeather": 63, "feedback": 62 }, "potential": 88 },
+    { "id": "keller_lena", "firstName": "Lena", "lastName": "Keller", "age": 21, "nationality": "DE",
+      "attributes": { "pace": 65, "racecraft": 66, "consistency": 65, "tyreManagement": 64, "wetWeather": 62, "feedback": 66 }, "potential": 80 }
   ],
   "boards": [
     {

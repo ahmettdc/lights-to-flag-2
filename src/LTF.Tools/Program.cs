@@ -234,6 +234,16 @@ static int Sweep(string[] args)
             $"ever near the sack: {(boss.EverAtRisk ? "yes" : "no")} over {boss.Seasons} seasons."));
     }
 
+    // World summary (M18) — only when the carset develops drivers (ages, retires, transfers).
+    if (carset.Rules.DriverDevelopment.IsActive)
+    {
+        var world = WorldSweep.Run(carset, seasons, seed);
+        Console.WriteLine();
+        Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+            $"World: {world.Retirements} retirement(s), {world.Debuts} debut(s) over {world.Seasons} seasons; " +
+            $"ages {world.YoungestAge}–{world.OldestAge}, seats {(world.AllSeatsFilled ? "all filled" : "SHORT")}."));
+    }
+
     return 0;
 }
 

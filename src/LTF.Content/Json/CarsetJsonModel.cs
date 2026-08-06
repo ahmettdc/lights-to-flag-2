@@ -292,6 +292,7 @@ internal sealed class DriverJson
     public string? Nationality { get; set; }
     public int? Number { get; set; }
     public AttributesJson? Attributes { get; set; }
+    public int? Potential { get; set; }
     public int? Morale { get; set; }
     public int? Reputation { get; set; }
     public CareerJson? Career { get; set; }
