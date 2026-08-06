@@ -30,5 +30,13 @@ trajedi canlandırması yok (ADR-0012).
 (tarih/hall of fame), Rev 15/21 (haber → bildirim/medya). Alt-sistem K. M2 opsiyonel başlangıç
 dünya durumu.
 
+## Durum (M18 — yaşayan-dünya çekirdeği (Core) uygulandı)
+Bu ADR'nin "ana yüzeyi" M18'de Core kapsamıyla açıldı: headless `WorldSweep` (M18i) her sezon grid'i yaşatır
+— ilişkiler yarış olaylarından evrilir (M12'nin atıl `RelationshipEvolution`'ı nihayet bağlandı), sürücüler
+yaşlanır/emekli olur/regen edilir, transfer penceresi koltukları doldurur, regülasyon değişikliği hazırlıksızı
+geriye düşürür — hepsi deterministik + byte-özdeş-varsayılan; kayıt tam dinamik kadroyu (regen dâhil) korur.
+**Ertelendi (Geniş/sonrası):** takım sahiplik değişimi & iflas, üretici giriş/çıkış, sponsor yaşam döngüsü,
+global olaylar, haber + söylenti motoru + tarih DB + hall of fame (M24).
+
 ## Sonuç
 Oyunun en büyük gücü tek yarış değil; oyuncudan bağımsız yaşayan bir motorsporları evreni olur.

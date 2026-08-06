@@ -46,6 +46,13 @@ uygulanır (`ConstructorPenalties.Apply` → konstrüktör tablosu düşülen pu
 **Ertelendi (M18):** geçen bir kural değişikliğinin **uygulanması** + hazırlıksız takımların geriye düşmesi —
 M17 yalnız oyu kaydeder, kural/era'ya dokunmaz.
 
+## Durum (M18 — kural değişikliği uygulaması + geriye düşme uygulandı)
+M17'nin ertelediği son parça Core M18'de canlandı: `RegulationChange.Apply` (M18g) geçen bir proposal'ı
+(deterministik yeniden-çözümle) uygular ve her takımın favori araç eksenini `(100 − RegulationReadiness) /
+100 × Magnitude × RegulationUnreadinessPenalty` ile geriye düşürür — hazırlıksız takım sert, hazırlıklı takım
+hafif düşer. `ResearchState.RegulationReadiness` accumulator'ının ilk okuyucusudur. Katsayı 0 / proposal yok →
+inert. **Ertelendi:** tam çağ-geçişi (era swap) sezon devrinde + itiraz/tahkim derinliği (ADR-0014).
+
 ## Sonuç
 Kurallar statik değil, oynanışın parçası: uyum bir risk/ödül ekseni, regülasyon değişimi
 ise stratejik bir hazırlık yarışı olur.

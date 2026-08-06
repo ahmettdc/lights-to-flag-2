@@ -25,5 +25,13 @@ pilotun antrenmanı + genç akademisi), M18 (**yaş eğrisi + potansiyele büyü
 gelişim grafikleri), ADR-0013 (mentorluk hızlandırır). Faz 1 kod değişmez: gelişim
 `DriverAttributes`'ı değiştirir, lap-time modeli (M3/M4) onu okur.
 
+## Durum (M18 — yaş eğrisi + potansiyele büyüme uygulandı)
+Sürücü yaşam döngüsü Core M18'de canlandı: gizli `Driver.Potential` tavanı (M18a), `DriverDevelopmentRules`
+yaş-eğrisi tuning (M18b), ve her sezon devrinde `DriverProgression.Advance` (M18c) — genç sürücü
+potansiyeline büyür, peak-sonrası geriler (fiziksel Pace/Consistency hızlı; deneyim Racecraft/
+TyreManagement/Feedback/WetWeather yavaş). Atıl `RulesSet.RetirementAge` nihayet `DriverRetirement` ile
+emekliliği tetikler. Deterministik (`Fork(Salt(id))`); `IsActive=false` → tam inert. **Ertelendi:** aktif
+antrenman programı + koç/simülatör verimi, mentorluk hızlandırması (ADR-0013), CA/PA kariyer grafikleri (M24).
+
 ## Sonuç
 Pilotlar zaman içinde yükselen ve gerileyen yaşayan kariyerler olur; genç yetenek yatırımı anlam kazanır.
