@@ -215,6 +215,8 @@ public static class CarsetLoader
             WetPaceLoss = b.WetPaceLoss ?? d.WetPaceLoss,
             FuelLoadPenaltySeconds = b.FuelLoadPenaltySeconds ?? d.FuelLoadPenaltySeconds,
             TyreGentlenessWearInfluence = b.TyreGentlenessWearInfluence ?? d.TyreGentlenessWearInfluence,
+            DamageAeroLoss = b.DamageAeroLoss ?? d.DamageAeroLoss,
+            DamageRepairSeconds = b.DamageRepairSeconds ?? d.DamageRepairSeconds,
         };
     }
 

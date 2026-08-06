@@ -43,6 +43,11 @@ public static class RaceSimulator
     private const double DriverErrorCrashShare = 0.12;
     private const double CollisionHeavyShare = 0.20;
 
+    // R38: how much of an incident's already-drawn severity accrues as lasting aero damage. Inert
+    // unless a carset sets BalanceCoefficients.DamageAeroLoss / DamageRepairSeconds above zero.
+    private const double DriverErrorDamageShare = 0.3;
+    private const double CollisionDamageShare = 0.7;
+
     // A rolling start's getaway loss is gentler than a standing start's (M9e).
     private const double RollingStartLossFactor = 0.3;
 
@@ -148,7 +153,11 @@ public static class RaceSimulator
 
                 // Pace first: draws happen up front so the pace stream is identical whatever
                 // the reliability and incident models do this lap.
-                var sectors = LapTimeModel.Simulate(circuit, car.Competitor, balance, conditions, car.Rng);
+                // R38: a damaged car runs reduced effective aero; inert (the original car) until a
+                // carset opts in via DamageAeroLoss, so the pace draw stays identical by default.
+                var effectiveCar = EffectiveCar(car, balance);
+                var sectors = LapTimeModel.Simulate(
+                    circuit, effectiveCar, car.Competitor.Driver.Attributes, balance, conditions, car.Rng);
                 var lapTime = sectors.Total
                               + EngineModes.PaceDelta(car.Mode, balance)
                               + LimpPenalty(car.Health, balance);
@@ -157,7 +166,7 @@ public static class RaceSimulator
                 // deterministic, no random draw.
                 if (era2026)
                 {
-                    lapTime += ActiveAeroDelta(car.Competitor.Car, circuit, regs);
+                    lapTime += ActiveAeroDelta(effectiveCar, circuit, regs);
                     lapTime += DeRatingPenalty(car, regs);
                 }
 
@@ -395,6 +404,12 @@ public static class RaceSimulator
             loss += balance.SlowPitStopExtraSeconds;
         }
 
+        // R38: repair accumulated aero damage — costs time proportional to the damage, then the car
+        // leaves the box clean. Arithmetic only (no pit-stream draw), and inert (adds 0) when
+        // DamageRepairSeconds is 0, so a default race is unchanged.
+        loss += balance.DamageRepairSeconds * car.Damage;
+        car.Damage = 0.0;
+
         car.TotalTime += loss;
         events.Add(new RaceEvent
         {
@@ -547,6 +562,10 @@ public static class RaceSimulator
             Description = "Off-track moment",
         });
 
+        // R38: an off-track moment sheds a little aero, from the severity already drawn (no new
+        // draw). Inert until a carset opts in via DamageAeroLoss.
+        car.Damage += severity * DriverErrorDamageShare;
+
         var timeLoss = balance.DriverErrorTimeLossSeconds * (0.3 + severity);
 
         // Track limits (M7c): repeated off-track moments earn a time penalty once the allowance is
@@ -614,6 +633,10 @@ public static class RaceSimulator
             Kind = RaceEventKind.Collision, Lap = lap, CompetitorId = car.Id,
             OtherCompetitorId = otherId, Description = "Contact",
         });
+
+        // R38: contact does lasting aero damage, from the already-drawn severity. Inert by default.
+        car.Damage += severity * CollisionDamageShare;
+
         return balance.CollisionTimeLossSeconds * (0.3 + severity);
     }
 
@@ -664,6 +687,23 @@ public static class RaceSimulator
         }
 
         return speed;
+    }
+
+    /// <summary>The car the lap-time model sees this lap: the base car, or — once a carset opts in
+    /// via <see cref="BalanceCoefficients.DamageAeroLoss"/> and the car has taken damage — a copy
+    /// with its aerodynamics scaled down. With no opt-in or no damage it returns the base car
+    /// unchanged, so the pace draw and the 2026 active-aero gain stay bit-for-bit as before (R38).</summary>
+    private static Car EffectiveCar(CarRaceState car, BalanceCoefficients balance)
+    {
+        var baseCar = car.Competitor.Car;
+        if (balance.DamageAeroLoss <= 0.0 || car.Damage <= 0.0)
+        {
+            return baseCar;
+        }
+
+        var factor = Math.Max(0.0, 1.0 - (car.Damage * balance.DamageAeroLoss));
+        var reduced = Rating.Clamped((int)Math.Round(baseCar.Aerodynamics.Value * factor));
+        return baseCar with { Aerodynamics = reduced };
     }
 
     /// <summary>2026 active aero: a per-lap time gain (negative) blending the low-drag (X) benefit on

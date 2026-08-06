@@ -63,7 +63,7 @@
     },
     "componentReliabilityWearInfluence": 0.35
   },
-  "balance": { "tyreGentlenessWearInfluence": 0.15 },
+  "balance": { "tyreGentlenessWearInfluence": 0.15, "damageAeroLoss": 0.08, "damageRepairSeconds": 4.0 },
   "techTree": {
     "departments": [
       { "id": "aero", "name": "Aerodynamics" },

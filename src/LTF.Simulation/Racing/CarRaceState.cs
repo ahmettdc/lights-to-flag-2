@@ -62,6 +62,12 @@ internal sealed class CarRaceState
     /// <summary>Success ballast in seconds of lap time (M9c); 0 by default, added to each green lap.</summary>
     public double Ballast { get; set; }
 
+    /// <summary>Accumulated aero damage from incidents (R38); 0 by default. Off-track moments and
+    /// contact add to it (from the severity already drawn), it slows green laps via
+    /// <see cref="BalanceCoefficients.DamageAeroLoss"/>, and a pit stop repairs it. Inert unless a
+    /// carset opts in.</summary>
+    public double Damage { get; set; }
+
     /// <summary>This car's planned pit laps — the mandated stops, staggered per car (M7b). A stop
     /// is taken on the first green lap at or after a target, or a few laps early under a safety car.</summary>
     public IReadOnlyList<int> PitPlan { get; set; } = [];

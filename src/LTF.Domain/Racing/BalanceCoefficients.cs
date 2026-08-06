@@ -162,4 +162,15 @@ public sealed record BalanceCoefficients
     /// carset opts in by setting it above zero; a gentler car then wears its tyres more slowly and is
     /// quicker deep into a stint.</summary>
     public double TyreGentlenessWearInfluence { get; init; }
+
+    /// <summary>How much of the car's aerodynamic performance is lost per unit of accumulated race
+    /// damage (R38). 0 (default) means incidents leave no lasting aero loss and the race is exactly
+    /// as before — a carset opts in by setting it above zero, after which off-track moments and
+    /// contact shed downforce (slower green laps) until the damage is repaired at a pit stop.</summary>
+    public double DamageAeroLoss { get; init; }
+
+    /// <summary>Extra stationary time, in seconds, a pit stop spends per unit of accumulated race
+    /// damage to repair the car (R38). 0 (default) means repairs are free and instant, so a race is
+    /// unchanged; a carset opts in by setting it above zero.</summary>
+    public double DamageRepairSeconds { get; init; }
 }

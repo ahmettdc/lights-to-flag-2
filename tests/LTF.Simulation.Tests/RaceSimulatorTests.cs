@@ -387,6 +387,66 @@ public class RaceSimulatorTests
         Assert.True(hash == GoldenDigestHash, $"golden digest hash mismatch — actual: {hash}");
     }
 
+    // ---- Race damage (R38) ------------------------------------------------
+    // Inert-by-default is proved by the golden hash above: the canonical race uses the default
+    // balance, where DamageAeroLoss and DamageRepairSeconds are 0, and its digest is unchanged.
+    // These tests show the feature does something once a carset opts in — and stays deterministic.
+
+    [Fact]
+    public void Aero_damage_changes_the_race_once_a_carset_opts_in()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        // Incident-prone balance so cars reliably take non-terminal knocks. Only DamageAeroLoss
+        // differs between the two runs; it draws no random number, so the streams are identical and
+        // any digest difference is the damage model shedding aero on the cars that were hit.
+        var incidentProne = carset.Balance with { DriverErrorBaseRate = 0.4, CollisionBaseRate = 0.3 };
+        var off = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, incidentProne, 2024);
+        var on = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, incidentProne with { DamageAeroLoss = 0.6 }, 2024);
+
+        Assert.NotEqual(Digest(off), Digest(on));
+    }
+
+    [Fact]
+    public void Damage_repair_spends_pit_time_once_a_carset_opts_in()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+
+        // Incident-prone so cars carry damage into the box; one mandatory stop so they visit it.
+        // Only DamageRepairSeconds differs (and it draws no random number), so any difference is
+        // the repair time being spent at the stop.
+        var incidentProne = carset.Balance with { DriverErrorBaseRate = 0.4, CollisionBaseRate = 0.3 };
+        var free = RaceSimulator.Run(carset.Circuits[0], grid, rules, incidentProne, 2024);
+        var paid = RaceSimulator.Run(
+            carset.Circuits[0], grid, rules, incidentProne with { DamageRepairSeconds = 8.0 }, 2024);
+
+        Assert.NotEqual(Digest(free), Digest(paid));
+    }
+
+    [Fact]
+    public void A_damaged_race_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var rules = carset.Rules with { MandatoryPitStops = 1 };
+        var balance = carset.Balance with
+        {
+            DriverErrorBaseRate = 0.4,
+            CollisionBaseRate = 0.3,
+            DamageAeroLoss = 0.6,
+            DamageRepairSeconds = 8.0,
+        };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, rules, balance, 2024);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     // ---- Traffic & overtaking (M6) ----------------------------------------
 
     [Fact]

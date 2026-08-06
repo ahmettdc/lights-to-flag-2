@@ -390,6 +390,14 @@ parçaları gösterir.
 > `EngineWear`, `BlockingCoefficient`, `RefuellingTime`, `DamageFixTime`.
 > **LTF2'de bir alan varsa motorda karşılığı olacak** — bu bir kabul kriteridir.
 
+> **R38 (Faz 1 sonrası revizyon) — yarış hasarı ✅:** kaza/pist-dışı olayları kalıcı **aero
+> hasarına** çevirir (`BalanceCoefficients.DamageAeroLoss` — hasarlı araç azalan efektif aero ile
+> yeşil turlarda daha yavaş) ve pit'te **onarım süresi** ekler (`DamageRepairSeconds` — yukarıdaki
+> ertelenen `DamageFixTime`'ın motordaki karşılığı). Hasar, olay anında **zaten çekilmiş şiddet
+> (severity)** değerinden birikir — yeni RNG çekilişi yok — ve iki katsayı da 0 varsayılanıyla
+> **atıl**: kanonik yarış ve altın hash birebir aynı kalır, bir carset değerleri >0 yaparak açar
+> (flagship global-prix `damageAeroLoss`/`damageRepairSeconds` ile açtı).
+
 ### Faz 2 — Kariyer ve yönetim katmanı · M11–M18 ← *2. öncelik*
 
 > Bu faz iki kesişen sistem taşır (aşağıda ayrı blokta): **Takvim-tabanlı kariyer**
