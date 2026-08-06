@@ -84,6 +84,7 @@ public static class CarsetLoader
         StaffPool = MapOptional(j.StaffPool, "staffPool", MapStaff),
         PlayerTeamId = j.PlayerTeamId ?? "",
         Boards = MapOptional(j.Boards, "boards", MapBoard),
+        RegulationProposals = MapOptional(j.RegulationProposals, "regulationProposals", MapRegulationProposal),
     };
 
     private static RulesSet MapRules(RulesJson? r)
@@ -625,6 +626,14 @@ public static class CarsetLoader
 
         return result;
     }
+
+    private static RegulationProposal MapRegulationProposal(RegulationProposalJson r, string p) => new()
+    {
+        Id = ReqStr(r.Id, $"{p}.id"),
+        Description = r.Description ?? "",
+        FavoredAxis = ReqEnum<CarAxis>(r.FavoredAxis, $"{p}.favoredAxis"),
+        Magnitude = r.Magnitude ?? 0,
+    };
 
     // --- Helpers ---
 

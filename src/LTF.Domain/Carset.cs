@@ -67,6 +67,10 @@ public sealed record Carset
     /// which leaves every team AI-run and a career byte-identical.</summary>
     public IReadOnlyList<TeamBoard> Boards { get; init; } = [];
 
+    /// <summary>Proposed regulation changes the teams vote on (M17 / ADR-0010); empty if the carset ships
+    /// none. M17 resolves the vote and records the outcome — applying the change is M18.</summary>
+    public IReadOnlyList<RegulationProposal> RegulationProposals { get; init; } = [];
+
     /// <summary>The series-wide R&amp;D development catalog (M14 / ADR-0016); empty if the carset ships none.
     /// Per-team development progress lives on each team, not here.</summary>
     public TechTree TechTree { get; init; } = TechTree.Empty;

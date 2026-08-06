@@ -37,6 +37,17 @@ internal sealed class CarsetJson
 
     /// <summary>Optional per-team boards, ownership and pressure (M17 / ADR-0025).</summary>
     public List<BoardJson>? Boards { get; set; }
+
+    /// <summary>Optional proposed regulation changes the teams vote on (M17 / ADR-0010).</summary>
+    public List<RegulationProposalJson>? RegulationProposals { get; set; }
+}
+
+internal sealed class RegulationProposalJson
+{
+    public string? Id { get; set; }
+    public string? Description { get; set; }
+    public string? FavoredAxis { get; set; }
+    public int? Magnitude { get; set; }
 }
 
 internal sealed class BoardJson

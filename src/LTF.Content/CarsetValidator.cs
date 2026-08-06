@@ -333,6 +333,21 @@ public static class CarsetValidator
             }
         }
 
+        // Regulation proposals (M17 / ADR-0010): unique ids and a sane magnitude.
+        var proposalIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var proposal in carset.RegulationProposals)
+        {
+            if (!proposalIds.Add(proposal.Id))
+            {
+                Error($"duplicate regulation proposal id '{proposal.Id}'");
+            }
+
+            if (proposal.Magnitude is < 0 or > 100)
+            {
+                Error($"regulation proposal '{proposal.Id}' magnitude must be within 0..100");
+            }
+        }
+
         return issues;
     }
 }
