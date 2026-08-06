@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels"
+             x:Class="LTF.App.Shell.TopBar"
+             x:DataType="vm:TopBarViewModel">
+
+  <Border Height="46"
+          Background="{DynamicResource BrushChrome}"
+          BorderBrush="{DynamicResource BrushDivider}"
+          BorderThickness="0,0,0,1">
+    <Grid ColumnDefinitions="Auto,*,Auto" Margin="12,0">
+
+      <!-- Left: logo + Continue + Inbox + search -->
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+
+        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
+            <Ellipse Width="7" Height="7" Fill="{DynamicResource BrushLightLit}" />
+            <Ellipse Width="7" Height="7" Fill="{DynamicResource BrushLightLit}" />
+            <Ellipse Width="7" Height="7" Fill="{DynamicResource BrushLightLit}" />
+            <Ellipse Width="7" Height="7" Fill="{DynamicResource BrushLightOut}" />
+            <Ellipse Width="7" Height="7" Fill="{DynamicResource BrushLightOut}" />
+          </StackPanel>
+          <TextBlock Text="LIGHTS TO FLAG" VerticalAlignment="Center"
+                     FontFamily="{DynamicResource FontHeading}" FontSize="16"
+                     Foreground="{DynamicResource BrushTextPrimary}" />
+          <TextBlock Text="2" VerticalAlignment="Center"
+                     FontFamily="{DynamicResource FontNumeric}" FontSize="16" FontWeight="Bold"
+                     Foreground="{DynamicResource BrushAccent}" />
+        </StackPanel>
+
+        <Button Classes="primary" Content="CONTINUE »"
+                Command="{Binding ContinueCommand}" ToolTip.Tip="Available from M21" />
+
+        <Panel VerticalAlignment="Center">
+          <Button Classes="secondary" Content="INBOX" />
+          <Border IsVisible="{Binding HasInbox}"
+                  Background="{DynamicResource BrushStatusWarn}" CornerRadius="8" Padding="5,1"
+                  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-5,-5,0">
+            <TextBlock Text="{Binding InboxCount}"
+                       FontFamily="{DynamicResource FontNumeric}" FontSize="10" FontWeight="Bold"
+                       Foreground="{DynamicResource BrushTextOnRed}" />
+          </Border>
+        </Panel>
+
+        <TextBox Width="190" Watermark="Search…" VerticalAlignment="Center" />
+      </StackPanel>
+
+      <!-- Right: date + cap room + board conf + team badge -->
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+
+        <TextBlock Text="{Binding DateText}" VerticalAlignment="Center"
+                   FontFamily="{DynamicResource FontNumeric}" FontSize="12"
+                   Foreground="{DynamicResource BrushTextSecondary}" />
+
+        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" IsVisible="{Binding HasCap}">
+          <TextBlock Text="CAP ROOM" VerticalAlignment="Center"
+                     FontFamily="{DynamicResource FontNumeric}" FontSize="10"
+                     Foreground="{DynamicResource BrushTextFaint}" />
+          <TextBlock Text="{Binding CapRoomText}" VerticalAlignment="Center"
+                     FontFamily="{DynamicResource FontNumeric}" FontSize="12" FontWeight="Bold"
+                     Foreground="{DynamicResource BrushStatusWarn}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" IsVisible="{Binding HasBoard}">
+          <TextBlock Text="BOARD CONF" VerticalAlignment="Center"
+                     FontFamily="{DynamicResource FontNumeric}" FontSize="10"
+                     Foreground="{DynamicResource BrushTextFaint}" />
+          <TextBlock Text="{Binding BoardConfidenceText}" VerticalAlignment="Center"
+                     FontFamily="{DynamicResource FontNumeric}" FontSize="12" FontWeight="Bold"
+                     Foreground="{Binding BoardConfidence, Converter={StaticResource StatusColor}}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsVisible="{Binding HasPlayerTeam}">
+          <Border Background="{DynamicResource BrushAccent}" CornerRadius="3" Padding="5,2">
+            <TextBlock Text="{Binding TeamBadge}"
+                       FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold"
+                       Foreground="{DynamicResource BrushTextOnRed}" />
+          </Border>
+          <TextBlock Text="{Binding TeamName}" VerticalAlignment="Center"
+                     FontFamily="{DynamicResource FontHeading}" FontSize="14"
+                     Foreground="{DynamicResource BrushTextPrimary}" />
+        </StackPanel>
+      </StackPanel>
+
+    </Grid>
+  </Border>
+
+</UserControl>

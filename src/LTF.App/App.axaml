@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:screens="using:LTF.App.ViewModels.Screens"
              xmlns:views="using:LTF.App.Views.Screens"
+             xmlns:conv="using:LTF.App.Converters"
              x:Class="LTF.App.App"
              RequestedThemeVariant="Dark">
 
@@ -27,6 +28,9 @@
         <ResourceInclude Source="avares://LTF.App/Theme/Controls/States.axaml" />
         <ResourceInclude Source="avares://LTF.App/Theme/Controls/Dialog.axaml" />
       </ResourceDictionary.MergedDictionaries>
+
+      <!-- Shared converters. -->
+      <conv:StatusColorConverter x:Key="StatusColor" />
     </ResourceDictionary>
   </Application.Resources>
 
