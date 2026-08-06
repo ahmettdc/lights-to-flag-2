@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 
 namespace LTF.App.Converters;
 
@@ -16,14 +17,18 @@ public sealed class StatusColorConverter : IValueConverter
     public const double GoodThreshold = 80;
     public const double WarnThreshold = 70;
 
+    // Immutable brushes so the static initializer is thread-safe: unlike SolidColorBrush (an
+    // AvaloniaObject with dispatcher affinity), ImmutableSolidColorBrush can be constructed on any
+    // thread, so the plain [Fact] converter tests don't hit "Call from invalid thread".
+
     /// <summary>Green #35D07F — metric is healthy.</summary>
-    public static readonly IBrush Good = new SolidColorBrush(Color.Parse("#35D07F"));
+    public static readonly IBrush Good = new ImmutableSolidColorBrush(Color.Parse("#35D07F"));
 
     /// <summary>Amber #FFB020 — metric is a risk / warning.</summary>
-    public static readonly IBrush Warn = new SolidColorBrush(Color.Parse("#FFB020"));
+    public static readonly IBrush Warn = new ImmutableSolidColorBrush(Color.Parse("#FFB020"));
 
     /// <summary>Red #FF3B2F — metric is critical.</summary>
-    public static readonly IBrush Bad = new SolidColorBrush(Color.Parse("#FF3B2F"));
+    public static readonly IBrush Bad = new ImmutableSolidColorBrush(Color.Parse("#FF3B2F"));
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         Classify(value);
