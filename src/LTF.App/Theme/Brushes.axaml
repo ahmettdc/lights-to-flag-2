@@ -1,0 +1,45 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Named brushes, one per semantic role, each backed by a colour from Colors.axaml.
+    Colours are merged in here directly so a StaticResource lookup always resolves regardless of
+    the app-level merge order.
+  -->
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceInclude Source="avares://LTF.App/Theme/Colors.axaml" />
+  </ResourceDictionary.MergedDictionaries>
+
+  <!-- Surfaces -->
+  <SolidColorBrush x:Key="BrushAppBackground" Color="{StaticResource ColorTrackBlack}" />
+  <SolidColorBrush x:Key="BrushChrome" Color="{StaticResource ColorChrome}" />
+  <SolidColorBrush x:Key="BrushCard" Color="{StaticResource ColorGarage}" />
+  <SolidColorBrush x:Key="BrushStatCell" Color="{StaticResource ColorStatCell}" />
+
+  <!-- Borders / dividers -->
+  <SolidColorBrush x:Key="BrushDivider" Color="{StaticResource ColorDivider}" />
+  <SolidColorBrush x:Key="BrushCardBorder" Color="{StaticResource ColorCardBorder}" />
+  <SolidColorBrush x:Key="BrushBorderStrong" Color="{StaticResource ColorBorderStrong}" />
+
+  <!-- Accent -->
+  <SolidColorBrush x:Key="BrushAccent" Color="{StaticResource ColorLightsOutRed}" />
+  <SolidColorBrush x:Key="BrushAccentHover" Color="{StaticResource ColorButtonHover}" />
+  <SolidColorBrush x:Key="BrushTextOnRed" Color="{StaticResource ColorTextOnRed}" />
+
+  <!-- Text -->
+  <SolidColorBrush x:Key="BrushTextPrimary" Color="{StaticResource ColorTextPrimary}" />
+  <SolidColorBrush x:Key="BrushTextSecondary" Color="{StaticResource ColorTextSecondary}" />
+  <SolidColorBrush x:Key="BrushTextMuted" Color="{StaticResource ColorTextMuted}" />
+  <SolidColorBrush x:Key="BrushTextDim" Color="{StaticResource ColorTextDim}" />
+  <SolidColorBrush x:Key="BrushTextFaint" Color="{StaticResource ColorTextFaint}" />
+
+  <!-- Status -->
+  <SolidColorBrush x:Key="BrushStatusGood" Color="{StaticResource ColorStatusGood}" />
+  <SolidColorBrush x:Key="BrushStatusWarn" Color="{StaticResource ColorStatusWarn}" />
+  <SolidColorBrush x:Key="BrushStatusBad" Color="{StaticResource ColorStatusBad}" />
+
+  <!-- Logo lights -->
+  <SolidColorBrush x:Key="BrushLightLit" Color="{StaticResource ColorLightLit}" />
+  <SolidColorBrush x:Key="BrushLightOut" Color="{StaticResource ColorLightOut}" />
+
+</ResourceDictionary>

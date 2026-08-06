@@ -3,7 +3,19 @@
              x:Class="LTF.App.App"
              RequestedThemeVariant="Dark">
 
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!-- Colours before Brushes: brushes reference colour keys. -->
+        <ResourceInclude Source="avares://LTF.App/Theme/Colors.axaml" />
+        <ResourceInclude Source="avares://LTF.App/Theme/Brushes.axaml" />
+        <ResourceInclude Source="avares://LTF.App/Theme/Typography.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
   <Application.Styles>
+    <!-- Brand theme layers on top of Fluent; Fluent must come first. -->
     <FluentTheme />
   </Application.Styles>
 

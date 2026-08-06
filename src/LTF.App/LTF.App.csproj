@@ -23,4 +23,9 @@
     <ProjectReference Include="..\LTF.Content\LTF.Content.csproj" />
   </ItemGroup>
 
+  <!-- Embed the brand fonts (OFL). The .ttf files are addressed via avares:// in Theme/Typography.axaml. -->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/Fonts/*.ttf" />
+  </ItemGroup>
+
 </Project>

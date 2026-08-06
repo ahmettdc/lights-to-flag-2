@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Brand type families, embedded from Assets/Fonts (OFL, Google Fonts). The name after '#' is the
+    font's internal family name, not the file name. Weight is chosen at use-site (FontWeight):
+      Heading  -> Saira Condensed (Black 900) : wordmark, headings, driver names, timing tower
+      Numeric  -> Chakra Petch (Bold 700)     : numbers, lap times, the "2"
+      Body     -> Archivo (variable; Medium 500 at use-site) : body, tooltips, contract copy
+    If a face fails to load, Avalonia falls back to the app default (Inter, .WithInterFont()).
+  -->
+
+  <FontFamily x:Key="FontHeading">avares://LTF.App/Assets/Fonts#Saira Condensed</FontFamily>
+  <FontFamily x:Key="FontNumeric">avares://LTF.App/Assets/Fonts#Chakra Petch</FontFamily>
+  <FontFamily x:Key="FontBody">avares://LTF.App/Assets/Fonts#Archivo</FontFamily>
+
+</ResourceDictionary>
