@@ -334,6 +334,7 @@ internal sealed class ResearchRulesJson
     public int? MaxRetries { get; set; }
     public double? RealizationSpread { get; set; }
     public int? ReadinessGainPerSeason { get; set; }
+    public double? QualityControlReliabilityInfluence { get; set; }
     public double? MinorCostMultiplier { get; set; }
     public double? MajorCostMultiplier { get; set; }
     public double? UltimateCostMultiplier { get; set; }

@@ -34,6 +34,10 @@ public static class SeasonSimulator
         var rounds = new List<RaceResult>(carset.Calendar.Count);
         var poleSitters = new List<string?>(carset.Calendar.Count);
 
+        // Per-round component-allocation grid penalties (M15). Empty every round when no allocation is
+        // configured or every car fits its quota, so the grid is left exactly as qualifying set it.
+        var penalties = ComponentPenalties.ForSeason(carset);
+
         // The carset is threaded through the season so a progression can evolve it between rounds. With
         // no progression `current` never changes, so rebuilding the entry list each round yields entries
         // value-equal to building it once — the season stays byte-identical to the M11 Run.
@@ -49,10 +53,15 @@ public static class SeasonSimulator
             }
 
             var roundSeed = RoundSeed(seed, round.Round);
-            var entries = EntryList.Build(current);
+            var entries = SeasonEntries.Build(current);
             var entriesById = entries.ToDictionary(c => c.Id, StringComparer.Ordinal);
             var quali = QualifyingSimulator.Run(circuit, entries, current.Rules, current.Balance, roundSeed);
             var grid = quali.StartingOrder.Select(id => entriesById[id]).ToList();
+            if (penalties[index].Count > 0)
+            {
+                grid = GridOrder.WithPenalties(grid, penalties[index]).ToList();
+            }
+
             var format = new RaceFormat { PoleSitterId = quali.PoleCompetitorId, IsSprint = round.IsSprint };
             var result = RaceSimulator.Run(
                 circuit, grid, current.Rules, current.Balance, roundSeed,

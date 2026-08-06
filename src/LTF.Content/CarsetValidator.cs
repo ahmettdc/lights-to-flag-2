@@ -262,7 +262,8 @@ public static class CarsetValidator
         var research = carset.Rules.Research;
         if (research.BaseProgressPerSeason < 0 || research.StepProgress < 0 || research.FacilityWeight < 0
             || research.StaffWeight < 0 || research.CorrelationBaseline < 0 || research.QuotaPerFacilityLevel < 0
-            || research.MaxRetries < 0 || research.RealizationSpread < 0 || research.ReadinessGainPerSeason < 0)
+            || research.MaxRetries < 0 || research.RealizationSpread < 0 || research.ReadinessGainPerSeason < 0
+            || research.QualityControlReliabilityInfluence < 0)
         {
             Error("research rules coefficients must be non-negative");
         }

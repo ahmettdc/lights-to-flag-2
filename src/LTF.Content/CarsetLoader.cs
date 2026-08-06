@@ -414,6 +414,8 @@ public static class CarsetLoader
             MaxRetries = r.MaxRetries ?? d.MaxRetries,
             RealizationSpread = r.RealizationSpread ?? d.RealizationSpread,
             ReadinessGainPerSeason = r.ReadinessGainPerSeason ?? d.ReadinessGainPerSeason,
+            QualityControlReliabilityInfluence =
+                r.QualityControlReliabilityInfluence ?? d.QualityControlReliabilityInfluence,
             MinorCostMultiplier = r.MinorCostMultiplier ?? d.MinorCostMultiplier,
             MajorCostMultiplier = r.MajorCostMultiplier ?? d.MajorCostMultiplier,
             UltimateCostMultiplier = r.UltimateCostMultiplier ?? d.UltimateCostMultiplier,

@@ -42,6 +42,12 @@ public sealed record ResearchRules
     /// <summary>Regulation-readiness gained per season when a team invests in it.</summary>
     public int ReadinessGainPerSeason { get; init; }
 
+    /// <summary>How much the quality-control facility shifts a car's reliability (M15 / ADR-0020). 0 (the
+    /// default) means the facility has no reliability effect and the season is byte-identical. Above 0,
+    /// each level of quality control above the neutral level 3 raises reliability (and below it lowers
+    /// it) by this many points — the facilities' path to reliability, kept in the career layer.</summary>
+    public double QualityControlReliabilityInfluence { get; init; }
+
     /// <summary>Cost multiplier for a Minor node (neutral 1.0).</summary>
     public double MinorCostMultiplier { get; init; } = 1.0;
 
