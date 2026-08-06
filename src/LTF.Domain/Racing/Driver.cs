@@ -64,6 +64,14 @@ public sealed record Driver
 
     public required DriverAttributes Attributes { get; init; }
 
+    /// <summary>
+    /// Hidden growth ceiling on the <see cref="DriverAttributes.Overall"/> scale (ADR-0015 / M18): a young
+    /// driver develops toward it and declines past their peak. Plain int, not a <see cref="Rating"/>, so 0
+    /// is a real "unset" sentinel — a carset that authors no potential leaves development a no-op (a driver's
+    /// Overall is always &gt; 0, so the headroom is never positive) and every driver byte-identical.
+    /// </summary>
+    public int Potential { get; init; }
+
     /// <summary>Current morale (dynamic; the mockup's "MORALE").</summary>
     public Rating Morale { get; init; } = new(50);
 

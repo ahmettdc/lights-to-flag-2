@@ -60,4 +60,27 @@ public class DomainModelTests
         Assert.Equal(Fixtures.Attributes(60), Fixtures.Attributes(60));
         Assert.NotEqual(Fixtures.Attributes(60), Fixtures.Attributes(61));
     }
+
+    [Fact]
+    public void Driver_potential_defaults_to_zero_and_leaves_the_rating_untouched()
+    {
+        var driver = Fixtures.Driver("x", "New", "Comer");
+        Assert.Equal(0, driver.Potential);            // unset sentinel — development is a no-op
+        Assert.Equal(60, driver.Attributes.Overall);  // potential does not feed the rating
+    }
+
+    [Fact]
+    public void Driver_carries_a_hidden_potential_ceiling()
+    {
+        var driver = Fixtures.Driver("x", "New", "Comer") with { Potential = 88 };
+        Assert.Equal(88, driver.Potential);
+    }
+
+    [Fact]
+    public void Driver_potential_participates_in_value_equality()
+    {
+        var driver = Fixtures.Driver("x", "New", "Comer");
+        Assert.Equal(driver, driver with { Potential = 0 });      // the default is stable
+        Assert.NotEqual(driver, driver with { Potential = 90 });  // potential distinguishes drivers
+    }
 }
