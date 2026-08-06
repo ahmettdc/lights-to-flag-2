@@ -173,4 +173,11 @@ public sealed record BalanceCoefficients
     /// damage to repair the car (R38). 0 (default) means repairs are free and instant, so a race is
     /// unchanged; a carset opts in by setting it above zero.</summary>
     public double DamageRepairSeconds { get; init; }
+
+    /// <summary>Lap-time seconds a fully worn car (component health 0) loses to general wear (R39),
+    /// scaled linearly by how worn its weakest component is. 0 (default) means component condition
+    /// only affects pace at the limp cliff (as before) and the race is unchanged — a carset opts in
+    /// by setting it above zero, after which a tired car is gradually slower all race, not just when
+    /// it is about to fail.</summary>
+    public double ComponentWearPaceLossSeconds { get; init; }
 }

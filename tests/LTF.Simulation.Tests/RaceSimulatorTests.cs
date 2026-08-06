@@ -447,6 +447,39 @@ public class RaceSimulatorTests
         Assert.Equal(Digest(a), Digest(b));
     }
 
+    // ---- Component wear → pace (R39) --------------------------------------
+
+    [Fact]
+    public void Component_wear_pace_loss_changes_the_race_once_a_carset_opts_in()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        // The default balance already wears components each lap (ComponentHealthLossPerLap), so by
+        // the flag the field is worn. Only ComponentWearPaceLossSeconds differs, and it draws no
+        // random number, so the streams are identical and any digest difference is worn cars losing
+        // pace across the race.
+        var off = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        var on = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules,
+            carset.Balance with { ComponentWearPaceLossSeconds = 0.5 }, 2024);
+
+        Assert.NotEqual(Digest(off), Digest(on));
+    }
+
+    [Fact]
+    public void A_worn_car_race_is_deterministic()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var balance = carset.Balance with { ComponentWearPaceLossSeconds = 0.5 };
+
+        var a = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 2024);
+        var b = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, balance, 2024);
+
+        Assert.Equal(Digest(a), Digest(b));
+    }
+
     // ---- Traffic & overtaking (M6) ----------------------------------------
 
     [Fact]

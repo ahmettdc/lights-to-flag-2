@@ -398,6 +398,13 @@ parçaları gösterir.
 > **atıl**: kanonik yarış ve altın hash birebir aynı kalır, bir carset değerleri >0 yaparak açar
 > (flagship global-prix `damageAeroLoss`/`damageRepairSeconds` ile açtı).
 
+> **R39 (Faz 1 sonrası revizyon) — parça kondisyonu → performans ✅:** parça yıpranması artık
+> sadece limp eşiğinin (<%30) altında değil, **tüm yarış boyunca sürekli** pace kaybı yaratır
+> (`BalanceCoefficients.ComponentWearPaceLossSeconds` — yorgun araç yeşil turlarda kademeli olarak
+> daha yavaş, en zayıf bileşene göre). Yeni RNG çekilişi yok, 0 varsayılanıyla **atıl** (limp
+> davranışı ve altın hash aynı kalır); flagship global-prix `componentWearPaceLossSeconds` ile açtı.
+> Ertelenen `EngineWear`/`ChassisWear` (parça-başı yıpranma hızları) ayrı bir gelecek adımı.
+
 ### Faz 2 — Kariyer ve yönetim katmanı · M11–M18 ← *2. öncelik*
 
 > Bu faz iki kesişen sistem taşır (aşağıda ayrı blokta): **Takvim-tabanlı kariyer**

@@ -217,6 +217,7 @@ public static class CarsetLoader
             TyreGentlenessWearInfluence = b.TyreGentlenessWearInfluence ?? d.TyreGentlenessWearInfluence,
             DamageAeroLoss = b.DamageAeroLoss ?? d.DamageAeroLoss,
             DamageRepairSeconds = b.DamageRepairSeconds ?? d.DamageRepairSeconds,
+            ComponentWearPaceLossSeconds = b.ComponentWearPaceLossSeconds ?? d.ComponentWearPaceLossSeconds,
         };
     }
 

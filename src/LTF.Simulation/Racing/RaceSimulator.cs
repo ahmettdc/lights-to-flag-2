@@ -160,7 +160,8 @@ public static class RaceSimulator
                     circuit, effectiveCar, car.Competitor.Driver.Attributes, balance, conditions, car.Rng);
                 var lapTime = sectors.Total
                               + EngineModes.PaceDelta(car.Mode, balance)
-                              + LimpPenalty(car.Health, balance);
+                              + LimpPenalty(car.Health, balance)
+                              + ComponentWearPenalty(car.Health, balance);
 
                 // 2026 only: active aero gains time, a depleted battery de-rates the car — both
                 // deterministic, no random draw.
@@ -462,6 +463,14 @@ public static class RaceSimulator
 
         return balance.LimpPaceLossSeconds * ((LimpThreshold - lowest) / LimpThreshold);
     }
+
+    /// <summary>Continuous pace loss from general component wear (R39): 0 with a fresh car, growing
+    /// linearly to <see cref="BalanceCoefficients.ComponentWearPaceLossSeconds"/> as the weakest
+    /// component wears out. Complements <see cref="LimpPenalty"/> (which only bites past the limp
+    /// cliff); inert (0) until a carset sets the coefficient above zero, so a default race is
+    /// unchanged. No random draw.</summary>
+    private static double ComponentWearPenalty(ComponentHealth health, BalanceCoefficients balance) =>
+        balance.ComponentWearPaceLossSeconds * (1.0 - health.Lowest);
 
     /// <summary>Wear every component this lap. Reliable cars wear slower; a harder engine
     /// mode wears faster.</summary>

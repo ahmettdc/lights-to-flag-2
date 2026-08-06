@@ -170,6 +170,7 @@ internal sealed class BalanceJson
     public double? TyreGentlenessWearInfluence { get; set; }
     public double? DamageAeroLoss { get; set; }
     public double? DamageRepairSeconds { get; set; }
+    public double? ComponentWearPaceLossSeconds { get; set; }
 }
 
 internal sealed class TyreJson
