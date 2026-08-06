@@ -29,6 +29,10 @@ public sealed record Carset
 
     public required IReadOnlyList<Team> Teams { get; init; }
 
+    /// <summary>The id of the team the player runs (M17 / ADR-0004, Team-Principal mode); empty when no
+    /// player team is designated, which leaves every team AI-controlled and a career byte-identical.</summary>
+    public string PlayerTeamId { get; init; } = "";
+
     /// <summary>Full race drivers filling the teams' seats.</summary>
     public required IReadOnlyList<Driver> Drivers { get; init; }
 
@@ -62,4 +66,24 @@ public sealed record Carset
     /// <summary>The series-wide R&amp;D development catalog (M14 / ADR-0016); empty if the carset ships none.
     /// Per-team development progress lives on each team, not here.</summary>
     public TechTree TechTree { get; init; } = TechTree.Empty;
+
+    /// <summary>The team the player runs (M17), or null when none is designated (<see cref="PlayerTeamId"/>
+    /// empty) or the id matches no team — the all-AI default that keeps a career byte-identical.</summary>
+    public Team? PlayerTeam()
+    {
+        if (PlayerTeamId.Length == 0)
+        {
+            return null;
+        }
+
+        foreach (var team in Teams)
+        {
+            if (string.CompareOrdinal(team.Id, PlayerTeamId) == 0)
+            {
+                return team;
+            }
+        }
+
+        return null;
+    }
 }

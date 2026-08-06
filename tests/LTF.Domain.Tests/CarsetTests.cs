@@ -25,4 +25,28 @@ public class CarsetTests
         Assert.Empty(carset.StaffPool);
         Assert.NotNull(carset.Balance);
     }
+
+    [Fact]
+    public void Carset_designates_no_player_team_by_default()
+    {
+        var carset = Fixtures.Carset();
+        Assert.Equal("", carset.PlayerTeamId);
+        Assert.Null(carset.PlayerTeam());
+    }
+
+    [Fact]
+    public void PlayerTeam_resolves_the_designated_team()
+    {
+        var carset = Fixtures.Carset() with { PlayerTeamId = "talon" };
+        var player = carset.PlayerTeam();
+        Assert.NotNull(player);
+        Assert.Equal("talon", player!.Id);
+    }
+
+    [Fact]
+    public void PlayerTeam_is_null_when_the_id_matches_no_team()
+    {
+        var carset = Fixtures.Carset() with { PlayerTeamId = "nonexistent" };
+        Assert.Null(carset.PlayerTeam());
+    }
 }
