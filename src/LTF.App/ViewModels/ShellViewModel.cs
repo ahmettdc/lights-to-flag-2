@@ -16,19 +16,37 @@ namespace LTF.App.ViewModels;
 /// </summary>
 public sealed partial class ShellViewModel : ViewModelBase
 {
+    private readonly IAppShellController? _host;
+
     public ShellViewModel(
         INavigationService navigation,
         ISessionSnapshot session,
-        INotificationSource notifications)
+        INotificationSource notifications,
+        IAppShellController? host = null)
     {
+        _host = host;
         Navigation = navigation;
         Inbox = new InboxViewModel(notifications, navigation);
-        Sidebar = new SidebarViewModel(navigation);
+        Sidebar = new SidebarViewModel(navigation, Dispatch);
         StatusBar = new StatusBarViewModel();
         TopBar = new TopBarViewModel(session, Inbox.UnreadCount, () => IsInboxOpen = !IsInboxOpen);
 
         navigation.PropertyChanged += OnNavigationChanged;
         navigation.Navigate(NavKey.PaddockHub);
+    }
+
+    // Sidebar row selection: Exit-to-menu leaves the shell (via the host); everything else navigates the
+    // content region — Settings resolves to the real settings screen via the navigation factory.
+    private void Dispatch(NavKey key)
+    {
+        if (key == NavKey.ExitToMenu)
+        {
+            _host?.ExitToMenu();
+        }
+        else
+        {
+            Navigation.Navigate(key);
+        }
     }
 
     public INavigationService Navigation { get; }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -17,12 +18,12 @@ public sealed class SidebarViewModel : ViewModelBase
     private readonly INavigationService _navigation;
     private readonly IReadOnlyList<SidebarItemViewModel> _all;
 
-    public SidebarViewModel(INavigationService navigation)
+    public SidebarViewModel(INavigationService navigation, Action<NavKey> dispatch)
     {
         _navigation = navigation;
 
         _all = NavRegistry.Items
-            .Select(item => new SidebarItemViewModel(item, Localizer.Current.Get(item.LabelKey), () => navigation.Navigate(item.Key)))
+            .Select(item => new SidebarItemViewModel(item, Localizer.Current.Get(item.LabelKey), () => dispatch(item.Key)))
             .ToList();
 
         MainItems = _all.Where(i => i.Item.Section == NavSection.Navigation).ToList();

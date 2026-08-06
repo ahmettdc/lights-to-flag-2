@@ -1,6 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LTF.App.Mvvm;
+using LTF.App.Navigation;
 using LTF.App.Services;
 using LTF.App.Session;
 using LTF.App.ViewModels.Menu;
@@ -20,6 +21,7 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 {
     private readonly AppServices _services;
     private readonly Action? _quit;
+    private ShellSession? _currentSession;
 
     public RootViewModel(AppServices services, Action? quit = null)
     {
@@ -58,12 +60,29 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
     public void EnterCareer(ShellSession session)
     {
         _services.Saves.Save(session);
+        _currentSession = session;
+
         var snapshot = new SessionSnapshot(session);
         var navigation = new NavigationService();
-        Content = new ShellViewModel(navigation, snapshot, _services.Notifications);
+        navigation.Register(NavKey.Settings, () => new SettingsViewModel(
+            _services.Settings.Load(),
+            _services.Settings,
+            onClose: () => navigation.Navigate(NavKey.PaddockHub)));
+
+        Content = new ShellViewModel(navigation, snapshot, _services.Notifications, host: this);
     }
 
-    public void ExitToMenu() => ShowMainMenu();
+    public void ExitToMenu()
+    {
+        // Autosave the current session on the way out (if enabled), then drop the shell.
+        if (_currentSession is not null && _services.Settings.Load().Autosave)
+        {
+            _services.Saves.Save(_currentSession);
+        }
+
+        _currentSession = null;
+        ShowMainMenu();
+    }
 
     public void Quit() => _quit?.Invoke();
 }

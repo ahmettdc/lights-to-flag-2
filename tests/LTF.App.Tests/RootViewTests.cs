@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using LTF.App.Navigation;
 using LTF.App.Services;
 using LTF.App.Session;
 using LTF.App.Settings;
@@ -55,6 +56,32 @@ public class RootViewTests
 
         ((SettingsViewModel)root.Content!).BackCommand.Execute(null);
         Assert.IsType<MainMenuViewModel>(root.Content);
+    }
+
+    [Fact]
+    public void In_shell_exit_row_returns_to_the_menu()
+    {
+        var root = MakeRoot();
+        root.EnterCareer(SessionLoader.LoadFlagship());
+        var shell = (ShellViewModel)root.Content!;
+        var exit = shell.Sidebar.SystemItems.First(i => i.Key == NavKey.ExitToMenu);
+
+        exit.SelectCommand.Execute(null);
+
+        Assert.IsType<MainMenuViewModel>(root.Content);
+    }
+
+    [Fact]
+    public void In_shell_settings_row_opens_the_settings_screen()
+    {
+        var root = MakeRoot();
+        root.EnterCareer(SessionLoader.LoadFlagship());
+        var shell = (ShellViewModel)root.Content!;
+        var settings = shell.Sidebar.SystemItems.First(i => i.Key == NavKey.Settings);
+
+        settings.SelectCommand.Execute(null);
+
+        Assert.IsType<SettingsViewModel>(shell.Navigation.CurrentScreen);
     }
 
     [Fact]

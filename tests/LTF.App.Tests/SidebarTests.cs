@@ -20,7 +20,8 @@ public class SidebarTests
     [Fact]
     public void Groups_items_by_section_in_order()
     {
-        var vm = new SidebarViewModel(new NavigationService());
+        var nav = new NavigationService();
+        var vm = new SidebarViewModel(nav, nav.Navigate);
 
         Assert.Equal(10, vm.MainItems.Count);
         Assert.Equal(NavKey.PaddockHub, vm.MainItems[0].Key);
@@ -34,7 +35,7 @@ public class SidebarTests
     public void Selecting_a_row_navigates_and_marks_it_active()
     {
         var nav = new NavigationService();
-        var vm = new SidebarViewModel(nav);
+        var vm = new SidebarViewModel(nav, nav.Navigate);
         var finance = vm.MainItems.First(i => i.Key == NavKey.Finance);
         var drivers = vm.MainItems.First(i => i.Key == NavKey.Drivers);
 
@@ -48,7 +49,8 @@ public class SidebarTests
     [AvaloniaFact]
     public void View_renders_all_nav_buttons()
     {
-        var vm = new SidebarViewModel(new NavigationService());
+        var nav = new NavigationService();
+        var vm = new SidebarViewModel(nav, nav.Navigate);
         var sidebar = new Sidebar { DataContext = vm };
         var window = new Window { Content = sidebar };
 
