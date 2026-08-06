@@ -61,5 +61,12 @@ düğüm aracın derecesini kalıcı yükseltir (fırsat maliyeti: bütçe + pre
 geliştiğini gösterir. **Ertelendi:** sezon-içi güncelleme (M15), regülasyon budaması + sezon devri
 (M18), yatırım/konsept kararları + arayüz (M17/M22).
 
+## Durum (M15 — sezon-içi güncelleme uygulandı)
+`ResearchLedger.DevelopStep` sezon geliştirme oranını tur-dilimlerine böler (toplamları sezon oranına eşit;
+`DevelopSeason` ve testleri dokunulmaz); `RndProgression` tur-arası dikişte tur-başı sürer ve `ResearchSweep`
+`RunProgressed`'a geçer → sezon ortasında onaylanan yükseltme **aynı sezonun sonraki turlarında** araca
+uygulanır. Test günleri ek geliştirme pulse'u verir. **Ertelendi:** regülasyon budaması + sezon devrinde
+taşıma (M18).
+
 ## Sonuç
 Ar-Ge boş bir sayı oyunu değil; her sezon oynanan, aracın kimliğini belirleyen bir ağaç olur.

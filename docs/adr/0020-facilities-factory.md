@@ -36,5 +36,13 @@ geliştirir (`ResearchSweep` doğrular). Flagship 10 takıma çeşitli tesis sev
 **Ertelendi:** yatırım/bakım maliyeti + kalite→güvenilirlik + simülatör→pilot gelişimi
 (M15/ADR-0015), arayüz (M22).
 
+## Durum (M15 — kalite kontrol → güvenilirlik uygulandı)
+`SeasonEntries.Build` her aracın güvenilirliğini takımın **kalite-kontrol** tesis seviyesine göre kaydırır
+(`ResearchRules.QualityControlReliabilityInfluence`, varsayılan 0 → altın-hash + sezonlar byte-özdeş;
+matematik Career katmanında, sim dokunulmaz — ADR-0020 ilkesi). Ayrıca bileşen tahsisi/ömrü artık
+güvenilirliğe bağlı **grid cezaları** üretir (`ComponentPenalties` → `GridOrder.WithPenalties`): az güvenilir
+araç bileşenlerini daha hızlı tüketip kotayı aşar. **Ertelendi:** tesis yatırım/bakım maliyeti (M13), M5b
+yarış-içi sağlık ↔ sezon mileage bağı.
+
 ## Sonuç
 Tesis yatırımı bir "geleceğe hazırlık" ekseni olur; küçük takım doğru yatırımla açığı kapatabilir.

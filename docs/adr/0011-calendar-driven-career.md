@@ -32,6 +32,13 @@ Ağırlıkla **M11** (oyun saati + takvim + Continue). Zaman-planlı sistemler: 
 (M12), Ar-Ge ilerleme (M14), test günleri (M15), sezon devri/transfer (M18). Arayüz:
 Continue + tarihli gelen kutusu + takvim (M21). Kalıcılık: M31.
 
+## Durum (M15 — test günleri uygulandı)
+`Carset.TestDays` (tarih + pist) carset'ten yüklenir + doğrulanır; `SeasonCalendar` bildirilen ama o güne
+dek üretilmeyen `CalendarEventKind.TestDay` olayını nihayet üretir (liste boşken byte-özdeş). Sezon motoru
+bir **tur-arası dikişle** (`SeasonSimulator.RunProgressed` + `IBetweenRounds`) evrilir; test günü R&D
+geliştirmesini hızlandırır (`RndProgression`). **Ertelendi:** interaktif günlük tick + Continue-sürücülü
+runner (Faz-3 UI).
+
 ## Sonuç
 Kariyer, yarıştan yarışa atlayan bir tablo değil; günleri akan, olaylar ve son tarihlerle
 dolu yaşayan bir zaman çizgisi olur.
