@@ -89,6 +89,20 @@ public sealed record SeasonCalendar
                     });
                 }
             }
+
+            // Board reviews at the ADR-0025 cadence (M17), when the carset runs boards — season start,
+            // after the opening races and season end. Byte-identical to before when it ships none.
+            if (carset.Boards.Count > 0)
+            {
+                var rounds = carset.Calendar.OrderBy(r => r.Round).ToList();
+                events.Add(BoardReviewEvent(rounds[0].Date.AddDays(-1)));
+                if (rounds.Count >= 3)
+                {
+                    events.Add(BoardReviewEvent(rounds[2].Date));
+                }
+
+                events.Add(BoardReviewEvent(rounds[^1].Date.AddDays(BoardReviewDaysAfterFinal)));
+            }
         }
 
         var ordered = events.OrderBy(e => e.Date).ThenBy(e => e.Round).ToList();
@@ -97,4 +111,10 @@ public sealed record SeasonCalendar
 
     /// <summary>Days before the season's final round that expiring contracts come up for renewal.</summary>
     private const int DeadlineDaysBeforeFinal = 7;
+
+    /// <summary>Days after the final round that the end-of-season board review falls.</summary>
+    private const int BoardReviewDaysAfterFinal = 3;
+
+    private static CalendarEvent BoardReviewEvent(DateOnly date) =>
+        new() { Date = date, Kind = CalendarEventKind.BoardReview, Label = "board-review" };
 }
