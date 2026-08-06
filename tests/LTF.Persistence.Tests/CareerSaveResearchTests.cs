@@ -123,6 +123,30 @@ public class CareerSaveResearchTests
         Assert.Empty(state.Research);
     }
 
+    [Fact]
+    public void A_mid_season_evolved_carset_round_trips()
+    {
+        // M15 develops R&D mid-season, leaving projects at part-progress. That state persists on the
+        // same TeamResearchRecord as M14 — no new save format is needed. Advance one round-slice, then
+        // capture the mid-season carset and prove it round-trips byte-stably.
+        var carset = DevelopedCarset() with
+        {
+            Rules = DevelopedCarset().Rules with
+            {
+                Research = new ResearchRules { BaseProgressPerSeason = 100, StepProgress = 100, BaseActiveProjects = 1 },
+            },
+        };
+        var evolved = ResearchLedger.DevelopStep(carset, 7, roundIndex: 1, roundCount: 4).Carset;
+
+        var state = CareerState.Capture(evolved, new DateOnly(2025, 6, 1), 7);
+        var loaded = CareerStore.Deserialize(CareerStore.Serialize(state));
+
+        Assert.Equal(CareerStore.Serialize(state), CareerStore.Serialize(loaded)); // byte-stable
+        var project = loaded.Research.Single(r => r.TeamId == "alpha").ActiveProjects.Single();
+        Assert.Equal(ValidationState.InManufacture, project.State);
+        Assert.Equal(65, project.Progress); // 40 + one round-slice of 25, persisted mid-season
+    }
+
     private static Carset DevelopedCarset() => new()
     {
         Id = "mini",
