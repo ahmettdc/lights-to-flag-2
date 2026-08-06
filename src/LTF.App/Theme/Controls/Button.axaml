@@ -1,0 +1,59 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Button variants as classes on the Fluent Button. Pointer-over/pressed colours must be overridden
+    via the Fluent resource keys in Style.Resources — a plain Background setter does not change the
+    template's per-state brushes. Colours are the locked brand kit (design/brand/README.txt).
+  -->
+
+  <!-- Primary: red CTA (Continue, confirm) -->
+  <Style Selector="Button.primary">
+    <Style.Resources>
+      <SolidColorBrush x:Key="ButtonBackground" Color="#FF3B2F" />
+      <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FF5647" />
+      <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FF5647" />
+      <SolidColorBrush x:Key="ButtonForeground" Color="#0A0B0E" />
+      <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#0A0B0E" />
+      <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#0A0B0E" />
+    </Style.Resources>
+    <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="16,7" />
+  </Style>
+
+  <!-- Secondary: outlined pill (Inbox) -->
+  <Style Selector="Button.secondary">
+    <Style.Resources>
+      <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+      <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14171C" />
+      <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#14171C" />
+      <SolidColorBrush x:Key="ButtonForeground" Color="#C6CBD1" />
+      <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#F2F4F6" />
+      <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#F2F4F6" />
+      <SolidColorBrush x:Key="ButtonBorderBrush" Color="#2B3038" />
+      <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="#2B3038" />
+      <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="#2B3038" />
+    </Style.Resources>
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="14,6" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+  </Style>
+
+  <!-- Ghost: text-only (nav, quiet actions) -->
+  <Style Selector="Button.ghost">
+    <Style.Resources>
+      <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+      <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14171C" />
+      <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#14171C" />
+      <SolidColorBrush x:Key="ButtonForeground" Color="#9AA0A8" />
+      <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#F2F4F6" />
+      <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#F2F4F6" />
+    </Style.Resources>
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="10,6" />
+  </Style>
+
+</Styles>

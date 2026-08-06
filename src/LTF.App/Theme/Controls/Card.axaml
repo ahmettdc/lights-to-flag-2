@@ -1,0 +1,36 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:LTF.App.Controls"
+                    xmlns:conv="using:Avalonia.Data.Converters">
+
+  <ControlTheme x:Key="{x:Type c:Card}" TargetType="c:Card">
+    <Setter Property="Background" Value="{DynamicResource BrushCard}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="14" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <DockPanel LastChildFill="True">
+            <TextBlock DockPanel.Dock="Top"
+                       Text="{TemplateBinding Header}"
+                       IsVisible="{TemplateBinding Header, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}"
+                       Foreground="{DynamicResource BrushTextMuted}"
+                       FontFamily="{DynamicResource FontNumeric}"
+                       FontSize="11"
+                       Margin="0,0,0,10" />
+            <ContentPresenter Name="PART_ContentPresenter"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>

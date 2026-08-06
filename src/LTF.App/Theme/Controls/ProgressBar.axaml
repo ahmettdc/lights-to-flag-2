@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Keyed thin progress bar (Theme="{StaticResource ThinProgressBar}"). Applied explicitly rather than
+    overriding the built-in ProgressBar so it never fights FluentTheme. The control sizes the element
+    named PART_Indicator from Value/Minimum/Maximum.
+  -->
+  <ControlTheme x:Key="ThinProgressBar" TargetType="ProgressBar">
+    <Setter Property="Height" Value="6" />
+    <Setter Property="Minimum" Value="0" />
+    <Setter Property="Maximum" Value="100" />
+    <Setter Property="Foreground" Value="{DynamicResource BrushAccent}" />
+    <Setter Property="Background" Value="{DynamicResource BrushStatCell}" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Background="{TemplateBinding Background}"
+                CornerRadius="3"
+                ClipToBounds="True">
+          <Border Name="PART_Indicator"
+                  Background="{TemplateBinding Foreground}"
+                  CornerRadius="3"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Stretch" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>
