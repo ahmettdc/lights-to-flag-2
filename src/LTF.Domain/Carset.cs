@@ -63,6 +63,10 @@ public sealed record Carset
     /// <summary>Active contracts binding drivers/staff to teams (M12); empty if the carset ships none.</summary>
     public IReadOnlyList<Contract> Contracts { get; init; } = [];
 
+    /// <summary>Each team's board, ownership and pressure (M17 / ADR-0025); empty if the carset ships none,
+    /// which leaves every team AI-run and a career byte-identical.</summary>
+    public IReadOnlyList<TeamBoard> Boards { get; init; } = [];
+
     /// <summary>The series-wide R&amp;D development catalog (M14 / ADR-0016); empty if the carset ships none.
     /// Per-team development progress lives on each team, not here.</summary>
     public TechTree TechTree { get; init; } = TechTree.Empty;
