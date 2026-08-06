@@ -65,5 +65,15 @@ public static class StringKeys
     public const string NewCareerConfirmHeading = "newcareer.confirmHeading";
     public const string NewCareerStepCarset = "newcareer.stepCarset";
     public const string NewCareerStepTeam = "newcareer.stepTeam";
+    public const string NewCareerStepBoard = "newcareer.stepBoard";
     public const string NewCareerStepConfirm = "newcareer.stepConfirm";
+
+    // Board-objective negotiation.
+    public const string BoardHeading = "board.heading";
+    public const string BoardAmbitionCautious = "board.ambition.cautious";
+    public const string BoardAmbitionBalanced = "board.ambition.balanced";
+    public const string BoardAmbitionAggressive = "board.ambition.aggressive";
+    public const string BoardReactionAccepted = "board.reaction.accepted";
+    public const string BoardReactionCountered = "board.reaction.countered";
+    public const string BoardReactionRejected = "board.reaction.rejected";
 }

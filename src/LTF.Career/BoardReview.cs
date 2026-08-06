@@ -142,7 +142,9 @@ public static class BoardReview
 
     private static bool IsFinancial(Objective o) => o.Kind == ObjectiveKind.FinancialResult;
 
-    private static Objective DefaultObjective(OwnershipType ownership) => ownership switch
+    /// <summary>The board's opening objective for an ownership type — the anchor a season is judged against
+    /// and the starting point <see cref="BoardNegotiation"/> negotiates from.</summary>
+    public static Objective DefaultObjective(OwnershipType ownership) => ownership switch
     {
         OwnershipType.RacingOwner => new Objective { Kind = ObjectiveKind.ConstructorPosition, Target = 3 },
         OwnershipType.FinanceBoard => new Objective { Kind = ObjectiveKind.FinancialResult, Target = 0 },

@@ -6,24 +6,26 @@ using LTF.App.Localization;
 using LTF.App.Mvvm;
 using LTF.App.Services;
 using LTF.App.Session;
+using LTF.Domain.Management;
 
 namespace LTF.App.ViewModels.Menu;
 
-/// <summary>The steps of the new-career wizard. M20b covers carset → team → confirm; M20c inserts the
-/// interactive board-objective negotiation between Team and Confirm.</summary>
+/// <summary>The steps of the new-career wizard: pick a carset, pick the team, negotiate the board's
+/// objectives, then confirm and start.</summary>
 public enum NewCareerStep
 {
     Carset,
     Team,
+    Board,
     Confirm,
 }
 
 /// <summary>
-/// The new Team-Principal career flow (M20b): pick a carset, pick the team to run, confirm and start.
-/// Selecting a carset repopulates the team list and pre-selects the carset's designated player team.
-/// Start hands the built <see cref="ShellSession"/> to the shell via <see cref="IAppShellController"/>.
-/// Board objectives default to each board's ownership (via <c>BoardReview.SetObjectives</c>) here; M20c
-/// makes that step an interactive negotiation.
+/// The new Team-Principal career flow (M20b/M20c): pick a carset, pick the team to run, negotiate the
+/// board's objectives, confirm and start. Selecting a carset repopulates the team list and pre-selects the
+/// carset's designated player team; entering the board step opens an interactive negotiation for the chosen
+/// team's board (a neutral board is synthesised for a team the carset ships none for). Start hands the built
+/// <see cref="ShellSession"/> — with the negotiated objectives — to the shell via <see cref="IAppShellController"/>.
 /// </summary>
 public sealed partial class NewCareerViewModel : ViewModelBase
 {
@@ -42,8 +44,8 @@ public sealed partial class NewCareerViewModel : ViewModelBase
     public ObservableCollection<TeamOptionViewModel> Teams { get; } = new();
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCarsetStep), nameof(IsTeamStep), nameof(IsConfirmStep),
-        nameof(StepLabel), nameof(CanGoNext))]
+    [NotifyPropertyChangedFor(nameof(IsCarsetStep), nameof(IsTeamStep), nameof(IsBoardStep),
+        nameof(IsConfirmStep), nameof(StepLabel), nameof(CanGoNext))]
     [NotifyCanExecuteChangedFor(nameof(NextCommand))]
     private NewCareerStep _step = NewCareerStep.Carset;
 
@@ -57,9 +59,16 @@ public sealed partial class NewCareerViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(NextCommand), nameof(StartCommand))]
     private TeamOptionViewModel? _selectedTeam;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanGoNext))]
+    [NotifyCanExecuteChangedFor(nameof(NextCommand))]
+    private BoardNegotiationViewModel? _board;
+
     public bool IsCarsetStep => Step == NewCareerStep.Carset;
 
     public bool IsTeamStep => Step == NewCareerStep.Team;
+
+    public bool IsBoardStep => Step == NewCareerStep.Board;
 
     public bool IsConfirmStep => Step == NewCareerStep.Confirm;
 
@@ -67,6 +76,7 @@ public sealed partial class NewCareerViewModel : ViewModelBase
     {
         NewCareerStep.Carset => StringKeys.NewCareerStepCarset,
         NewCareerStep.Team => StringKeys.NewCareerStepTeam,
+        NewCareerStep.Board => StringKeys.NewCareerStepBoard,
         _ => StringKeys.NewCareerStepConfirm,
     });
 
@@ -79,6 +89,7 @@ public sealed partial class NewCareerViewModel : ViewModelBase
     {
         NewCareerStep.Carset => SelectedCarset is not null,
         NewCareerStep.Team => SelectedTeam is not null,
+        NewCareerStep.Board => Board is not null,
         _ => false,
     };
 
@@ -106,12 +117,19 @@ public sealed partial class NewCareerViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanGoNext))]
     private void Next()
     {
-        Step = Step switch
+        switch (Step)
         {
-            NewCareerStep.Carset => NewCareerStep.Team,
-            NewCareerStep.Team => NewCareerStep.Confirm,
-            _ => Step,
-        };
+            case NewCareerStep.Carset:
+                Step = NewCareerStep.Team;
+                break;
+            case NewCareerStep.Team:
+                OpenBoardNegotiation();
+                Step = NewCareerStep.Board;
+                break;
+            case NewCareerStep.Board:
+                Step = NewCareerStep.Confirm;
+                break;
+        }
     }
 
     [RelayCommand]
@@ -125,8 +143,11 @@ public sealed partial class NewCareerViewModel : ViewModelBase
             case NewCareerStep.Team:
                 Step = NewCareerStep.Carset;
                 break;
-            case NewCareerStep.Confirm:
+            case NewCareerStep.Board:
                 Step = NewCareerStep.Team;
+                break;
+            case NewCareerStep.Confirm:
+                Step = NewCareerStep.Board;
                 break;
         }
     }
@@ -135,7 +156,18 @@ public sealed partial class NewCareerViewModel : ViewModelBase
     private void Start()
     {
         var carset = SelectedCarset!.Descriptor.Carset;
-        var session = NewCareerService.Create(carset, SelectedTeam!.Id, []);
+        var objectives = Board?.Agreed ?? [];
+        var session = NewCareerService.Create(carset, SelectedTeam!.Id, objectives);
         _host.EnterCareer(session);
+    }
+
+    // Build the negotiation for the chosen team's board, synthesising a neutral board if the carset ships
+    // none for that team (so the board step is always meaningful).
+    private void OpenBoardNegotiation()
+    {
+        var carset = SelectedCarset!.Descriptor.Carset;
+        var teamId = SelectedTeam!.Id;
+        var board = carset.Boards.FirstOrDefault(b => b.TeamId == teamId) ?? new TeamBoard { TeamId = teamId };
+        Board = new BoardNegotiationViewModel(board, SessionLoader.DefaultSeed);
     }
 }

@@ -53,13 +53,18 @@ public class NewCareerFlowTests
     }
 
     [Fact]
-    public void Next_advances_carset_to_team_to_confirm()
+    public void Next_advances_carset_team_board_confirm()
     {
         var wizard = new NewCareerViewModel(new CapturingShell(), Catalog());
         wizard.SelectedCarset = wizard.Carsets.First(c => c.Id == "global-prix");
 
         wizard.NextCommand.Execute(null);
         Assert.Equal(NewCareerStep.Team, wizard.Step);
+
+        wizard.NextCommand.Execute(null);
+        Assert.Equal(NewCareerStep.Board, wizard.Step);
+        Assert.NotNull(wizard.Board);
+        Assert.NotEmpty(wizard.Board!.Objectives);
 
         wizard.NextCommand.Execute(null);
         Assert.Equal(NewCareerStep.Confirm, wizard.Step);

@@ -61,6 +61,38 @@
           </ListBox.ItemTemplate>
         </ListBox>
 
+        <ScrollViewer IsVisible="{Binding IsBoardStep}" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Spacing="12" Margin="4">
+            <TextBlock Text="{loc:Tr board.heading}"
+                       FontFamily="{DynamicResource FontNumeric}" FontSize="12" LetterSpacing="1"
+                       Foreground="{DynamicResource BrushTextDim}" TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Classes="secondary"
+                      Command="{Binding Board.CautiousCommand}" Content="{loc:Tr board.ambition.cautious}" />
+              <Button Classes="secondary"
+                      Command="{Binding Board.BalancedCommand}" Content="{loc:Tr board.ambition.balanced}" />
+              <Button Classes="secondary"
+                      Command="{Binding Board.AggressiveCommand}" Content="{loc:Tr board.ambition.aggressive}" />
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding Board.Objectives}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ObjectiveRowViewModel">
+                  <Border Margin="0,0,0,8" Padding="12"
+                          Background="{DynamicResource BrushChrome}" CornerRadius="6">
+                    <StackPanel Spacing="3">
+                      <TextBlock Text="{Binding AgreedText}"
+                                 FontFamily="{DynamicResource FontHeading}" FontSize="15"
+                                 Foreground="{DynamicResource BrushTextPrimary}" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding ReactionText}"
+                                 FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ScrollViewer>
+
         <StackPanel IsVisible="{Binding IsConfirmStep}" Spacing="8" Margin="4">
           <TextBlock Text="{loc:Tr newcareer.confirmHeading}"
                      FontFamily="{DynamicResource FontNumeric}" FontSize="12" LetterSpacing="2"

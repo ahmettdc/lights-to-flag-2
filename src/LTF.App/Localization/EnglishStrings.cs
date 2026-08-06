@@ -59,8 +59,17 @@ public static class EnglishStrings
         [StringKeys.NewCareerNext] = "NEXT",
         [StringKeys.NewCareerStart] = "START CAREER",
         [StringKeys.NewCareerConfirmHeading] = "YOU'RE ABOUT TO TAKE CHARGE OF",
-        [StringKeys.NewCareerStepCarset] = "STEP 1 OF 3 · CHOOSE A SERIES",
-        [StringKeys.NewCareerStepTeam] = "STEP 2 OF 3 · CHOOSE YOUR TEAM",
-        [StringKeys.NewCareerStepConfirm] = "STEP 3 OF 3 · CONFIRM",
+        [StringKeys.NewCareerStepCarset] = "STEP 1 OF 4 · CHOOSE A SERIES",
+        [StringKeys.NewCareerStepTeam] = "STEP 2 OF 4 · CHOOSE YOUR TEAM",
+        [StringKeys.NewCareerStepBoard] = "STEP 3 OF 4 · BOARD OBJECTIVES",
+        [StringKeys.NewCareerStepConfirm] = "STEP 4 OF 4 · CONFIRM",
+
+        [StringKeys.BoardHeading] = "The board sets your mandate. Push back with your ambition, and they'll answer.",
+        [StringKeys.BoardAmbitionCautious] = "CAUTIOUS",
+        [StringKeys.BoardAmbitionBalanced] = "BALANCED",
+        [StringKeys.BoardAmbitionAggressive] = "AGGRESSIVE",
+        [StringKeys.BoardReactionAccepted] = "The board agrees.",
+        [StringKeys.BoardReactionCountered] = "The board counters.",
+        [StringKeys.BoardReactionRejected] = "The board holds firm.",
     };
 }
