@@ -105,6 +105,25 @@ public class ResearchSweepTests
         Assert.Equal(Key(ResearchSweep.Run(carset, 4, 7)), Key(ResearchSweep.Run(carset, 4, 7)));
     }
 
+    [Fact]
+    public void In_season_progression_develops_the_car_during_the_season()
+    {
+        var progress = SeasonSimulator.RunProgressed(DevelopingCarset(), 7, new RndProgression(7));
+
+        Assert.Contains(progress.Carset.Teams, t => t.Car.Aerodynamics.Value > 50); // approved mid-season
+        Assert.All(progress.Carset.Teams, t => Assert.True(t.Car.Aerodynamics.Value <= 100));
+    }
+
+    [Fact]
+    public void A_research_free_progression_leaves_the_carset_untouched()
+    {
+        var carset = CareerFixtures.SeasonCarset(rounds: 4);
+
+        var progress = SeasonSimulator.RunProgressed(carset, 7, new RndProgression(7));
+
+        Assert.Same(carset, progress.Carset); // no tech tree → the progression is a no-op
+    }
+
     private static string Key(ResearchSweepReport report) =>
         string.Join(";", report.Teams.Select(t =>
             $"{t.TeamId}:{t.StartOverall},{t.FinalOverall},{t.MaxOverall},{t.NodesUnlocked},{t.NodesApproved},{t.NodesAbandoned}"));

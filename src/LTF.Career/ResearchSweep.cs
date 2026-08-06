@@ -84,11 +84,13 @@ public static class ResearchSweep
         for (var season = 0; season < seasons; season++)
         {
             var seasonSeed = SeasonSeed(seed, season);
-            var result = SeasonSimulator.Run(current, seasonSeed);
-            var settlement = EconomyLedger.SettleSeason(current, result);
-            var outcome = ResearchLedger.DevelopSeason(settlement.Carset, seasonSeed);
 
-            foreach (var team in outcome.Carset.Teams)
+            // Develop R&D DURING the season (M15): an upgrade approved mid-season is felt in later rounds.
+            var progression = new RndProgression(seasonSeed);
+            var progress = SeasonSimulator.RunProgressed(current, seasonSeed, progression);
+            var settlement = EconomyLedger.SettleSeason(progress.Carset, progress.Result);
+
+            foreach (var team in settlement.Carset.Teams)
             {
                 var overall = team.Car.Overall;
                 final[team.Id] = overall;
@@ -96,7 +98,7 @@ public static class ResearchSweep
                 unlocked[team.Id] = team.Research.UnlockedNodeIds.Count;
             }
 
-            foreach (var development in outcome.Developments)
+            foreach (var development in progression.Developments)
             {
                 approved[development.TeamId] = approved.GetValueOrDefault(development.TeamId) + development.NodesApproved;
                 abandoned[development.TeamId] =
@@ -104,7 +106,7 @@ public static class ResearchSweep
             }
 
             // Roll the records forward; CareerRollover keeps the developed cars and settled finances.
-            current = CareerRollover.Apply(outcome.Carset, result);
+            current = CareerRollover.Apply(settlement.Carset, progress.Result);
         }
 
         var teams = carset.Teams
