@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels"
+             xmlns:c="using:LTF.App.Controls"
+             x:Class="LTF.App.Views.Notifications.InboxPopover"
+             x:DataType="vm:InboxViewModel">
+
+  <Border Width="360" MaxHeight="440"
+          Background="{DynamicResource BrushCard}"
+          BorderBrush="{DynamicResource BrushBorderStrong}" BorderThickness="1"
+          CornerRadius="10" Padding="6">
+    <Panel>
+      <c:EmptyState Title="No notifications" IsVisible="{Binding !HasItems}" />
+
+      <ScrollViewer IsVisible="{Binding HasItems}" HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl ItemsSource="{Binding Items}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:NotificationViewModel">
+              <Button Classes="ghost" Command="{Binding OpenCommand}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                      Padding="10,8" CornerRadius="8">
+                <StackPanel Spacing="4">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                             Fill="{Binding Severity, Converter={StaticResource SeverityColor}}" />
+                    <TextBlock Text="{Binding Title}"
+                               FontFamily="{DynamicResource FontBody}" FontWeight="SemiBold" FontSize="13"
+                               Foreground="{DynamicResource BrushTextPrimary}" TextWrapping="Wrap" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding Body}"
+                             FontFamily="{DynamicResource FontBody}" FontSize="12"
+                             Foreground="{DynamicResource BrushTextDim}" TextWrapping="Wrap" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Panel>
+  </Border>
+
+</UserControl>
