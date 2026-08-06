@@ -1,0 +1,95 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels.Quick"
+             xmlns:menu="using:LTF.App.ViewModels.Menu"
+             xmlns:sess="using:LTF.App.Session"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Quick.QuickRaceView"
+             x:DataType="vm:QuickRaceViewModel">
+
+  <Border Background="{DynamicResource BrushAppBackground}" Padding="40">
+    <DockPanel MaxWidth="720" HorizontalAlignment="Center">
+
+      <TextBlock DockPanel.Dock="Top" Text="{loc:Tr quickrace.title}"
+                 FontFamily="{DynamicResource FontHeading}" FontSize="28"
+                 Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,4" />
+
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto" Margin="0,18,0,0">
+        <Button Grid.Column="0" Classes="ghost"
+                Command="{Binding BackCommand}" Content="{loc:Tr quickrace.back}" />
+        <Button Grid.Column="2" Classes="primary" IsVisible="{Binding IsSetup}"
+                Command="{Binding RunCommand}" Content="{loc:Tr quickrace.run}" />
+      </Grid>
+
+      <Panel Margin="0,16,0,0">
+
+        <!-- Setup -->
+        <StackPanel IsVisible="{Binding IsSetup}" Spacing="14" Width="360" HorizontalAlignment="Left">
+          <StackPanel Spacing="4">
+            <TextBlock Text="{loc:Tr quickrace.carset}"
+                       FontFamily="{DynamicResource FontNumeric}" FontSize="12" LetterSpacing="1"
+                       Foreground="{DynamicResource BrushTextDim}" />
+            <ComboBox HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Carsets}" SelectedItem="{Binding SelectedCarset}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="menu:CarsetOptionViewModel">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+          <StackPanel Spacing="4">
+            <TextBlock Text="{loc:Tr quickrace.circuit}"
+                       FontFamily="{DynamicResource FontNumeric}" FontSize="12" LetterSpacing="1"
+                       Foreground="{DynamicResource BrushTextDim}" />
+            <ComboBox HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding Circuits}" SelectedItem="{Binding SelectedCircuit}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:CircuitOptionViewModel">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Result -->
+        <DockPanel IsVisible="{Binding !IsSetup}">
+          <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,12">
+            <TextBlock Text="{Binding Result.CircuitName}"
+                       FontFamily="{DynamicResource FontHeading}" FontSize="20"
+                       Foreground="{DynamicResource BrushTextPrimary}" />
+            <TextBlock Text="{Binding Result.WinnerName, StringFormat='{}{0} wins'}"
+                       FontSize="13" Foreground="{DynamicResource BrushTextDim}" />
+          </StackPanel>
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Result.Rows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="sess:QuickRaceRow">
+                  <Grid ColumnDefinitions="36,*,150,90,44" Margin="0,3">
+                    <TextBlock Grid.Column="0" Text="{Binding Position}"
+                               FontFamily="{DynamicResource FontNumeric}"
+                               Foreground="{DynamicResource BrushTextDim}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Driver}"
+                               Foreground="{DynamicResource BrushTextPrimary}" />
+                    <TextBlock Grid.Column="2" Text="{Binding Team}"
+                               Foreground="{DynamicResource BrushTextDim}" />
+                    <TextBlock Grid.Column="3" Text="{Binding GapText}" TextAlignment="Right"
+                               FontFamily="{DynamicResource FontNumeric}"
+                               Foreground="{DynamicResource BrushTextDim}" />
+                    <TextBlock Grid.Column="4" Text="{Binding PointsText}" TextAlignment="Right"
+                               FontFamily="{DynamicResource FontNumeric}"
+                               Foreground="{DynamicResource BrushTextPrimary}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+
+      </Panel>
+
+    </DockPanel>
+  </Border>
+
+</UserControl>

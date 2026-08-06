@@ -95,5 +95,11 @@ public static class EnglishStrings
         [StringKeys.SettingsSave] = "SAVE",
         [StringKeys.SettingsBack] = "BACK",
         [StringKeys.SettingsReset] = "RESET",
+
+        [StringKeys.QuickRaceTitle] = "QUICK RACE",
+        [StringKeys.QuickRaceCarset] = "SERIES",
+        [StringKeys.QuickRaceCircuit] = "CIRCUIT",
+        [StringKeys.QuickRaceRun] = "RACE",
+        [StringKeys.QuickRaceBack] = "BACK",
     };
 }

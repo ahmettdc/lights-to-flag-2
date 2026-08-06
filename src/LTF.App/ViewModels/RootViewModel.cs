@@ -5,6 +5,7 @@ using LTF.App.Navigation;
 using LTF.App.Services;
 using LTF.App.Session;
 using LTF.App.ViewModels.Menu;
+using LTF.App.ViewModels.Quick;
 using LTF.App.ViewModels.Settings;
 
 namespace LTF.App.ViewModels;
@@ -49,10 +50,7 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 
     public void ShowLoadGame() => Content = new LoadGameViewModel(this, _services.Saves);
 
-    public void ShowQuickRace()
-    {
-        // TODO(M20g): show the Quick Race setup.
-    }
+    public void ShowQuickRace() => Content = new QuickRaceViewModel(this, _services.Catalog);
 
     public void ShowSettings() =>
         Content = new SettingsViewModel(_services.Settings.Load(), _services.Settings, onClose: ShowMainMenu);

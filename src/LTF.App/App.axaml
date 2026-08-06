@@ -7,6 +7,8 @@
              xmlns:menuviews="using:LTF.App.Views.Menu"
              xmlns:setvm="using:LTF.App.ViewModels.Settings"
              xmlns:setviews="using:LTF.App.Views.Settings"
+             xmlns:quickvm="using:LTF.App.ViewModels.Quick"
+             xmlns:quickviews="using:LTF.App.Views.Quick"
              xmlns:shell="using:LTF.App.Shell"
              xmlns:conv="using:LTF.App.Converters"
              x:Class="LTF.App.App"
@@ -26,6 +28,9 @@
     </DataTemplate>
     <DataTemplate DataType="{x:Type setvm:SettingsViewModel}">
       <setviews:SettingsView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type quickvm:QuickRaceViewModel}">
+      <quickviews:QuickRaceView />
     </DataTemplate>
     <DataTemplate DataType="{x:Type vm:ShellViewModel}">
       <shell:ShellView />

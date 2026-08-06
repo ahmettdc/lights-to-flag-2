@@ -11,6 +11,7 @@ using LTF.App.Settings;
 using LTF.App.Shell;
 using LTF.App.ViewModels;
 using LTF.App.ViewModels.Menu;
+using LTF.App.ViewModels.Quick;
 using LTF.App.ViewModels.Settings;
 using LTF.App.Views;
 using LTF.App.Views.Menu;
@@ -82,6 +83,16 @@ public class RootViewTests
         settings.SelectCommand.Execute(null);
 
         Assert.IsType<SettingsViewModel>(shell.Navigation.CurrentScreen);
+    }
+
+    [Fact]
+    public void Quick_race_opens_from_the_menu()
+    {
+        var root = MakeRoot();
+
+        root.ShowQuickRace();
+
+        Assert.IsType<QuickRaceViewModel>(root.Content);
     }
 
     [Fact]

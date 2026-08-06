@@ -102,4 +102,11 @@ public static class StringKeys
     public const string SettingsSave = "settings.save";
     public const string SettingsBack = "settings.back";
     public const string SettingsReset = "settings.reset";
+
+    // Quick Race.
+    public const string QuickRaceTitle = "quickrace.title";
+    public const string QuickRaceCarset = "quickrace.carset";
+    public const string QuickRaceCircuit = "quickrace.circuit";
+    public const string QuickRaceRun = "quickrace.run";
+    public const string QuickRaceBack = "quickrace.back";
 }
