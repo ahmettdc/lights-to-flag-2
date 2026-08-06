@@ -19,7 +19,7 @@ namespace LTF.Career;
 /// </summary>
 public static class ResearchLedger
 {
-    public static ResearchOutcome DevelopSeason(Carset carset, int seed)
+    public static ResearchOutcome DevelopSeason(Carset carset, int seed, IDevelopmentDirectives? directives = null)
     {
         var rules = carset.Rules.Research;
         if (carset.TechTree.Nodes.Count == 0 || rules.BaseProgressPerSeason <= 0)
@@ -32,8 +32,9 @@ public static class ResearchLedger
         var teams = new List<Team>(carset.Teams.Count);
         foreach (var team in carset.Teams)
         {
-            var (developed, development) =
-                Develop(carset.TechTree, rules, team, root.Fork(Salt(team.Id)), Rate(rules, team));
+            var (developed, development) = Develop(
+                carset.TechTree, rules, team, root.Fork(Salt(team.Id)), Rate(rules, team),
+                ConceptFor(directives, team.Id), CapFor(directives, team.Id));
             teams.Add(developed);
             developments.Add(development);
         }
@@ -49,7 +50,8 @@ public static class ResearchLedger
     /// seeded per round (the seed is mixed with the round index so each round's draws are independent);
     /// with no tech tree, no development budget or a non-positive round count the carset is returned untouched.
     /// </summary>
-    public static ResearchOutcome DevelopStep(Carset carset, int seed, int roundIndex, int roundCount)
+    public static ResearchOutcome DevelopStep(
+        Carset carset, int seed, int roundIndex, int roundCount, IDevelopmentDirectives? directives = null)
     {
         var rules = carset.Rules.Research;
         if (carset.TechTree.Nodes.Count == 0 || rules.BaseProgressPerSeason <= 0 || roundCount <= 0)
@@ -63,8 +65,9 @@ public static class ResearchLedger
         foreach (var team in carset.Teams)
         {
             var stepRate = StepRate(Rate(rules, team), roundIndex, roundCount);
-            var (developed, development) =
-                Develop(carset.TechTree, rules, team, root.Fork(Salt(team.Id)), stepRate);
+            var (developed, development) = Develop(
+                carset.TechTree, rules, team, root.Fork(Salt(team.Id)), stepRate,
+                ConceptFor(directives, team.Id), CapFor(directives, team.Id));
             teams.Add(developed);
             developments.Add(development);
         }
@@ -73,7 +76,8 @@ public static class ResearchLedger
     }
 
     private static (Team Team, TeamDevelopment Development) Develop(
-        TechTree tree, ResearchRules rules, Team team, IRandom rng, int rate)
+        TechTree tree, ResearchRules rules, Team team, IRandom rng, int rate,
+        ConceptDirection concept, long budgetCap)
     {
         var car = team.Car;
         var balance = team.Finances.Balance;
@@ -117,10 +121,13 @@ public static class ResearchLedger
             }
         }
 
-        // 2. Fill free slots with affordable, prerequisite-met nodes (deterministic catalog order).
+        // 2. Fill free slots with affordable, prerequisite-met nodes. A concept steers the order (nodes
+        // aligned with the lean come first); a neutral concept leaves plain catalog order. A budget cap
+        // limits the total spend. Both are inert by default (neutral concept + uncapped → today's path).
         var capacity = Math.Max(0, rules.BaseActiveProjects);
         var activeIds = new HashSet<string>(active.Select(p => p.NodeId), StringComparer.Ordinal);
-        foreach (var node in tree.Nodes)
+        long spent = 0;
+        foreach (var node in Candidates(tree.Nodes, concept))
         {
             if (active.Count >= capacity)
             {
@@ -134,12 +141,13 @@ public static class ResearchLedger
             }
 
             var cost = Cost(node, rules);
-            if (cost > balance)
+            if (cost > balance || spent + cost > budgetCap)
             {
                 continue;
             }
 
             balance -= cost;
+            spent += cost;
             active.Add(Start(node, rules));
             activeIds.Add(node.Id);
         }
@@ -224,6 +232,33 @@ public static class ResearchLedger
 
         return true;
     }
+
+    // Resolve a directive to this team's concept and spend cap; absent → neutral + uncapped, the path
+    // that keeps development byte-identical to no directive at all.
+    private static ConceptDirection ConceptFor(IDevelopmentDirectives? directives, string teamId) =>
+        directives?.ConceptFor(teamId) ?? ConceptDirection.Neutral;
+
+    private static long CapFor(IDevelopmentDirectives? directives, string teamId) =>
+        directives?.BudgetCapFor(teamId) ?? long.MaxValue;
+
+    // Nodes in the order to consider starting them: plain catalog order for a neutral concept, else
+    // concept-aligned nodes first. The sort is stable, so ties keep catalog order and a neutral concept
+    // is byte-identical to iterating tree.Nodes directly.
+    private static IReadOnlyList<TechNode> Candidates(IReadOnlyList<TechNode> nodes, ConceptDirection concept) =>
+        IsNeutral(concept) ? nodes : nodes.OrderByDescending(n => ConceptBias(n, concept)).ToList();
+
+    private static bool IsNeutral(ConceptDirection concept) =>
+        concept.AeroLean == 0 && concept.PowertrainLean == 0;
+
+    // How strongly a node aligns with the concept lean: aero nodes follow the aero lean, power nodes the
+    // powertrain lean, everything else is neutral.
+    private static int ConceptBias(TechNode node, ConceptDirection concept) =>
+        CarAxisMap.TargetOf(node.Category) switch
+        {
+            CarRatingTarget.Aerodynamics => concept.AeroLean,
+            CarRatingTarget.PowerUnit => concept.PowertrainLean,
+            _ => 0,
+        };
 
     private static long Cost(TechNode node, ResearchRules rules) =>
         (long)(node.Cost * SizeMultiplier(node.Size, rules));
