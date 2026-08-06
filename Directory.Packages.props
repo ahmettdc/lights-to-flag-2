@@ -15,6 +15,11 @@
     <PackageVersion Include="Avalonia.Headless.XUnit" Version="11.2.1" />
   </ItemGroup>
 
+  <!-- UI: MVVM (source-generated ObservableObject/RelayCommand — ADR-0026). -->
+  <ItemGroup>
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+  </ItemGroup>
+
   <!-- Test stack. -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
