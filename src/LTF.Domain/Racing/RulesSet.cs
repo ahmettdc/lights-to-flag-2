@@ -91,6 +91,18 @@ public sealed record RulesSet
     /// <summary>Grid places lost for each component used beyond the season allocation.</summary>
     public int GridPenaltyPerExtraComponent { get; init; } = 5;
 
+    /// <summary>Base life, in rounds, of each component before it must be replaced (M15). Empty (the
+    /// default) derives an even split from the season length and the allocation, so every component
+    /// exactly fits its quota and no grid penalty is ever incurred.</summary>
+    public IReadOnlyDictionary<ComponentKind, int> ComponentLifeRounds { get; init; } =
+        ReadOnlyDictionary<ComponentKind, int>.Empty;
+
+    /// <summary>How much a car's low reliability shortens its component life (M15). 0 (the default)
+    /// means reliability has no effect — every car wears components at the same rate and, with the
+    /// default life, exactly fits its allocation, so the grid is never reordered. Above 0, a less
+    /// reliable car wears its components faster, overruns its allocation and takes grid penalties.</summary>
+    public double ComponentReliabilityWearInfluence { get; init; }
+
     /// <summary>Whether lapped cars are waved past to unlap themselves at a safety-car restart (M9).
     /// True (default) matches the built-in behaviour; false keeps lapped cars a lap down.</summary>
     public bool DriversUnlapUnderSafetyCar { get; init; } = true;

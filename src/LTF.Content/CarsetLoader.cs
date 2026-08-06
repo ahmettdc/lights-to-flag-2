@@ -111,6 +111,20 @@ public static class CarsetLoader
             }
         }
 
+        var lifeRounds = new Dictionary<ComponentKind, int>();
+        if (r.ComponentLifeRounds is not null)
+        {
+            foreach (var (key, value) in r.ComponentLifeRounds)
+            {
+                if (!Enum.TryParse<ComponentKind>(key, ignoreCase: true, out var kind))
+                {
+                    throw Err("rules.componentLifeRounds", $"has unknown component '{key}'");
+                }
+
+                lifeRounds[kind] = value;
+            }
+        }
+
         return new RulesSet
         {
             SeriesName = ReqStr(r.SeriesName, "rules.seriesName"),
@@ -131,6 +145,8 @@ public static class CarsetLoader
             DriversUnlapUnderSafetyCar = r.DriversUnlapUnderSafetyCar ?? true,
             ComponentAllocation = allocation,
             GridPenaltyPerExtraComponent = r.GridPenaltyPerExtraComponent ?? 5,
+            ComponentLifeRounds = lifeRounds,
+            ComponentReliabilityWearInfluence = r.ComponentReliabilityWearInfluence ?? 0,
             Economy = MapEconomy(r.Economy),
             Research = MapResearchRules(r.Research),
         };

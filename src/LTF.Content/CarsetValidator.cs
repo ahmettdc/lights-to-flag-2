@@ -267,6 +267,28 @@ public static class CarsetValidator
             Error("research rules coefficients must be non-negative");
         }
 
+        // Component allocation (M15): sane quotas, life and reliability influence.
+        foreach (var (kind, alloc) in carset.Rules.ComponentAllocation)
+        {
+            if (alloc < 1)
+            {
+                Error($"component allocation for '{kind}' must be at least 1");
+            }
+        }
+
+        foreach (var (kind, life) in carset.Rules.ComponentLifeRounds)
+        {
+            if (life < 1)
+            {
+                Error($"component life for '{kind}' must be at least 1 round");
+            }
+        }
+
+        if (carset.Rules.ComponentReliabilityWearInfluence < 0)
+        {
+            Error("componentReliabilityWearInfluence must be non-negative");
+        }
+
         return issues;
     }
 }

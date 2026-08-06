@@ -56,6 +56,8 @@ internal sealed class RulesJson
     public bool? DriversUnlapUnderSafetyCar { get; set; }
     public int? GridPenaltyPerExtraComponent { get; set; }
     public Dictionary<string, int>? ComponentAllocation { get; set; }
+    public Dictionary<string, int>? ComponentLifeRounds { get; set; }
+    public double? ComponentReliabilityWearInfluence { get; set; }
     public PointsJson? Points { get; set; }
     public EconomyJson? Economy { get; set; }
     public ResearchRulesJson? Research { get; set; }
