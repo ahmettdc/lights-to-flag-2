@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:shell="using:LTF.App.Shell"
+        xmlns:v="using:LTF.App.Views"
         x:Class="LTF.App.MainWindow"
         Title="Lights to Flag 2"
         Icon="/Assets/Branding/icon-512.png"
@@ -9,7 +9,8 @@
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BrushAppBackground}">
 
-  <!-- The permanent navigation shell. DataContext (a ShellViewModel) is set by App at startup. -->
-  <shell:ShellView />
+  <!-- The application root: lands on the main menu, swaps to the shell on entering a career (M20).
+       DataContext (a RootViewModel) is set by App at startup. -->
+  <v:RootView />
 
 </Window>

@@ -45,5 +45,13 @@ public static class EnglishStrings
         [StringKeys.DialogCancel] = "Cancel",
         [StringKeys.DialogExitTitle] = "Exit to menu?",
         [StringKeys.DialogExitBody] = "Any unsaved progress will be lost.",
+
+        [StringKeys.MenuTagline] = "TEAM PRINCIPAL",
+        [StringKeys.MenuNewCareer] = "NEW CAREER",
+        [StringKeys.MenuContinue] = "CONTINUE CAREER",
+        [StringKeys.MenuLoadGame] = "LOAD GAME",
+        [StringKeys.MenuQuickRace] = "QUICK RACE",
+        [StringKeys.MenuSettings] = "SETTINGS",
+        [StringKeys.MenuQuit] = "QUIT",
     };
 }

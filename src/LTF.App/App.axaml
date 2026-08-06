@@ -2,12 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:screens="using:LTF.App.ViewModels.Screens"
              xmlns:views="using:LTF.App.Views.Screens"
+             xmlns:vm="using:LTF.App.ViewModels"
+             xmlns:menuvm="using:LTF.App.ViewModels.Menu"
+             xmlns:menuviews="using:LTF.App.Views.Menu"
+             xmlns:shell="using:LTF.App.Shell"
              xmlns:conv="using:LTF.App.Converters"
              x:Class="LTF.App.App"
              RequestedThemeVariant="Dark">
 
   <Application.DataTemplates>
-    <!-- Screen view-model -> view. Real screens register their own templates in M21/M22. -->
+    <!-- Top-level view-model -> view. The application root (RootViewModel) swaps between these; the shell's
+         content region still resolves placeholder screens (real in-shell screens register in M21/M22). -->
+    <DataTemplate DataType="{x:Type menuvm:MainMenuViewModel}">
+      <menuviews:MainMenuView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ShellViewModel}">
+      <shell:ShellView />
+    </DataTemplate>
     <DataTemplate DataType="{x:Type screens:PlaceholderScreenViewModel}">
       <views:PlaceholderScreenView />
     </DataTemplate>

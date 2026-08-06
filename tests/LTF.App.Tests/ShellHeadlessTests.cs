@@ -6,9 +6,11 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using LTF.App.Navigation;
 using LTF.App.Services;
+using LTF.App.Session;
 using LTF.App.Shell;
 using LTF.App.ViewModels;
 using LTF.App.ViewModels.Screens;
+using LTF.App.Views.Menu;
 using LTF.App.Views.Screens;
 using Xunit;
 
@@ -55,14 +57,22 @@ public class ShellHeadlessTests
     }
 
     [AvaloniaFact]
-    public void Main_window_hosts_the_shell_headless()
+    public void Main_window_starts_on_the_menu_then_hosts_the_shell_on_entering_a_career()
     {
-        var window = new global::LTF.App.MainWindow { DataContext = MakeShell() };
+        var root = new RootViewModel(new SampleNotificationSource());
+        var window = new global::LTF.App.MainWindow { DataContext = root };
 
         window.Show();
         Dispatcher.UIThread.RunJobs();
 
+        // The app lands on the main menu.
         Assert.True(window.IsVisible);
+        Assert.Single(window.GetVisualDescendants().OfType<MainMenuView>());
+
+        // Entering a career swaps the window content to the in-game shell.
+        root.EnterCareer(SessionLoader.LoadFlagship());
+        Dispatcher.UIThread.RunJobs();
+
         Assert.Single(window.GetVisualDescendants().OfType<ShellView>());
         Assert.Single(window.GetVisualDescendants().OfType<TopBar>());
     }

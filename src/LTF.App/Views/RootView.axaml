@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels"
+             x:Class="LTF.App.Views.RootView"
+             x:DataType="vm:RootViewModel">
+
+  <!-- The whole app is one content region. A Panel (not a bare ContentControl) so menu screens get their
+       own OverlayLayer for dialogs/toasts, exactly as the shell does. The content view-model (a menu VM or
+       the ShellViewModel) resolves to its view via the App.axaml DataTemplates. -->
+  <Panel Background="{DynamicResource BrushAppBackground}">
+    <ContentControl Content="{Binding Content}" />
+  </Panel>
+
+</UserControl>

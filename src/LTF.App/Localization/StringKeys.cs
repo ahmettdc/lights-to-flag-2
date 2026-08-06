@@ -47,4 +47,13 @@ public static class StringKeys
     public const string DialogCancel = "dialog.cancel";
     public const string DialogExitTitle = "dialog.exit.title";
     public const string DialogExitBody = "dialog.exit.body";
+
+    // Main menu.
+    public const string MenuTagline = "menu.tagline";
+    public const string MenuNewCareer = "menu.newCareer";
+    public const string MenuContinue = "menu.continue";
+    public const string MenuLoadGame = "menu.loadGame";
+    public const string MenuQuickRace = "menu.quickRace";
+    public const string MenuSettings = "menu.settings";
+    public const string MenuQuit = "menu.quit";
 }

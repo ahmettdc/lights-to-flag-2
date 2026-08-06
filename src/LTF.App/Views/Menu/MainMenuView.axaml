@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels.Menu"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Menu.MainMenuView"
+             x:DataType="vm:MainMenuViewModel">
+
+  <Border Background="{DynamicResource BrushAppBackground}">
+    <StackPanel Width="320" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+
+      <!-- Brand wordmark (avares:// asset, proven headless in BrandingTests). -->
+      <Image Source="avares://LTF.App/Assets/Branding/logo-primary.png"
+             Width="260" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,2" />
+      <TextBlock Text="{loc:Tr menu.tagline}"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="12" LetterSpacing="2"
+                 Foreground="{DynamicResource BrushTextDim}"
+                 HorizontalAlignment="Center" Margin="0,0,0,18" />
+
+      <Button Classes="primary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Command="{Binding NewCareerCommand}" Content="{loc:Tr menu.newCareer}" />
+      <Button Classes="secondary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Command="{Binding ContinueCommand}" Content="{loc:Tr menu.continue}" />
+      <Button Classes="secondary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Command="{Binding LoadGameCommand}" Content="{loc:Tr menu.loadGame}" />
+      <Button Classes="secondary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Command="{Binding QuickRaceCommand}" Content="{loc:Tr menu.quickRace}" />
+      <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Command="{Binding SettingsCommand}" Content="{loc:Tr menu.settings}" />
+      <Button Classes="ghost" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              Command="{Binding QuitCommand}" Content="{loc:Tr menu.quit}" />
+
+    </StackPanel>
+  </Border>
+
+</UserControl>
