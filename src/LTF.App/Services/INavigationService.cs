@@ -1,9 +1,11 @@
+using System.ComponentModel;
 using LTF.App.Navigation;
 
 namespace LTF.App.Services;
 
-/// <summary>Drives which screen the shell's content region shows.</summary>
-public interface INavigationService
+/// <summary>Drives which screen the shell's content region shows. Raises change notifications so the
+/// sidebar can track the active entry.</summary>
+public interface INavigationService : INotifyPropertyChanged
 {
     /// <summary>The currently selected navigation target.</summary>
     NavKey CurrentKey { get; }

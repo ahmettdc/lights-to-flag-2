@@ -34,6 +34,7 @@
     <!-- Brand theme layers on top of Fluent; Fluent must come first. -->
     <FluentTheme />
     <StyleInclude Source="avares://LTF.App/Theme/Controls/Button.axaml" />
+    <StyleInclude Source="avares://LTF.App/Theme/Controls/NavItem.axaml" />
   </Application.Styles>
 
 </Application>

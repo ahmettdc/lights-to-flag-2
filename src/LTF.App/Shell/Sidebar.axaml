@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels"
+             x:Class="LTF.App.Shell.Sidebar"
+             x:DataType="vm:SidebarViewModel">
+
+  <Border Width="186"
+          Background="{DynamicResource BrushChrome}"
+          BorderBrush="{DynamicResource BrushDivider}"
+          BorderThickness="0,0,1,0">
+    <DockPanel LastChildFill="True">
+
+      <!-- Bottom-pinned system actions (Settings, Exit to menu). -->
+      <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,10">
+        <ItemsControl ItemsSource="{Binding SystemItems}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:SidebarItemViewModel">
+              <Button Classes="navitem" Classes.active="{Binding IsActive}"
+                      Command="{Binding SelectCommand}" Content="{Binding Label}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <!-- Main navigation + race day. -->
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel>
+          <TextBlock Classes="section" Text="{Binding NavigationLabel}" />
+          <ItemsControl ItemsSource="{Binding MainItems}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SidebarItemViewModel">
+                <Button Classes="navitem" Classes.active="{Binding IsActive}"
+                        Command="{Binding SelectCommand}" Content="{Binding Label}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Classes="section" Text="{Binding RaceDayLabel}" />
+          <ItemsControl ItemsSource="{Binding RaceDayItems}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SidebarItemViewModel">
+                <Button Classes="navitem" Classes.active="{Binding IsActive}"
+                        Command="{Binding SelectCommand}" Content="{Binding Label}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+
+    </DockPanel>
+  </Border>
+
+</UserControl>

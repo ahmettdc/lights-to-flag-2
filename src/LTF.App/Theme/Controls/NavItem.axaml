@@ -1,0 +1,47 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Sidebar section label (NAVIGATION, RACE DAY). -->
+  <Style Selector="TextBlock.section">
+    <Setter Property="Foreground" Value="{DynamicResource BrushTextFaint}" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="1" />
+    <Setter Property="Margin" Value="14,14,14,6" />
+  </Style>
+
+  <!-- Sidebar nav row (idle). -->
+  <Style Selector="Button.navitem">
+    <Style.Resources>
+      <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+      <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#14171C" />
+      <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#14171C" />
+      <SolidColorBrush x:Key="ButtonForeground" Color="#9AA0A8" />
+      <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#F2F4F6" />
+      <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#F2F4F6" />
+    </Style.Resources>
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="14,8" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <!-- Sidebar nav row (active): red left accent + translucent red fill. -->
+  <Style Selector="Button.navitem.active">
+    <Style.Resources>
+      <SolidColorBrush x:Key="ButtonBackground" Color="#1AFF3B2F" />
+      <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#26FF3B2F" />
+      <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#26FF3B2F" />
+      <SolidColorBrush x:Key="ButtonForeground" Color="#F2F4F6" />
+      <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#F2F4F6" />
+    </Style.Resources>
+    <Setter Property="BorderThickness" Value="3,0,0,0" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
+  </Style>
+
+</Styles>
