@@ -268,6 +268,19 @@ public static class CarsetValidator
             Error("research rules coefficients must be non-negative");
         }
 
+        // Driver development (M18): aging/growth/decline coefficients and the regulation penalty are non-negative.
+        var dev = carset.Rules.DriverDevelopment;
+        if (dev.PeakAgeStart < 0 || dev.PeakAgeEnd < 0 || dev.GrowthPerSeason < 0
+            || dev.PhysicalDeclinePerSeason < 0 || dev.ExperienceDeclinePerSeason < 0 || dev.DevelopmentSpread < 0)
+        {
+            Error("driver development coefficients must be non-negative");
+        }
+
+        if (carset.Rules.RegulationUnreadinessPenalty < 0)
+        {
+            Error("regulationUnreadinessPenalty must be non-negative");
+        }
+
         // Component allocation (M15): sane quotas, life and reliability influence.
         foreach (var (kind, alloc) in carset.Rules.ComponentAllocation)
         {

@@ -122,6 +122,18 @@ internal sealed class RulesJson
     public PointsJson? Points { get; set; }
     public EconomyJson? Economy { get; set; }
     public ResearchRulesJson? Research { get; set; }
+    public DriverDevelopmentJson? DriverDevelopment { get; set; }
+    public double? RegulationUnreadinessPenalty { get; set; }
+}
+
+internal sealed class DriverDevelopmentJson
+{
+    public int? PeakAgeStart { get; set; }
+    public int? PeakAgeEnd { get; set; }
+    public double? GrowthPerSeason { get; set; }
+    public double? PhysicalDeclinePerSeason { get; set; }
+    public double? ExperienceDeclinePerSeason { get; set; }
+    public double? DevelopmentSpread { get; set; }
 }
 
 internal sealed class PointsJson

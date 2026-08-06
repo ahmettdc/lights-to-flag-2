@@ -153,6 +153,27 @@ public static class CarsetLoader
             ComponentReliabilityWearInfluence = r.ComponentReliabilityWearInfluence ?? 0,
             Economy = MapEconomy(r.Economy),
             Research = MapResearchRules(r.Research),
+            DriverDevelopment = MapDriverDevelopment(r.DriverDevelopment),
+            RegulationUnreadinessPenalty = r.RegulationUnreadinessPenalty ?? 0,
+        };
+    }
+
+    private static DriverDevelopmentRules MapDriverDevelopment(DriverDevelopmentJson? r)
+    {
+        if (r is null)
+        {
+            return new DriverDevelopmentRules();
+        }
+
+        var d = new DriverDevelopmentRules();
+        return d with
+        {
+            PeakAgeStart = r.PeakAgeStart ?? d.PeakAgeStart,
+            PeakAgeEnd = r.PeakAgeEnd ?? d.PeakAgeEnd,
+            GrowthPerSeason = r.GrowthPerSeason ?? d.GrowthPerSeason,
+            PhysicalDeclinePerSeason = r.PhysicalDeclinePerSeason ?? d.PhysicalDeclinePerSeason,
+            ExperienceDeclinePerSeason = r.ExperienceDeclinePerSeason ?? d.ExperienceDeclinePerSeason,
+            DevelopmentSpread = r.DevelopmentSpread ?? d.DevelopmentSpread,
         };
     }
 

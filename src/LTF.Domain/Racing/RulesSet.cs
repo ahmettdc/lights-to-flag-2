@@ -114,4 +114,14 @@ public sealed record RulesSet
     /// <summary>The series' R&amp;D tuning — development speed, facility/staff scaling, validation (M14).
     /// Neutral by default, so a carset with no research rules does no development.</summary>
     public ResearchRules Research { get; init; } = new();
+
+    /// <summary>The series' driver-development tuning — aging, growth and decline (M18 / ADR-0015). Neutral
+    /// by default (<see cref="DriverDevelopmentRules.IsActive"/> false), so a carset with no development
+    /// block ages and develops no one.</summary>
+    public DriverDevelopmentRules DriverDevelopment { get; init; } = new();
+
+    /// <summary>How hard an unprepared team is set back when a regulation change lands (M18 / ADR-0010): the
+    /// drop to the car rating the change favours is <c>(100 − readiness) / 100 × magnitude × this</c>. 0
+    /// (the default) means a regulation change costs the field nothing — the inert default.</summary>
+    public double RegulationUnreadinessPenalty { get; init; }
 }
