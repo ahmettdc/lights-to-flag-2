@@ -18,11 +18,13 @@ namespace LTF.App.ViewModels;
 /// </summary>
 public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 {
+    private readonly CarsetCatalog _catalog;
     private readonly INotificationSource _notifications;
     private readonly Action? _quit;
 
-    public RootViewModel(INotificationSource notifications, Action? quit = null)
+    public RootViewModel(CarsetCatalog catalog, INotificationSource notifications, Action? quit = null)
     {
+        _catalog = catalog;
         _notifications = notifications;
         _quit = quit;
         ShowMainMenu();
@@ -34,9 +36,7 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 
     public void ShowMainMenu() => Content = new MainMenuViewModel(this, canContinue: false);
 
-    public void ShowNewCareer() =>
-        // TODO(M20b): open the carset/team/board wizard. Temporary: start the flagship directly.
-        EnterCareer(SessionLoader.LoadFlagship());
+    public void ShowNewCareer() => Content = new NewCareerViewModel(this, _catalog);
 
     public void ContinueCareer() =>
         // TODO(M20d): resume SaveStore.MostRecent(). Temporary: load the flagship (gated off in the menu).

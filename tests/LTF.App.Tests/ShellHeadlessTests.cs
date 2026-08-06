@@ -59,7 +59,7 @@ public class ShellHeadlessTests
     [AvaloniaFact]
     public void Main_window_starts_on_the_menu_then_hosts_the_shell_on_entering_a_career()
     {
-        var root = new RootViewModel(new SampleNotificationSource());
+        var root = new RootViewModel(CarsetCatalog.Discover(), new SampleNotificationSource());
         var window = new global::LTF.App.MainWindow { DataContext = root };
 
         window.Show();

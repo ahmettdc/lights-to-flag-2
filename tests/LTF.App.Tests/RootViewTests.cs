@@ -21,7 +21,7 @@ namespace LTF.App.Tests;
 /// </summary>
 public class RootViewTests
 {
-    private static RootViewModel MakeRoot() => new(new SampleNotificationSource());
+    private static RootViewModel MakeRoot() => new(CarsetCatalog.Discover(), new SampleNotificationSource());
 
     [Fact]
     public void Root_starts_on_the_main_menu() =>

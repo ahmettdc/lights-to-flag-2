@@ -53,5 +53,14 @@ public static class EnglishStrings
         [StringKeys.MenuQuickRace] = "QUICK RACE",
         [StringKeys.MenuSettings] = "SETTINGS",
         [StringKeys.MenuQuit] = "QUIT",
+
+        [StringKeys.NewCareerTitle] = "NEW CAREER",
+        [StringKeys.NewCareerBack] = "BACK",
+        [StringKeys.NewCareerNext] = "NEXT",
+        [StringKeys.NewCareerStart] = "START CAREER",
+        [StringKeys.NewCareerConfirmHeading] = "YOU'RE ABOUT TO TAKE CHARGE OF",
+        [StringKeys.NewCareerStepCarset] = "STEP 1 OF 3 · CHOOSE A SERIES",
+        [StringKeys.NewCareerStepTeam] = "STEP 2 OF 3 · CHOOSE YOUR TEAM",
+        [StringKeys.NewCareerStepConfirm] = "STEP 3 OF 3 · CONFIRM",
     };
 }

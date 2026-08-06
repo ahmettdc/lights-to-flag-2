@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels.Menu"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Menu.NewCareerView"
+             x:DataType="vm:NewCareerViewModel">
+
+  <Border Background="{DynamicResource BrushAppBackground}" Padding="40">
+    <DockPanel MaxWidth="720" HorizontalAlignment="Center">
+
+      <!-- Header -->
+      <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,18">
+        <TextBlock Text="{loc:Tr newcareer.title}"
+                   FontFamily="{DynamicResource FontHeading}" FontSize="28"
+                   Foreground="{DynamicResource BrushTextPrimary}" />
+        <TextBlock Text="{Binding StepLabel}"
+                   FontFamily="{DynamicResource FontNumeric}" FontSize="12" LetterSpacing="2"
+                   Foreground="{DynamicResource BrushTextDim}" />
+      </StackPanel>
+
+      <!-- Footer nav -->
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,18,0,0">
+        <Button Grid.Column="0" Classes="ghost"
+                Command="{Binding BackCommand}" Content="{loc:Tr newcareer.back}" />
+        <Button Grid.Column="2" Classes="secondary" IsVisible="{Binding !IsConfirmStep}"
+                Command="{Binding NextCommand}" Content="{loc:Tr newcareer.next}" />
+        <Button Grid.Column="3" Classes="primary" IsVisible="{Binding IsConfirmStep}" Margin="8,0,0,0"
+                Command="{Binding StartCommand}" Content="{loc:Tr newcareer.start}" />
+      </Grid>
+
+      <!-- Body: one panel per step -->
+      <Panel>
+
+        <ListBox IsVisible="{Binding IsCarsetStep}"
+                 ItemsSource="{Binding Carsets}" SelectedItem="{Binding SelectedCarset}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:CarsetOptionViewModel">
+              <StackPanel Spacing="2" Margin="4">
+                <TextBlock Text="{Binding Name}"
+                           FontFamily="{DynamicResource FontHeading}" FontSize="16"
+                           Foreground="{DynamicResource BrushTextPrimary}" />
+                <TextBlock Text="{Binding Subtitle}"
+                           FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ListBox IsVisible="{Binding IsTeamStep}"
+                 ItemsSource="{Binding Teams}" SelectedItem="{Binding SelectedTeam}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:TeamOptionViewModel">
+              <StackPanel Spacing="2" Margin="4">
+                <TextBlock Text="{Binding Name}"
+                           FontFamily="{DynamicResource FontHeading}" FontSize="15"
+                           Foreground="{DynamicResource BrushTextPrimary}" />
+                <TextBlock Text="{Binding Drivers}"
+                           FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel IsVisible="{Binding IsConfirmStep}" Spacing="8" Margin="4">
+          <TextBlock Text="{loc:Tr newcareer.confirmHeading}"
+                     FontFamily="{DynamicResource FontNumeric}" FontSize="12" LetterSpacing="2"
+                     Foreground="{DynamicResource BrushTextDim}" />
+          <TextBlock Text="{Binding SelectedCarsetName}"
+                     FontFamily="{DynamicResource FontHeading}" FontSize="22"
+                     Foreground="{DynamicResource BrushTextPrimary}" />
+          <TextBlock Text="{Binding SelectedTeamName}"
+                     FontSize="15" Foreground="{DynamicResource BrushTextPrimary}" />
+        </StackPanel>
+
+      </Panel>
+
+    </DockPanel>
+  </Border>
+
+</UserControl>

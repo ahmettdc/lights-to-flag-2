@@ -34,9 +34,11 @@
     <AvaloniaResource Include="Assets/Branding/*.png" />
   </ItemGroup>
 
-  <!-- The flagship carset the shell loads at startup (M19 shows its live top-bar values). -->
+  <!-- Carsets copied next to the app: the flagship shown in M19's top bar, plus the 2026 "Active Aero
+       Era" set. The main-menu carset catalog (M20) discovers every carsets/*.json here. -->
   <ItemGroup>
     <None Include="..\..\content\carsets\global-prix\carset.json" Link="carsets/global-prix.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\content\carsets\global-prix-2026\carset.json" Link="carsets/global-prix-2026.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

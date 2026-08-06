@@ -56,4 +56,14 @@ public static class StringKeys
     public const string MenuQuickRace = "menu.quickRace";
     public const string MenuSettings = "menu.settings";
     public const string MenuQuit = "menu.quit";
+
+    // New-career wizard.
+    public const string NewCareerTitle = "newcareer.title";
+    public const string NewCareerBack = "newcareer.back";
+    public const string NewCareerNext = "newcareer.next";
+    public const string NewCareerStart = "newcareer.start";
+    public const string NewCareerConfirmHeading = "newcareer.confirmHeading";
+    public const string NewCareerStepCarset = "newcareer.stepCarset";
+    public const string NewCareerStepTeam = "newcareer.stepTeam";
+    public const string NewCareerStepConfirm = "newcareer.stepConfirm";
 }

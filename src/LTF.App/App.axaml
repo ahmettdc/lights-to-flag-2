@@ -16,6 +16,9 @@
     <DataTemplate DataType="{x:Type menuvm:MainMenuViewModel}">
       <menuviews:MainMenuView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type menuvm:NewCareerViewModel}">
+      <menuviews:NewCareerView />
+    </DataTemplate>
     <DataTemplate DataType="{x:Type vm:ShellViewModel}">
       <shell:ShellView />
     </DataTemplate>
