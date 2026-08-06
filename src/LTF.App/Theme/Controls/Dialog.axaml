@@ -1,0 +1,35 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:LTF.App.Controls">
+
+  <!-- Confirmation dialog: full-bleed scrim + centred card with Cancel / Confirm. -->
+  <ControlTheme x:Key="{x:Type c:ConfirmationDialog}" TargetType="c:ConfirmationDialog">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel>
+          <Border Background="#B0000000" />
+          <Border Background="{DynamicResource BrushCard}"
+                  BorderBrush="{DynamicResource BrushBorderStrong}" BorderThickness="1"
+                  CornerRadius="12" Padding="20" MaxWidth="420"
+                  HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Spacing="14">
+              <TextBlock Text="{TemplateBinding Title}"
+                         FontFamily="{DynamicResource FontHeading}" FontSize="18"
+                         Foreground="{DynamicResource BrushTextPrimary}" TextWrapping="Wrap" />
+              <TextBlock Text="{TemplateBinding Message}"
+                         FontFamily="{DynamicResource FontBody}" FontSize="13"
+                         Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" />
+              <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                <Button Name="PART_Cancel" Classes="ghost" Content="{TemplateBinding CancelText}" />
+                <Button Name="PART_Confirm" Classes="primary" Content="{TemplateBinding ConfirmText}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>
