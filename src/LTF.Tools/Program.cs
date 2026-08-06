@@ -202,6 +202,17 @@ static int Sweep(string[] args)
             $"biggest car gain +{research.MaxOverallGain}."));
     }
 
+    // Component summary (M15) — grid penalties a season's component allocation produces.
+    var componentPenalties = ComponentPenalties.ForSeason(carset);
+    var penaltyRounds = componentPenalties.Count(p => p.Count > 0);
+    if (penaltyRounds > 0)
+    {
+        var placesLost = componentPenalties.Sum(p => p.Values.Sum());
+        Console.WriteLine();
+        Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+            $"Components: {penaltyRounds} round(s) carry grid penalties, {placesLost} places lost to over-allocation."));
+    }
+
     return 0;
 }
 
