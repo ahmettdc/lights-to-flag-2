@@ -29,5 +29,18 @@ Kurul kararları / güven evrimi tohumlu (aynı tohum+kararlar → aynı baskı;
 ADR-0021 (medya baskısı + toplantı diyalogları), ADR-0010/0018 (kural dönemi kararı), M12 (hedef↔prim),
 M24 (görev güvenliği geçmişi), Rev 15 (bildirim). Alt-sistem N. M2 opsiyonel yönetim tipi + kurul.
 
+## Durum (M17 — kurul & baskı Core uygulandı)
+Core M17 kurulu domainde canlandı: `OwnershipType` (6 tip), çok-üyeli `BoardMember` (öncelik ağırlıkları +
+`traits` + `ConfidenceInPlayer` + `RiskTolerance`), 6 bağımsız `PressureMetrics` (yeni 0–100 `Pressure`
+struct), `Objective` (açık/gizli/esnek/bağlantılı) ve `TeamBoard` (`Carset.Boards=[]` varsayılan → boşken
+byte-özdeş). `BoardReview` sezon başı hedef koyar (sahiplik tipi + üye önceliklerinden) ve sezon sonu
+**ceza-ayarlı** sonucu değerlendirir — 6 metrik + üye güveni saf öncelik-ağırlıklı deltayla evrilir,
+**kovulma riski** yalnız tehlike bandında tohumlu jitterle yükselir (RNG yalnız FNV salt(takım)).
+`SeasonCalendar.ForCareer` kurul-toplantısı ritmini `CalendarEventKind.BoardReview` olaylarıyla üretir.
+Headless `BossCareerSweep` bunu uçtan uca koşturur (deterministik, byte-özdeş-varsayılan); flagship Talon
+Racing oyuncu-takımı + manufacturer-backed kurulla opt-in eder. **Ertelendi:** tam 10-takım yaşayan kurul
+(M18/ADR-0022), favoritizm/takım-emri ajansı (M18), medya ayrı diyalog sistemi (ADR-0021), interaktif
+Continue-runner (Faz-3 UI).
+
 ## Sonuç
 Patron modu yalnız teknik değil politik bir dengeleme oyunu olur: doğruyu yap, ama sahibini de tut.

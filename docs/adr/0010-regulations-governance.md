@@ -37,6 +37,15 @@ finansal yaptırım **M11/M13**; hazırlık & Ar-Ge **M14**; politik oy/lobi **M
 değişikliği + geriye düşme **M18**; arayüz (Regülasyon & Uyum ekranı + oylama) **M22**.
 Carset formatı (M2) opsiyonel bir `regulations` bloğu taşır.
 
+## Durum (M17 — politik oy/lobi uygulandı)
+Regülasyonun politik katmanı Core M17'de canlandı: opsiyonel `Carset.RegulationProposals` (kurgusal —
+hangi `CarAxis` yönü + büyüklük) her takımın konsept-yönünden heuristik bir oy (For/Against/Abstain)
+çeker; oyuncu politikası kendi oyunu override edebilir; `RegulationBallot.Resolve` deterministik ağırlıklı
+sayımla pass/fail + tam pusulayı **kaydeder**. Ayrıca cost-cap aşımının **puan silme** sonucu nihayet
+uygulanır (`ConstructorPenalties.Apply` → konstrüktör tablosu düşülen puanla yeniden sıralanıp numaralanır).
+**Ertelendi (M18):** geçen bir kural değişikliğinin **uygulanması** + hazırlıksız takımların geriye düşmesi —
+M17 yalnız oyu kaydeder, kural/era'ya dokunmaz.
+
 ## Sonuç
 Kurallar statik değil, oynanışın parçası: uyum bir risk/ödül ekseni, regülasyon değişimi
 ise stratejik bir hazırlık yarışı olur.
