@@ -70,6 +70,40 @@ public sealed record TeamResearchRecord
     public IReadOnlyList<DevelopmentProject> ActiveProjects { get; init; } = [];
 }
 
+/// <summary>One board member in a save (M17), stored with plain-int priorities and confidence so the save
+/// round-trips exactly (the domain <see cref="Rating"/> and <see cref="Pressure"/> are rebuilt on restore).</summary>
+public sealed record BoardMemberRecord
+{
+    public required string Id { get; init; }
+    public string Name { get; init; } = "";
+    public int SportingPriority { get; init; }
+    public int FinancialPriority { get; init; }
+    public int LongTermPriority { get; init; }
+    public int BrandPriority { get; init; }
+    public int DriverDevPriority { get; init; }
+    public int ConfidenceInPlayer { get; init; }
+    public int RiskTolerance { get; init; }
+    public BoardMemberTraits Traits { get; init; }
+}
+
+/// <summary>One team's board in a save (M17): its ownership, the six pressures and firing risk a career
+/// moves (as plain ints), its members, and its objectives. Objectives carry no value structs, so they are
+/// stored as the domain type directly.</summary>
+public sealed record TeamBoardRecord
+{
+    public required string TeamId { get; init; }
+    public OwnershipType Ownership { get; init; }
+    public int BoardConfidence { get; init; }
+    public int SportingPressure { get; init; }
+    public int FinancialPressure { get; init; }
+    public int SponsorPressure { get; init; }
+    public int MediaPressure { get; init; }
+    public int InternalPressure { get; init; }
+    public int FiringRisk { get; init; }
+    public IReadOnlyList<BoardMemberRecord> Members { get; init; } = [];
+    public IReadOnlyList<Objective> Objectives { get; init; } = [];
+}
+
 /// <summary>
 /// A snapshot of a career's mutable progress (M11e/M12): the seed it plays from, the game date it has
 /// reached, every driver's and team's record, the paddock's relationships, and the active contracts.
@@ -87,6 +121,12 @@ public sealed record CareerState
     public IReadOnlyList<RelationshipRecord> Relationships { get; init; } = [];
     public IReadOnlyList<Contract> Contracts { get; init; } = [];
     public IReadOnlyList<TeamResearchRecord> Research { get; init; } = [];
+
+    /// <summary>The team the player runs (M17); empty for an all-AI career.</summary>
+    public string PlayerTeamId { get; init; } = "";
+
+    /// <summary>Each team's board state (M17); empty for a career with no boards.</summary>
+    public IReadOnlyList<TeamBoardRecord> Boards { get; init; } = [];
 
     /// <summary>Snapshot a carset's mutable progress at a given game date and seed.</summary>
     public static CareerState Capture(Carset carset, DateOnly date, int seed) => new()
@@ -125,6 +165,9 @@ public sealed record CareerState
         Research = carset.TechTree.Nodes.Count == 0
             ? []
             : carset.Teams.Select(CaptureResearch).ToList(),
+        PlayerTeamId = carset.PlayerTeamId,
+        // Board state is only worth storing once a series runs boards (byte-identity gate).
+        Boards = carset.Boards.Count == 0 ? [] : carset.Boards.Select(CaptureBoard).ToList(),
     };
 
     private static TeamResearchRecord CaptureResearch(Team t) => new()
@@ -150,6 +193,35 @@ public sealed record CareerState
         PowertrainLean = t.Research.Concept.PowertrainLean,
         UnlockedNodeIds = t.Research.UnlockedNodeIds,
         ActiveProjects = t.Research.ActiveProjects,
+    };
+
+    private static TeamBoardRecord CaptureBoard(TeamBoard b) => new()
+    {
+        TeamId = b.TeamId,
+        Ownership = b.Ownership,
+        BoardConfidence = b.Metrics.BoardConfidence.Value,
+        SportingPressure = b.Metrics.SportingPressure.Value,
+        FinancialPressure = b.Metrics.FinancialPressure.Value,
+        SponsorPressure = b.Metrics.SponsorPressure.Value,
+        MediaPressure = b.Metrics.MediaPressure.Value,
+        InternalPressure = b.Metrics.InternalPressure.Value,
+        FiringRisk = b.FiringRisk.Value,
+        Members = b.Members.Select(CaptureMember).ToList(),
+        Objectives = b.Objectives,
+    };
+
+    private static BoardMemberRecord CaptureMember(BoardMember m) => new()
+    {
+        Id = m.Id,
+        Name = m.Name,
+        SportingPriority = m.SportingPriority.Value,
+        FinancialPriority = m.FinancialPriority.Value,
+        LongTermPriority = m.LongTermPriority.Value,
+        BrandPriority = m.BrandPriority.Value,
+        DriverDevPriority = m.DriverDevPriority.Value,
+        ConfidenceInPlayer = m.ConfidenceInPlayer.Value,
+        RiskTolerance = m.RiskTolerance.Value,
+        Traits = m.Traits,
     };
 
     /// <summary>Reapply this snapshot onto a carset, returning a carset resumed at this point in the
@@ -194,7 +266,17 @@ public sealed record CareerState
                 .ToList(),
         };
 
-        return carset with { Drivers = drivers, Teams = teams, Relationships = graph, Contracts = Contracts };
+        var boards = Boards.Count == 0 ? carset.Boards : Boards.Select(RestoreBoard).ToList();
+
+        return carset with
+        {
+            Drivers = drivers,
+            Teams = teams,
+            Relationships = graph,
+            Contracts = Contracts,
+            PlayerTeamId = PlayerTeamId,
+            Boards = boards,
+        };
     }
 
     private static Team RestoreResearch(Team team, TeamResearchRecord r) => team with
@@ -227,5 +309,37 @@ public sealed record CareerState
             Concept = new ConceptDirection { AeroLean = r.AeroLean, PowertrainLean = r.PowertrainLean },
             RegulationReadiness = r.RegulationReadiness,
         },
+    };
+
+    private static TeamBoard RestoreBoard(TeamBoardRecord r) => new()
+    {
+        TeamId = r.TeamId,
+        Ownership = r.Ownership,
+        Metrics = new PressureMetrics
+        {
+            BoardConfidence = Pressure.Clamped(r.BoardConfidence),
+            SportingPressure = Pressure.Clamped(r.SportingPressure),
+            FinancialPressure = Pressure.Clamped(r.FinancialPressure),
+            SponsorPressure = Pressure.Clamped(r.SponsorPressure),
+            MediaPressure = Pressure.Clamped(r.MediaPressure),
+            InternalPressure = Pressure.Clamped(r.InternalPressure),
+        },
+        FiringRisk = Pressure.Clamped(r.FiringRisk),
+        Members = r.Members.Select(RestoreMember).ToList(),
+        Objectives = r.Objectives,
+    };
+
+    private static BoardMember RestoreMember(BoardMemberRecord r) => new()
+    {
+        Id = r.Id,
+        Name = r.Name,
+        SportingPriority = Rating.Clamped(r.SportingPriority),
+        FinancialPriority = Rating.Clamped(r.FinancialPriority),
+        LongTermPriority = Rating.Clamped(r.LongTermPriority),
+        BrandPriority = Rating.Clamped(r.BrandPriority),
+        DriverDevPriority = Rating.Clamped(r.DriverDevPriority),
+        ConfidenceInPlayer = Pressure.Clamped(r.ConfidenceInPlayer),
+        RiskTolerance = Rating.Clamped(r.RiskTolerance),
+        Traits = r.Traits,
     };
 }
