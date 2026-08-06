@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
 using LTF.App.Mvvm;
@@ -8,15 +9,18 @@ namespace LTF.App.ViewModels;
 /// <summary>
 /// The top bar's data: the live date, cost-cap room, board confidence and team badge from the session
 /// snapshot, plus the inbox count. Continue is present but inert in M19 — the per-event runner is M21.
+/// The INBOX button toggles the shell's inbox popover via an optional callback the shell supplies.
 /// </summary>
 public sealed partial class TopBarViewModel : ViewModelBase
 {
     private readonly ISessionSnapshot _session;
+    private readonly Action? _onToggleInbox;
 
-    public TopBarViewModel(ISessionSnapshot session, int inboxCount = 0)
+    public TopBarViewModel(ISessionSnapshot session, int inboxCount = 0, Action? onToggleInbox = null)
     {
         _session = session;
         InboxCount = inboxCount;
+        _onToggleInbox = onToggleInbox;
     }
 
     /// <summary>Date shown as e.g. "14 MAY 2027" (current culture for the month, invariant upper-casing).</summary>
@@ -49,6 +53,9 @@ public sealed partial class TopBarViewModel : ViewModelBase
     {
         // Inert in M19 — the per-event Continue runner arrives in M21.
     }
+
+    [RelayCommand]
+    private void ToggleInbox() => _onToggleInbox?.Invoke();
 
     private static string FormatMoney(long amount) =>
         string.Create(CultureInfo.InvariantCulture, $"${amount / 1_000_000.0:0.0}M");

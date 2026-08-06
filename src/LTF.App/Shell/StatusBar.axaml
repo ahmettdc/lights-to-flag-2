@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:LTF.App.ViewModels"
+             x:Class="LTF.App.Shell.StatusBar"
+             x:DataType="vm:StatusBarViewModel">
+
+  <Border Height="26"
+          Background="{DynamicResource BrushChrome}"
+          BorderBrush="{DynamicResource BrushDivider}"
+          BorderThickness="0,1,0,0">
+    <Grid ColumnDefinitions="*,Auto" Margin="12,0">
+
+      <TextBlock Grid.Column="0" Text="{Binding StatusText}" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontBody}" FontSize="11"
+                 Foreground="{DynamicResource BrushTextDim}" />
+
+      <!-- Mirrors the top-bar Continue; inert in M19 (per-event runner is M21). -->
+      <TextBlock Grid.Column="1" Text="CONTINUE »" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold"
+                 Foreground="{DynamicResource BrushAccent}" />
+
+    </Grid>
+  </Border>
+
+</UserControl>
