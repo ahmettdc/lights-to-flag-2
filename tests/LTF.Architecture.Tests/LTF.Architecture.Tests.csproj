@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <!-- References the engine layers so their compiled assemblies are present to inspect. It must NOT
+       reference LTF.App: this guard project cannot itself pull the UI into the engine closure. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LTF.Content\LTF.Content.csproj" />
+    <ProjectReference Include="..\..\src\LTF.Simulation\LTF.Simulation.csproj" />
+    <ProjectReference Include="..\..\src\LTF.Career\LTF.Career.csproj" />
+    <ProjectReference Include="..\..\src\LTF.Persistence\LTF.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>
