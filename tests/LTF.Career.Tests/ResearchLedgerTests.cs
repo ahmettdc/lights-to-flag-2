@@ -144,6 +144,52 @@ public class ResearchLedgerTests
         Assert.Equal(20, alpha.Research.RegulationReadiness);
     }
 
+    [Fact]
+    public void A_step_advances_a_project_without_completing_it()
+    {
+        // One round-slice of a four-round season (rate 1000 → step 250) walks two states but not to review.
+        var alpha = ResearchLedger.DevelopStep(BaseCarset(ProjectState()), 7, roundIndex: 0, roundCount: 4)
+            .Carset.Teams.Single(t => t.Id == "alpha");
+
+        Assert.Equal(50, alpha.Car.Aerodynamics.Value); // not approved yet
+        Assert.Equal(ValidationState.ReadyForTrackTest, alpha.Research.ActiveProjects.Single().State);
+    }
+
+    [Fact]
+    public void A_full_season_of_steps_approves_what_one_season_would()
+    {
+        var current = BaseCarset(ProjectState());
+        for (var i = 0; i < 4; i++)
+        {
+            current = ResearchLedger.DevelopStep(current, 7, roundIndex: i, roundCount: 4).Carset;
+        }
+
+        var alpha = current.Teams.Single(t => t.Id == "alpha");
+        Assert.Equal(60, alpha.Car.Aerodynamics.Value);            // same as one DevelopSeason
+        Assert.Contains("aero1", alpha.Research.UnlockedNodeIds);
+    }
+
+    [Fact]
+    public void A_carset_without_a_tech_tree_steps_inertly()
+    {
+        var carset = CareerFixtures.SeasonCarset(rounds: 4);
+
+        var outcome = ResearchLedger.DevelopStep(carset, 7, roundIndex: 0, roundCount: 4);
+
+        Assert.Same(carset, outcome.Carset);
+        Assert.Empty(outcome.Developments);
+    }
+
+    [Fact]
+    public void Development_steps_are_deterministic()
+    {
+        var carset = BaseCarset(ProjectState());
+
+        Assert.Equal(
+            Key(ResearchLedger.DevelopStep(carset, 7, 1, 4)),
+            Key(ResearchLedger.DevelopStep(carset, 7, 1, 4)));
+    }
+
     private static string Key(ResearchOutcome outcome) =>
         string.Join(";", outcome.Carset.Teams.Select(t => $"{t.Id}:{t.Car.Aerodynamics.Value},{t.Finances.Balance}"));
 }

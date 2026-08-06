@@ -32,7 +32,39 @@ public static class ResearchLedger
         var teams = new List<Team>(carset.Teams.Count);
         foreach (var team in carset.Teams)
         {
-            var (developed, development) = Develop(carset.TechTree, rules, team, root.Fork(Salt(team.Id)));
+            var (developed, development) =
+                Develop(carset.TechTree, rules, team, root.Fork(Salt(team.Id)), Rate(rules, team));
+            teams.Add(developed);
+            developments.Add(development);
+        }
+
+        return new ResearchOutcome { Carset = carset with { Teams = teams }, Developments = developments };
+    }
+
+    /// <summary>
+    /// Advances every team's R&amp;D by one round's slice of the season (M15): the season rate is split into
+    /// <paramref name="roundCount"/> even integer steps that sum to it, so a full season of steps accrues
+    /// the same total progress as one <see cref="DevelopSeason"/> — but a project can cross the validation
+    /// gate mid-season, which is how an upgrade becomes felt in the season's later rounds. Deterministic,
+    /// seeded per round (the seed is mixed with the round index so each round's draws are independent);
+    /// with no tech tree, no development budget or a non-positive round count the carset is returned untouched.
+    /// </summary>
+    public static ResearchOutcome DevelopStep(Carset carset, int seed, int roundIndex, int roundCount)
+    {
+        var rules = carset.Rules.Research;
+        if (carset.TechTree.Nodes.Count == 0 || rules.BaseProgressPerSeason <= 0 || roundCount <= 0)
+        {
+            return new ResearchOutcome { Carset = carset };
+        }
+
+        var root = new DeterministicRandom(Mix(seed, roundIndex));
+        var developments = new List<TeamDevelopment>(carset.Teams.Count);
+        var teams = new List<Team>(carset.Teams.Count);
+        foreach (var team in carset.Teams)
+        {
+            var stepRate = StepRate(Rate(rules, team), roundIndex, roundCount);
+            var (developed, development) =
+                Develop(carset.TechTree, rules, team, root.Fork(Salt(team.Id)), stepRate);
             teams.Add(developed);
             developments.Add(development);
         }
@@ -41,7 +73,7 @@ public static class ResearchLedger
     }
 
     private static (Team Team, TeamDevelopment Development) Develop(
-        TechTree tree, ResearchRules rules, Team team, IRandom rng)
+        TechTree tree, ResearchRules rules, Team team, IRandom rng, int rate)
     {
         var car = team.Car;
         var balance = team.Finances.Balance;
@@ -50,8 +82,6 @@ public static class ResearchLedger
         var abandonedIds = new HashSet<string>(StringComparer.Ordinal);
         var approved = new List<string>();
         var abandoned = 0;
-
-        var rate = Rate(rules, team);
 
         // 1. Advance existing projects; resolve those that reach validation.
         var active = new List<DevelopmentProject>();
@@ -251,6 +281,27 @@ public static class ResearchLedger
         }
 
         return sum / staff.Count;
+    }
+
+    // The round's slice of a season rate: an even integer partition of the season rate into `roundCount`
+    // steps that sum to exactly the season rate, so a whole season of steps equals one DevelopSeason.
+    private static int StepRate(int seasonRate, int roundIndex, int roundCount)
+    {
+        var upTo = (long)seasonRate * (roundIndex + 1) / roundCount;
+        var before = (long)seasonRate * roundIndex / roundCount;
+        return (int)(upTo - before);
+    }
+
+    // Mix a season seed with a round index so each round develops from an independent seeded stream.
+    private static int Mix(int seed, int round)
+    {
+        unchecked
+        {
+            var h = (uint)seed;
+            h = (h ^ (uint)round) * 2654435761u;
+            h ^= h >> 16;
+            return (int)h;
+        }
     }
 
     // A stable, ordinal FNV-1a hash of an id → fork salt. Never String.GetHashCode (process-randomised).
