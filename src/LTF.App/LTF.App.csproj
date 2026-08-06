@@ -28,4 +28,9 @@
     <AvaloniaResource Include="Assets/Fonts/*.ttf" />
   </ItemGroup>
 
+  <!-- The flagship carset the shell loads at startup (M19 shows its live top-bar values). -->
+  <ItemGroup>
+    <None Include="..\..\content\carsets\global-prix\carset.json" Link="carsets/global-prix.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

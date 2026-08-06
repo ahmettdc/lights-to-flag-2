@@ -17,4 +17,9 @@
     <ProjectReference Include="..\..\src\LTF.App\LTF.App.csproj" />
   </ItemGroup>
 
+  <!-- Copy the flagship carset so the session loader can be tested against real content. -->
+  <ItemGroup>
+    <None Include="..\..\content\carsets\global-prix\carset.json" Link="carsets/global-prix.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
