@@ -21,6 +21,7 @@ public static class NavRegistry
         new NavItem(NavKey.Standings, StringKeys.NavStandings, NavSection.Navigation, "M21"),
         new NavItem(NavKey.Calendar, StringKeys.NavCalendar, NavSection.Navigation, "M21"),
         new NavItem(NavKey.Database, StringKeys.NavDatabase, NavSection.Navigation, "M21"),
+        new NavItem(NavKey.Records, StringKeys.NavRecords, NavSection.Navigation, "M24"),
         new NavItem(NavKey.RaceWeekend, StringKeys.NavRaceWeekend, NavSection.RaceDay, "M23"),
         new NavItem(NavKey.Settings, StringKeys.NavSettings, NavSection.System, "M20"),
         new NavItem(NavKey.ExitToMenu, StringKeys.NavExitToMenu, NavSection.System, "M20"),

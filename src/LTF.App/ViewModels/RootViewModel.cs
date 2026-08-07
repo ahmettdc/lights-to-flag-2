@@ -99,6 +99,10 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         navigation.Register(NavKey.Drivers, () => new DriversViewModel(live.Current));
         navigation.Register(NavKey.Database, () => new DatabaseViewModel(live.Current));
 
+        // Records & statistics (M24): career profiles, this-season stats, all-time records and the hall of fame,
+        // over the career's accumulated history (driver/team tallies + the persisted season archive).
+        navigation.Register(NavKey.Records, () => new RecordsViewModel(live));
+
         // Race weekend (M23): a live timing tower replaying the last round's recorded telemetry (M23a, pure
         // playback of the deterministic RaceResult — no re-simulation), plus a pre-race strategy panel that
         // sets the next round's starting tyres (M23b), a Start Race that advances the career, and Race Live

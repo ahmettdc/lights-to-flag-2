@@ -101,7 +101,7 @@ public class ShellHeadlessTests
             .Concat(shell.Sidebar.SystemItems)
             .ToList();
 
-        Assert.Equal(13, items.Count);
+        Assert.Equal(14, items.Count);
         foreach (var item in items.Where(i => i.Key != NavKey.ExitToMenu))
         {
             item.SelectCommand.Execute(null);

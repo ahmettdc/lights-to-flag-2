@@ -74,6 +74,28 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
+        <!-- Career record (M24): the accumulated tallies, hidden when a career carries none. -->
+        <TextBlock Classes="sectionLabel" Text="{loc:Tr records.careerRecord}" IsVisible="{Binding HasCareer}" />
+        <ItemsControl ItemsSource="{Binding CareerStats}" IsVisible="{Binding HasCareer}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="2" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="screens:ProfileStatViewModel">
+              <Grid ColumnDefinitions="*,Auto" Margin="0,0,20,9">
+                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
+                           FontFamily="{DynamicResource FontNumeric}" FontSize="12"
+                           Foreground="{DynamicResource BrushTextMuted}" />
+                <TextBlock Grid.Column="1" Text="{Binding Value}" VerticalAlignment="Center"
+                           FontFamily="{DynamicResource FontNumeric}" FontSize="12" FontWeight="Bold"
+                           Foreground="{Binding ValueBrush}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
       </StackPanel>
     </ScrollViewer>
 

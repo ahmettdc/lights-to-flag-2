@@ -18,6 +18,7 @@ public static class StringKeys
     public const string NavStandings = "nav.standings";
     public const string NavCalendar = "nav.calendar";
     public const string NavDatabase = "nav.database";
+    public const string NavRecords = "nav.records";
     public const string NavRaceWeekend = "nav.raceWeekend";
     public const string NavSettings = "nav.settings";
     public const string NavExitToMenu = "nav.exitToMenu";
@@ -201,6 +202,21 @@ public static class StringKeys
     public const string RaceWeekendCmdPush = "raceWeekend.cmdPush";
     public const string RaceWeekendCmdExtend = "raceWeekend.cmdExtend";
     public const string RaceWeekendCmdManage = "raceWeekend.cmdManage";
+
+    // Records & statistics screen (M24).
+    public const string RecordsCareerRecord = "records.careerRecord";
+    public const string RecordsTabProfiles = "records.tabProfiles";
+    public const string RecordsTabThisSeason = "records.tabThisSeason";
+    public const string RecordsTabAllTime = "records.tabAllTime";
+    public const string RecordsTabHallOfFame = "records.tabHallOfFame";
+    public const string RecordsColDriver = "records.colDriver";
+    public const string RecordsColRaces = "records.colRaces";
+    public const string RecordsColWins = "records.colWins";
+    public const string RecordsColPodiums = "records.colPodiums";
+    public const string RecordsColPoles = "records.colPoles";
+    public const string RecordsColTitles = "records.colTitles";
+    public const string RecordsColPoints = "records.colPoints";
+    public const string RecordsComingSoon = "records.comingSoon";
 
     // Cars & Power Unit screen (M22).
     public const string CarsPerformance = "cars.performance";

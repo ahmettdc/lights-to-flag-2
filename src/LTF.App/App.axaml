@@ -57,6 +57,10 @@
     <DataTemplate DataType="{x:Type screens:PaddockHubViewModel}">
       <views:PaddockHubView />
     </DataTemplate>
+    <!-- Records & statistics (M24): career profiles, all-time records, hall of fame. -->
+    <DataTemplate DataType="{x:Type screens:RecordsViewModel}">
+      <views:RecordsView />
+    </DataTemplate>
     <!-- Management screens (M22). -->
     <DataTemplate DataType="{x:Type screens:FinanceViewModel}">
       <views:FinanceView />

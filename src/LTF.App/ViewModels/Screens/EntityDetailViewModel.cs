@@ -20,13 +20,16 @@ public sealed class EntityDetailViewModel : ViewModelBase
         string name,
         string subtitle,
         IReadOnlyList<ProfileStatViewModel> facts,
-        IReadOnlyList<AttributeBarViewModel> attributes)
+        IReadOnlyList<AttributeBarViewModel> attributes,
+        IReadOnlyList<ProfileStatViewModel> careerStats)
     {
         Name = name;
         Subtitle = subtitle;
         Facts = facts;
         Attributes = attributes;
+        CareerStats = careerStats;
         HasAttributes = attributes.Count > 0;
+        HasCareer = careerStats.Count > 0;
     }
 
     public string Name { get; }
@@ -37,7 +40,13 @@ public sealed class EntityDetailViewModel : ViewModelBase
 
     public IReadOnlyList<AttributeBarViewModel> Attributes { get; }
 
+    /// <summary>The accumulated career record (M24): races, wins, podiums, poles, titles, points and derived
+    /// rates for a driver; championships and race wins for a team. Empty leaves the section hidden.</summary>
+    public IReadOnlyList<ProfileStatViewModel> CareerStats { get; }
+
     public bool HasAttributes { get; }
+
+    public bool HasCareer { get; }
 
     /// <summary>A driver profile: CA/PA subtitle, the six ratings as bars, and biographical facts.</summary>
     public static EntityDetailViewModel ForDriver(Driver driver, string teamLabel)
@@ -52,7 +61,7 @@ public sealed class EntityDetailViewModel : ViewModelBase
             Fact("Number", driver.Number > 0 ? driver.Number.ToString(CultureInfo.InvariantCulture) : "—"),
             Fact("Team", Blank(teamLabel)),
             new ProfileStatViewModel("Morale", driver.Morale.Value.ToString(CultureInfo.InvariantCulture), StatusColorConverter.Classify(driver.Morale.Value)),
-            Fact("Career wins", driver.Career.Wins.ToString(CultureInfo.InvariantCulture)),
+            Fact("Reputation", driver.Reputation.Value.ToString(CultureInfo.InvariantCulture)),
         };
 
         var attributes = new[]
@@ -65,10 +74,11 @@ public sealed class EntityDetailViewModel : ViewModelBase
             Attr("Feedback", driver.Attributes.Feedback),
         };
 
-        return new EntityDetailViewModel(driver.FullName.ToUpperInvariant(), subtitle, facts, attributes);
+        return new EntityDetailViewModel(
+            driver.FullName.ToUpperInvariant(), subtitle, facts, attributes, DriverCareerStats(driver.Career));
     }
 
-    /// <summary>A team card: base/nationality/principal and the honours record (no attribute bars).</summary>
+    /// <summary>A team card: base/nationality/principal, average rating and the honours record.</summary>
     public static EntityDetailViewModel ForTeam(Team team, int driverCount, int averageOverall)
     {
         var facts = new[]
@@ -78,10 +88,35 @@ public sealed class EntityDetailViewModel : ViewModelBase
             Fact("Principal", Blank(team.Principal)),
             Fact("Drivers", driverCount.ToString(CultureInfo.InvariantCulture)),
             new ProfileStatViewModel("Avg. rating", averageOverall > 0 ? averageOverall.ToString(CultureInfo.InvariantCulture) : "—", StatusColorConverter.Classify(averageOverall)),
-            Fact("Championships", team.ChampionshipsWon.ToString(CultureInfo.InvariantCulture)),
         };
 
-        return new EntityDetailViewModel(team.Name.ToUpperInvariant(), Blank(team.ShortName), facts, Array.Empty<AttributeBarViewModel>());
+        var career = new[]
+        {
+            Fact("Championships", team.ChampionshipsWon.ToString(CultureInfo.InvariantCulture)),
+            Fact("Race wins", team.RaceWins.ToString(CultureInfo.InvariantCulture)),
+        };
+
+        return new EntityDetailViewModel(
+            team.Name.ToUpperInvariant(), Blank(team.ShortName), facts, Array.Empty<AttributeBarViewModel>(), career);
+    }
+
+    // The driver's accumulated career record (M24): the raw tallies plus a derived win rate.
+    private static IReadOnlyList<ProfileStatViewModel> DriverCareerStats(DriverCareer career)
+    {
+        var winRate = career.Races > 0
+            ? string.Create(CultureInfo.InvariantCulture, $"{100.0 * career.Wins / career.Races:0}%")
+            : "—";
+        return new[]
+        {
+            Fact("Championships", career.Championships.ToString(CultureInfo.InvariantCulture)),
+            Fact("Races", career.Races.ToString(CultureInfo.InvariantCulture)),
+            Fact("Wins", career.Wins.ToString(CultureInfo.InvariantCulture)),
+            Fact("Podiums", career.Podiums.ToString(CultureInfo.InvariantCulture)),
+            Fact("Poles", career.Poles.ToString(CultureInfo.InvariantCulture)),
+            Fact("Fastest laps", career.FastestLaps.ToString(CultureInfo.InvariantCulture)),
+            Fact("Career points", career.Points.ToString("0", CultureInfo.InvariantCulture)),
+            Fact("Win rate", winRate),
+        };
     }
 
     private static ProfileStatViewModel Fact(string label, string value) =>

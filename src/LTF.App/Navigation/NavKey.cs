@@ -13,6 +13,7 @@ public enum NavKey
     Standings,
     Calendar,
     Database,
+    Records,
     RaceWeekend,
     Settings,
     ExitToMenu,

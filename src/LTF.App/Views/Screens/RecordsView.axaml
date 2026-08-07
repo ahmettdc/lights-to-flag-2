@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.RecordsView"
+             x:DataType="screens:RecordsViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.colHead">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextFaint}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource BrushStatCell}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel Background="{DynamicResource BrushAppBackground}" LastChildFill="True">
+
+    <Border DockPanel.Dock="Top" Height="32" Background="{DynamicResource BrushChrome}"
+            BorderBrush="{DynamicResource BrushDivider}" BorderThickness="0,0,0,1" Padding="14,0">
+      <TextBlock Text="{loc:Tr nav.records}" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold" LetterSpacing="2"
+                 Foreground="{DynamicResource BrushTextPrimary}" />
+    </Border>
+
+    <TabControl Margin="12,8,12,12">
+
+      <!-- Career profiles (M24d): every driver's accumulated record + the selected profile card. -->
+      <TabItem Header="{loc:Tr records.tabProfiles}">
+        <Grid Margin="0,10,0,0" ColumnDefinitions="1.5*,*">
+
+          <Border Grid.Column="0" Classes="card" Margin="0,0,6,0">
+            <DockPanel LastChildFill="True">
+              <Border DockPanel.Dock="Top" Background="{DynamicResource BrushChrome}"
+                      BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="14,8">
+                <Grid ColumnDefinitions="28,*,52,48,44,44,52,56">
+                  <TextBlock Grid.Column="0" Classes="colHead" Text="#" />
+                  <TextBlock Grid.Column="1" Classes="colHead" Text="{loc:Tr records.colDriver}" Margin="9,0,0,0" />
+                  <TextBlock Grid.Column="2" Classes="colHead" Text="{loc:Tr records.colRaces}" TextAlignment="Center" />
+                  <TextBlock Grid.Column="3" Classes="colHead" Text="{loc:Tr records.colWins}" TextAlignment="Center" />
+                  <TextBlock Grid.Column="4" Classes="colHead" Text="{loc:Tr records.colPodiums}" TextAlignment="Center" />
+                  <TextBlock Grid.Column="5" Classes="colHead" Text="{loc:Tr records.colPoles}" TextAlignment="Center" />
+                  <TextBlock Grid.Column="6" Classes="colHead" Text="{loc:Tr records.colTitles}" TextAlignment="Center" />
+                  <TextBlock Grid.Column="7" Classes="colHead" Text="{loc:Tr records.colPoints}" TextAlignment="Center" />
+                </Grid>
+              </Border>
+              <ListBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                       Background="Transparent" BorderThickness="0" Padding="0">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="screens:CareerProfileRowViewModel">
+                    <Grid ColumnDefinitions="28,*,52,48,44,44,52,56" Height="32">
+                      <TextBlock Grid.Column="0" Text="{Binding Rank}" Classes="num"
+                                 Foreground="{DynamicResource BrushTextDim}" />
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="9" Margin="9,0,0,0"
+                                  VerticalAlignment="Center">
+                        <Border Width="3" Height="15" Background="{Binding Accent}" />
+                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Text="{Binding Races}" Classes="num" />
+                      <TextBlock Grid.Column="3" Text="{Binding Wins}" Classes="num"
+                                 FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                      <TextBlock Grid.Column="4" Text="{Binding Podiums}" Classes="num" />
+                      <TextBlock Grid.Column="5" Text="{Binding Poles}" Classes="num" />
+                      <TextBlock Grid.Column="6" Text="{Binding Titles}" Classes="num"
+                                 Foreground="{DynamicResource BrushAccent}" />
+                      <TextBlock Grid.Column="7" Text="{Binding Points}" Classes="num"
+                                 FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                    </Grid>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </DockPanel>
+          </Border>
+
+          <Border Grid.Column="1" Classes="card" Margin="6,0,0,0">
+            <ContentControl Content="{Binding ProfileDetail}" />
+          </Border>
+
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="{loc:Tr records.tabThisSeason}">
+        <TextBlock Text="{loc:Tr records.comingSoon}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+      </TabItem>
+
+      <TabItem Header="{loc:Tr records.tabAllTime}">
+        <TextBlock Text="{loc:Tr records.comingSoon}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+      </TabItem>
+
+      <TabItem Header="{loc:Tr records.tabHallOfFame}">
+        <TextBlock Text="{loc:Tr records.comingSoon}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+      </TabItem>
+
+    </TabControl>
+  </DockPanel>
+
+</UserControl>

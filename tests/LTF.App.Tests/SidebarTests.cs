@@ -13,7 +13,7 @@ namespace LTF.App.Tests;
 
 /// <summary>
 /// The sidebar: entries are grouped by section in order, selecting a row navigates and marks it active,
-/// and the view renders all 13 nav buttons headless.
+/// and the view renders all 14 nav buttons headless.
 /// </summary>
 public class SidebarTests
 {
@@ -23,9 +23,9 @@ public class SidebarTests
         var nav = new NavigationService();
         var vm = new SidebarViewModel(nav, nav.Navigate);
 
-        Assert.Equal(10, vm.MainItems.Count);
+        Assert.Equal(11, vm.MainItems.Count);
         Assert.Equal(NavKey.PaddockHub, vm.MainItems[0].Key);
-        Assert.Equal(NavKey.Database, vm.MainItems[^1].Key);
+        Assert.Equal(NavKey.Records, vm.MainItems[^1].Key);
         Assert.Equal(new[] { NavKey.RaceWeekend }, vm.RaceDayItems.Select(i => i.Key));
         Assert.Equal(new[] { NavKey.Settings, NavKey.ExitToMenu }, vm.SystemItems.Select(i => i.Key));
         Assert.Equal("PADDOCK HUB", vm.MainItems[0].Label);
@@ -62,6 +62,6 @@ public class SidebarTests
             .Where(b => b.Classes.Contains("navitem"))
             .ToList();
 
-        Assert.Equal(13, navButtons.Count);
+        Assert.Equal(14, navButtons.Count);
     }
 }
