@@ -119,5 +119,18 @@ public static class EnglishStrings
         [StringKeys.DatabaseColTeam] = "TEAM",
         [StringKeys.DatabaseColOvr] = "OVR",
         [StringKeys.DatabaseColPot] = "POT",
+        [StringKeys.PaddockSummaryStatus] = "SUMMARY STATUS",
+        [StringKeys.PaddockCurrentEvents] = "CURRENT EVENTS",
+        [StringKeys.PaddockWccPosition] = "WCC POSITION",
+        [StringKeys.PaddockBoardConfidence] = "BOARD CONFIDENCE",
+        [StringKeys.PaddockNextSession] = "NEXT SESSION",
+        [StringKeys.PaddockNextEvent] = "NEXT EVENT",
+        [StringKeys.PaddockGoToRaceWeekend] = "GO TO RACE WEEKEND »",
+        [StringKeys.PaddockCriticalDecisions] = "Critical decisions",
+        [StringKeys.PaddockHighPriority] = "High priority",
+        [StringKeys.PaddockPendingItems] = "Pending items",
+        [StringKeys.PaddockDialogue] = "PADDOCK DIALOGUE",
+        [StringKeys.PaddockDialogueEmpty] = "No active conversations",
+        [StringKeys.PaddockDialogueEmptyBody] = "Driver and board dialogue opens up with the transfer market.",
     };
 }

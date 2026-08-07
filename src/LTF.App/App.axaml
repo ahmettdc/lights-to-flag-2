@@ -54,6 +54,9 @@
     <DataTemplate DataType="{x:Type screens:EntityDetailViewModel}">
       <views:EntityDetailView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type screens:PaddockHubViewModel}">
+      <views:PaddockHubView />
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

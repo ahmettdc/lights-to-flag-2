@@ -72,6 +72,11 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         // In-shell career screens (M21). The factories close over the session's carset/clock, so
         // re-navigating after a Continue rebuilds each screen from current state. Standings shows the
         // zeroed table until a round is run (the live career wires results in M21d).
+        navigation.Register(NavKey.PaddockHub, () => new PaddockHubViewModel(
+            session,
+            ChampionshipStandings.Empty(session.Carset),
+            _services.Notifications,
+            goToRaceWeekend: () => navigation.Navigate(NavKey.Calendar)));
         navigation.Register(NavKey.Standings, () =>
             new StandingsViewModel(session.Carset, ChampionshipStandings.Empty(session.Carset)));
         navigation.Register(NavKey.Calendar, () =>

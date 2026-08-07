@@ -128,4 +128,17 @@ public static class StringKeys
     public const string DatabaseColTeam = "database.colTeam";
     public const string DatabaseColOvr = "database.colOvr";
     public const string DatabaseColPot = "database.colPot";
+    public const string PaddockSummaryStatus = "paddock.summaryStatus";
+    public const string PaddockCurrentEvents = "paddock.currentEvents";
+    public const string PaddockWccPosition = "paddock.wccPosition";
+    public const string PaddockBoardConfidence = "paddock.boardConfidence";
+    public const string PaddockNextSession = "paddock.nextSession";
+    public const string PaddockNextEvent = "paddock.nextEvent";
+    public const string PaddockGoToRaceWeekend = "paddock.goToRaceWeekend";
+    public const string PaddockCriticalDecisions = "paddock.criticalDecisions";
+    public const string PaddockHighPriority = "paddock.highPriority";
+    public const string PaddockPendingItems = "paddock.pendingItems";
+    public const string PaddockDialogue = "paddock.dialogue";
+    public const string PaddockDialogueEmpty = "paddock.dialogueEmpty";
+    public const string PaddockDialogueEmptyBody = "paddock.dialogueEmptyBody";
 }
