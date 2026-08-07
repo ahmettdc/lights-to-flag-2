@@ -37,3 +37,4 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0030](0030-development-freeze.md) | FIA gelişim-dondurma rejimi (üç-mod eksen dondurması + ballot) |
 | [0031](0031-race-weekend.md) | Yarış hafta sonu (canlı zamanlama kulesi replay + oyuncu strateji) |
 | [0032](0032-live-race-control.md) | Canlı yarış kontrolü (stepping-seam + komut günlüğü + tam görsel katman) |
+| [0033](0033-statistics-records.md) | İstatistik ve rekorlar (kalıcı sezon arşivi + hall of fame + elde-çizili grafikler) |
