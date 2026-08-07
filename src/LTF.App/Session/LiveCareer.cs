@@ -146,11 +146,13 @@ public sealed class LiveCareer
         return outcome.Result;
     }
 
-    /// <summary>Cross a season boundary (M21f): settle the season just played into records and evolve the
-    /// world — relationships, driver aging/retirement, the transfer market, contracts and any passed
-    /// regulation — then open the next season on the rolled carset. Reuses the exact boundary chain the M18
-    /// <see cref="WorldSweep"/> runs. Deterministic in the career seed; the rolled carset becomes the new save
-    /// base, so a load resumes the new season with no re-roll.</summary>
+    /// <summary>Cross a season boundary (M21f + M22a): settle the season just played and evolve the world.
+    /// First the management settle chain — economy, bank loans, enforcement (icra) and the board review,
+    /// mirroring <see cref="BossCareerSweep"/>/<see cref="BankSweep"/> — then the M18 <see cref="WorldSweep"/>
+    /// evolution (relationships, aging/retirement, transfers, contracts, regulation), so
+    /// <see cref="CareerRollover"/> rides the settled finances. A defaulting loan raises an action-required
+    /// enforcement item that halts Continue (Rev 15). Deterministic in the career seed; the rolled carset
+    /// (settled finances + evolved boards baked in) becomes the new save base, so a load resumes with no re-roll.</summary>
     private void RollToNextSeason()
     {
         // The canonical result of the season just played (LiveCareer reproduces SeasonSimulator.Run exactly).
@@ -158,7 +160,16 @@ public sealed class LiveCareer
         var seasonSeed = SeasonSimulator.RoundSeed(Seed, _seasonIndex);
         var seatTargets = SeasonStart.Teams.ToDictionary(t => t.Id, t => t.DriverIds.Count, System.StringComparer.Ordinal);
 
-        var next = SeasonStart;
+        // Management settle chain — economy → loans → enforcement → board — before the world evolution, so the
+        // settled finances/boards are what CareerRollover and the save base carry forward.
+        var settlement = EconomyLedger.SettleSeason(SeasonStart, result);
+        var banked = BankLedger.SettleSeason(settlement.Carset);
+        var enforcement = BankEnforcement.Enforce(banked.Carset, banked.Missed);
+        var penalties = settlement.Penalties.Concat(enforcement.PointsPenalties).ToList();
+        var judged = ConstructorPenalties.Apply(result.Standings, penalties);
+        var settled = BoardReview.Assess(enforcement.Carset, judged, seasonSeed);
+
+        var next = settled;
         next = RelationshipEvolution.Apply(next, result);          // incidents move the paddock
         next = CareerRollover.Apply(next, result);                 // roll the season into records
         next = DriverProgression.Advance(next, seasonSeed);        // age, grow and decline
@@ -174,8 +185,17 @@ public sealed class LiveCareer
         RebuildRoundMaps();
         _results.Clear();
         Standings = ChampionshipStandings.Empty(next);
-        LastStepNews = new List<Notification> { CareerNews.ForNewSeason(Clock.Date, _seasonIndex) };
-        PendingAction = false;
+
+        // The new-season item, plus one action-required enforcement item per defaulting team (the player, in
+        // practice) so Continue halts on a missed loan (Rev 15).
+        var news = new List<Notification> { CareerNews.ForNewSeason(Clock.Date, _seasonIndex) };
+        foreach (var action in enforcement.Actions)
+        {
+            news.Add(CareerNews.ForEnforcement(Clock.Date, action, next));
+        }
+
+        LastStepNews = news;
+        PendingAction = news.Any(n => n.RequiresAction);
     }
 
     private void RebuildRoundMaps()

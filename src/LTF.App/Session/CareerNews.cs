@@ -68,10 +68,51 @@ internal static class CareerNews
             NavKey.PaddockHub,
             date);
 
+    /// <summary>A bank enforcement escalation (ADR-0029): a missed instalment, a forced asset sale, or the
+    /// terminal insolvency penalty. Always <em>action-required</em> — the creditors are on your tail, so
+    /// Continue halts until the player acknowledges (Rev 15).</summary>
+    public static Notification ForEnforcement(DateOnly date, EnforcementAction action, Carset carset)
+    {
+        var team = TeamName(carset, action.TeamId);
+        var (title, body, severity) = action.Step switch
+        {
+            EnforcementStep.Insolvency => (
+                "Insolvency enforcement",
+                $"Sustained default: the bank docked {action.PointsDocked} points and liquidated assets. Clear the debt to call off the bailiffs.",
+                NotificationSeverity.Critical),
+            EnforcementStep.AssetSeizure => (
+                "Assets seized",
+                action.SeizedAsset.Length > 0
+                    ? $"Creditors forced the sale of {action.SeizedAsset} to service {team}'s debt."
+                    : $"Creditors moved to seize {team}'s assets over the unpaid loan.",
+                NotificationSeverity.Warning),
+            _ => (
+                "Creditors are circling",
+                $"{team} missed a loan instalment — the bank has issued a formal warning.",
+                NotificationSeverity.Warning),
+        };
+
+        return new Notification(
+            $"enforce-{action.TeamId}-{action.Step}-{date.ToString("yyyyMMdd", CultureInfo.InvariantCulture)}",
+            NotificationCategory.Finance,
+            severity,
+            title,
+            body,
+            NavKey.Finance,
+            date,
+            RequiresAction: true);
+    }
+
     private static string DriverName(Carset carset, string id)
     {
         var driver = carset.Drivers.FirstOrDefault(d => string.CompareOrdinal(d.Id, id) == 0);
         return driver?.FullName ?? id;
+    }
+
+    private static string TeamName(Carset carset, string id)
+    {
+        var team = carset.Teams.FirstOrDefault(t => string.CompareOrdinal(t.Id, id) == 0);
+        return team?.Name ?? id;
     }
 
     private static string CircuitName(Carset carset, string id)
