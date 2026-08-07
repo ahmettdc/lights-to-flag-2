@@ -213,6 +213,13 @@ public static class EnglishStrings
         [StringKeys.RecordsColLap] = "LAP TIME",
         [StringKeys.RecordsColHolder] = "HOLDER",
         [StringKeys.RecordsEmptyHistory] = "Complete a season to build the record books.",
+        [StringKeys.RecordsSeasonLeaders] = "SEASON LEADERS",
+        [StringKeys.RecordsHeadToHead] = "TEAMMATE HEAD-TO-HEAD",
+        [StringKeys.RecordsPointsProgression] = "POINTS PROGRESSION",
+        [StringKeys.RecordsHthQualifying] = "QUALIFYING",
+        [StringKeys.RecordsHthRace] = "RACE",
+        [StringKeys.RecordsHthPoints] = "POINTS",
+        [StringKeys.RecordsEmptySeason] = "The season's statistics appear once racing is under way.",
 
         [StringKeys.CarsPerformance] = "CAR PERFORMANCE",
         [StringKeys.CarsOverall] = "OVERALL",

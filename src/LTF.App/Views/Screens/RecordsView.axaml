@@ -96,9 +96,117 @@
         </Grid>
       </TabItem>
 
+      <!-- This season (M24f): stat leaders + teammate head-to-head + points-progression chart. -->
       <TabItem Header="{loc:Tr records.tabThisSeason}">
-        <TextBlock Text="{loc:Tr records.comingSoon}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                   FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+        <Panel Margin="0,10,0,0">
+          <TextBlock Text="{loc:Tr records.emptySeason}" IsVisible="{Binding !HasSeason}"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+
+          <Grid IsVisible="{Binding HasSeason}" RowDefinitions="Auto,*">
+
+            <Grid Grid.Row="0" ColumnDefinitions="*,*" Margin="0,0,0,8">
+
+              <Border Grid.Column="0" Classes="card" Margin="0,0,6,0">
+                <StackPanel>
+                  <Border Background="{DynamicResource BrushChrome}" BorderBrush="{DynamicResource BrushCardBorder}"
+                          BorderThickness="0,0,0,1" Padding="12,7">
+                    <TextBlock Classes="colHead" Text="{loc:Tr records.seasonLeaders}" />
+                  </Border>
+                  <ItemsControl ItemsSource="{Binding SeasonLeaders}" Margin="0,4,0,6">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="screens:SeasonLeaderViewModel">
+                        <Grid ColumnDefinitions="*,*,Auto" Height="26" Margin="12,0">
+                          <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center"
+                                     FontFamily="{DynamicResource FontNumeric}" FontSize="11"
+                                     Foreground="{DynamicResource BrushTextMuted}" />
+                          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                            <Border Width="3" Height="13" Background="{Binding Accent}" />
+                            <TextBlock Text="{Binding Driver}" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <TextBlock Grid.Column="2" Text="{Binding Value}" Classes="num" FontWeight="Bold"
+                                     Foreground="{DynamicResource BrushAccent}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Grid.Column="1" Classes="card" Margin="6,0,0,0" IsVisible="{Binding HasHeadToHead}">
+                <StackPanel>
+                  <Border Background="{DynamicResource BrushChrome}" BorderBrush="{DynamicResource BrushCardBorder}"
+                          BorderThickness="0,0,0,1" Padding="12,7">
+                    <TextBlock Classes="colHead" Text="{loc:Tr records.headToHead}" />
+                  </Border>
+                  <StackPanel Margin="12,8" Spacing="7">
+                    <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                        <Border Width="3" Height="13" Background="{Binding HeadToHead.AccentA}" />
+                        <TextBlock Text="{Binding HeadToHead.DriverA}" FontSize="12"
+                                   Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Text="{Binding HeadToHead.DriverB}" FontSize="12"
+                                 Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis"
+                                 TextAlignment="Right" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,40,14,40">
+                      <TextBlock Grid.Column="0" Text="{loc:Tr records.hthQualifying}" Classes="colHead" />
+                      <TextBlock Grid.Column="1" Text="{Binding HeadToHead.QualifyingA}" Classes="num" FontWeight="Bold" />
+                      <TextBlock Grid.Column="2" Text="–" Classes="num" Foreground="{DynamicResource BrushTextDim}" />
+                      <TextBlock Grid.Column="3" Text="{Binding HeadToHead.QualifyingB}" Classes="num" FontWeight="Bold" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,40,14,40">
+                      <TextBlock Grid.Column="0" Text="{loc:Tr records.hthRace}" Classes="colHead" />
+                      <TextBlock Grid.Column="1" Text="{Binding HeadToHead.RaceA}" Classes="num" FontWeight="Bold" />
+                      <TextBlock Grid.Column="2" Text="–" Classes="num" Foreground="{DynamicResource BrushTextDim}" />
+                      <TextBlock Grid.Column="3" Text="{Binding HeadToHead.RaceB}" Classes="num" FontWeight="Bold" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,40,14,40">
+                      <TextBlock Grid.Column="0" Text="{loc:Tr records.hthPoints}" Classes="colHead" />
+                      <TextBlock Grid.Column="1" Text="{Binding HeadToHead.PointsA}" Classes="num" FontWeight="Bold"
+                                 Foreground="{DynamicResource BrushAccent}" />
+                      <TextBlock Grid.Column="2" Text="–" Classes="num" Foreground="{DynamicResource BrushTextDim}" />
+                      <TextBlock Grid.Column="3" Text="{Binding HeadToHead.PointsB}" Classes="num" FontWeight="Bold"
+                                 Foreground="{DynamicResource BrushAccent}" />
+                    </Grid>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+            </Grid>
+
+            <Border Grid.Row="1" Classes="card">
+              <DockPanel LastChildFill="True">
+                <Border DockPanel.Dock="Top" Background="{DynamicResource BrushChrome}"
+                        BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,7">
+                  <TextBlock Classes="colHead" Text="{loc:Tr records.pointsProgression}" />
+                </Border>
+                <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="14" HorizontalAlignment="Stretch">
+                  <Canvas Width="620" Height="260" Background="Transparent">
+                    <Line StartPoint="14,246" EndPoint="606,246"
+                          Stroke="{DynamicResource BrushCardBorder}" StrokeThickness="1" />
+                    <Line StartPoint="14,14" EndPoint="14,246"
+                          Stroke="{DynamicResource BrushCardBorder}" StrokeThickness="1" />
+                    <ItemsControl ItemsSource="{Binding PointsChart}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="screens:ChartSeriesViewModel">
+                          <Path Data="{Binding LineData}" Stroke="{Binding Stroke}" StrokeThickness="2"
+                                StrokeLineCap="Round" StrokeJoin="Round" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Canvas>
+                </Viewbox>
+              </DockPanel>
+            </Border>
+
+          </Grid>
+        </Panel>
       </TabItem>
 
       <!-- All-time record boards (M24e): the top of each cumulative tally. -->

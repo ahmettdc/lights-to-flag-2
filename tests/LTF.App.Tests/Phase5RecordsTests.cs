@@ -103,15 +103,28 @@ public class Phase5RecordsTests
     }
 
     [AvaloniaFact]
-    public void Records_view_resolves_from_its_view_model()
+    public void Records_view_resolves_and_renders_the_points_chart()
     {
-        var host = new ContentControl { Content = new RecordsViewModel(new LiveCareer(SessionLoader.LoadFlagship())) };
+        // A mid-season career so the THIS SEASON tab's hand-drawn points chart has data.
+        var host = new ContentControl { Content = new RecordsViewModel(AfterSomeRaces(3)) };
         var window = new Window { Content = host };
 
         window.Show();
         Dispatcher.UIThread.RunJobs();
 
-        Assert.Single(host.GetVisualDescendants().OfType<RecordsView>());
+        var view = Assert.Single(host.GetVisualDescendants().OfType<RecordsView>());
+
+        // Select the THIS SEASON tab so its chart realizes, then confirm the path-string → Path.Data binding
+        // produced real geometry (this is the only place Path is used on the screen).
+        var tabs = view.GetVisualDescendants().OfType<TabControl>().First();
+        tabs.SelectedIndex = 1;
+        Dispatcher.UIThread.RunJobs();
+
+        var chartPaths = window.GetVisualDescendants()
+            .OfType<Avalonia.Controls.Shapes.Path>()
+            .Where(p => p.Data is not null)
+            .ToList();
+        Assert.NotEmpty(chartPaths);
     }
 
     [Fact]
@@ -179,5 +192,82 @@ public class Phase5RecordsTests
         Assert.Empty(vm.HallOfFame);
         Assert.Empty(vm.TrackRecords);
         Assert.NotEmpty(vm.AllTimeBoards); // the boards still list the field, on zero
+    }
+
+    // --- This season: stats, head-to-head, points chart (M24f) ---
+
+    // Drive a fresh flagship career until at least the given number of rounds have run this season.
+    private static LiveCareer AfterSomeRaces(int n)
+    {
+        var live = new LiveCareer(SessionLoader.LoadFlagship());
+        var guard = 0;
+        while (live.Results.Count < n && guard++ < 3000)
+        {
+            if (live.PendingAction)
+            {
+                live.Acknowledge();
+            }
+            else
+            {
+                live.Continue();
+            }
+        }
+
+        return live;
+    }
+
+    [Fact]
+    public void The_chart_scale_maps_the_data_bounds_to_the_padded_canvas()
+    {
+        var scale = new ChartScale(0, 10, 0, 100, 600, 300, 20);
+
+        var low = scale.At(0, 0);
+        Assert.Equal(20, low.X, 3);      // min X → left inset
+        Assert.Equal(280, low.Y, 3);     // min Y → bottom inset (height − pad)
+
+        var high = scale.At(10, 100);
+        Assert.Equal(580, high.X, 3);    // max X → right inset (width − pad)
+        Assert.Equal(20, high.Y, 3);     // max Y → top inset (Y flipped)
+
+        // A degenerate axis collapses to the low edge instead of dividing by zero.
+        var flat = new ChartScale(5, 5, 0, 0, 600, 300, 20);
+        Assert.Equal(20, flat.At(5, 0).X, 3);
+        Assert.Equal(280, flat.At(5, 0).Y, 3);
+    }
+
+    [Fact]
+    public void The_this_season_tab_projects_leaders_and_a_points_chart()
+    {
+        var vm = new RecordsViewModel(AfterSomeRaces(3));
+
+        Assert.True(vm.HasSeason);
+        Assert.Equal(5, vm.SeasonLeaders.Count);
+        Assert.Contains(vm.SeasonLeaders, l => l.Label == "Most wins");
+
+        Assert.NotEmpty(vm.PointsChart);
+        Assert.True(vm.PointsChart.Count <= 6);   // the top six drivers
+        Assert.All(vm.PointsChart, s => Assert.False(string.IsNullOrEmpty(s.LineData)));
+    }
+
+    [Fact]
+    public void The_head_to_head_compares_the_player_teammates()
+    {
+        var vm = new RecordsViewModel(AfterSomeRaces(3));
+
+        Assert.True(vm.HasHeadToHead);
+        Assert.NotNull(vm.HeadToHead);
+        Assert.False(string.IsNullOrWhiteSpace(vm.HeadToHead!.DriverA));
+        Assert.False(string.IsNullOrWhiteSpace(vm.HeadToHead.DriverB));
+        Assert.True(int.Parse(vm.HeadToHead.PointsA, CultureInfo.InvariantCulture) >= 0);
+    }
+
+    [Fact]
+    public void A_fresh_career_has_no_this_season_content()
+    {
+        var vm = new RecordsViewModel(new LiveCareer(SessionLoader.LoadFlagship()));
+
+        Assert.False(vm.HasSeason);
+        Assert.Empty(vm.PointsChart);
+        Assert.False(vm.HasHeadToHead);
     }
 }

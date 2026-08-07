@@ -226,6 +226,13 @@ public static class StringKeys
     public const string RecordsColLap = "records.colLap";
     public const string RecordsColHolder = "records.colHolder";
     public const string RecordsEmptyHistory = "records.emptyHistory";
+    public const string RecordsSeasonLeaders = "records.seasonLeaders";
+    public const string RecordsHeadToHead = "records.headToHead";
+    public const string RecordsPointsProgression = "records.pointsProgression";
+    public const string RecordsHthQualifying = "records.hthQualifying";
+    public const string RecordsHthRace = "records.hthRace";
+    public const string RecordsHthPoints = "records.hthPoints";
+    public const string RecordsEmptySeason = "records.emptySeason";
 
     // Cars & Power Unit screen (M22).
     public const string CarsPerformance = "cars.performance";
