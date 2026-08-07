@@ -280,4 +280,36 @@ public class Phase5RaceWeekendTests
         var vm = new RaceWeekendViewModel(new LiveCareer(SessionLoader.LoadFlagship()));
         Assert.Empty(vm.QualifyingGrid);
     }
+
+    // --- Track map (M23e) ---
+
+    [Fact]
+    public void The_track_map_places_a_marker_per_running_car()
+    {
+        var vm = new RaceWeekendViewModel(AfterFirstRace());
+        vm.SetLap(1);
+
+        Assert.NotEmpty(vm.Markers);
+        Assert.Equal(vm.Tower.Count, vm.Markers.Count); // one marker per car in the running order
+        Assert.All(vm.Markers, m =>
+        {
+            Assert.False(double.IsNaN(m.X) || double.IsNaN(m.Y));
+            Assert.InRange(m.X, -20.0, 860.0); // within the outline's canvas, with slack for the marker radius
+            Assert.InRange(m.Y, -20.0, 580.0);
+        });
+    }
+
+    [Fact]
+    public void The_track_map_markers_shift_as_the_replay_advances()
+    {
+        var vm = new RaceWeekendViewModel(AfterFirstRace());
+
+        vm.SetLap(1);
+        var early = string.Join(";", vm.Markers.Select(m => $"{m.X:0.0},{m.Y:0.0}"));
+
+        vm.SetLap(vm.TotalLaps);
+        var late = string.Join(";", vm.Markers.Select(m => $"{m.X:0.0},{m.Y:0.0}"));
+
+        Assert.NotEqual(early, late); // the field spreads differently around the lap as the gaps evolve
+    }
 }

@@ -124,10 +124,44 @@
         </StackPanel>
       </Grid>
 
-      <Grid Grid.Row="1" ColumnDefinitions="*,300">
+      <Grid Grid.Row="1" ColumnDefinitions="*,330">
+
+        <!-- Schematic track map (M23e): car markers placed from the recorded time gaps along a single generic
+             outline (no per-circuit geometry exists). Pure replay projection — no engine data. -->
+        <Border Grid.Column="0" Classes="card" Margin="0,0,6,0">
+          <Viewbox Stretch="Uniform" Margin="16">
+            <Canvas Width="840" Height="560" Background="Transparent">
+              <Path Stroke="{DynamicResource BrushChrome}" StrokeThickness="22" StrokeLineCap="Round" StrokeJoin="Round"
+                    Data="M 110 400 L 110 170 C 110 136 132 116 166 116 L 260 116 C 284 116 298 130 308 152 L 330 200 C 342 224 360 232 384 226 L 466 204 C 496 196 516 212 522 240 L 548 340 C 556 372 580 384 610 376 L 672 360 C 708 350 732 372 732 406 C 732 438 710 456 678 456 L 260 456 C 224 456 202 436 202 404 C 202 378 180 362 154 368 L 130 374 C 116 378 110 388 110 400 Z" />
+              <Path Stroke="{DynamicResource BrushCardBorder}" StrokeThickness="2" StrokeDashArray="1,7"
+                    Data="M 110 400 L 110 170 C 110 136 132 116 166 116 L 260 116 C 284 116 298 130 308 152 L 330 200 C 342 224 360 232 384 226 L 466 204 C 496 196 516 212 522 240 L 548 340 C 556 372 580 384 610 376 L 672 360 C 708 350 732 372 732 406 C 732 438 710 456 678 456 L 260 456 C 224 456 202 436 202 404 C 202 378 180 362 154 368 L 130 374 C 116 378 110 388 110 400 Z" />
+              <Rectangle Canvas.Left="102" Canvas.Top="283" Width="16" Height="8" Fill="{DynamicResource BrushTextPrimary}" />
+              <ItemsControl ItemsSource="{Binding Markers}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><Canvas /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.Styles>
+                  <Style Selector="ContentPresenter">
+                    <Setter Property="Canvas.Left" Value="{ReflectionBinding X}" />
+                    <Setter Property="Canvas.Top" Value="{ReflectionBinding Y}" />
+                  </Style>
+                </ItemsControl.Styles>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="screens:TrackMarkerViewModel">
+                    <Ellipse Width="{Binding Size}" Height="{Binding Size}" Fill="{Binding Fill}"
+                             Stroke="{Binding Stroke}" StrokeThickness="2" ToolTip.Tip="{Binding Name}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Canvas>
+          </Viewbox>
+        </Border>
+
+        <!-- Right column: timing tower / final classification (top) + event feed (bottom) -->
+        <Grid Grid.Column="1" Margin="6,0,0,0" RowDefinitions="*,170">
 
         <!-- Timing tower (during replay) / final classification (at the flag) -->
-        <Panel Grid.Column="0" Margin="0,0,6,0">
+        <Panel Grid.Row="0" Margin="0,0,0,6">
 
           <Border Classes="card" IsVisible="{Binding !RaceOver}">
             <DockPanel LastChildFill="True">
@@ -197,7 +231,7 @@
         </Panel>
 
         <!-- Event feed -->
-        <Border Grid.Column="1" Classes="card" Margin="6,0,0,0">
+        <Border Grid.Row="1" Classes="card">
           <DockPanel LastChildFill="True">
             <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
               <TextBlock Classes="cardHeader" Text="{loc:Tr raceWeekend.events}" />
@@ -219,6 +253,8 @@
             </ScrollViewer>
           </DockPanel>
         </Border>
+
+        </Grid>
 
       </Grid>
 

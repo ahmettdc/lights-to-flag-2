@@ -29,6 +29,8 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     private readonly IReadOnlyDictionary<string, string> _teamName;
     private readonly IReadOnlyDictionary<string, string> _teamOfDriver;
     private readonly IReadOnlyDictionary<string, int> _teamIndex;
+    private readonly IReadOnlySet<string> _playerDrivers;
+    private double _referenceLap = 90.0;
 
     public RaceWeekendViewModel(
         LiveCareer live,
@@ -46,6 +48,7 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         _teamIndex = carset.Teams
             .Select((t, i) => (t.Id, Index: i))
             .ToDictionary(x => x.Id, x => x.Index, StringComparer.Ordinal);
+        _playerDrivers = new HashSet<string>(carset.PlayerTeam()?.DriverIds ?? [], StringComparer.Ordinal);
 
         var count = live.Results.Count;
 
@@ -68,6 +71,8 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         _result = live.Results[count - 1];
         var round = live.SeasonStart.Calendar[count - 1];
         var circuit = carset.Circuits.FirstOrDefault(c => string.CompareOrdinal(c.Id, round.CircuitId) == 0);
+        var refLap = circuit?.BaseLapTimeSeconds ?? 0.0;
+        _referenceLap = refLap > 0 ? refLap : 90.0; // converts time gaps to a fraction of a lap for the map
         HeaderText = string.Create(CultureInfo.InvariantCulture, $"Round {round.Round} · {circuit?.Name ?? round.CircuitId}");
         TotalLaps = _result.Telemetry.Laps.Count;
 
@@ -128,6 +133,11 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     [ObservableProperty]
     private IReadOnlyList<TimingRowViewModel> _tower = [];
 
+    /// <summary>The car markers on the schematic track map at the current lap (M23e): position approximated
+    /// from each car's time gap to the leader, laid along the outline. Rebuilt each <see cref="SetLap"/>.</summary>
+    [ObservableProperty]
+    private IReadOnlyList<TrackMarkerViewModel> _markers = [];
+
     [ObservableProperty]
     private IReadOnlyList<RaceEventRowViewModel> _feed = [];
 
@@ -171,6 +181,21 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
                 s.Position <= 1 ? "—" : string.Create(CultureInfo.InvariantCulture, $"+{s.IntervalAhead:0.0}"),
                 string.Create(CultureInfo.InvariantCulture, $"{Compound(s.TyreCompound)} {s.TyreAge}"),
                 PitsUpTo(s.CompetitorId, CurrentLap)))
+            .ToList();
+
+        // Track-map markers (M23e): a car g laps' worth of time behind the leader sits g of a lap short of the
+        // start/finish line. Pure projection of the recorded gaps — no engine data, so the golden race is safe.
+        Markers = snapshot.Order
+            .Select(s =>
+            {
+                var behind = _referenceLap > 0 ? s.GapToLeader / _referenceLap : 0.0;
+                var point = TrackOutline.PointAtFraction(-behind);
+                var player = _playerDrivers.Contains(s.CompetitorId);
+                var size = player ? 15.0 : 11.0;
+                return new TrackMarkerViewModel(
+                    point.X - (size / 2), point.Y - (size / 2), size,
+                    Accent(s.CompetitorId), player ? Brushes.White : Brushes.Transparent, Name(s.CompetitorId));
+            })
             .ToList();
 
         Feed = _result.Events
@@ -366,6 +391,12 @@ public sealed record RaceResultRowViewModel(int Position, string Driver, string 
 /// <summary>One row of the qualifying-grid tab on the race-weekend screen (M23d).</summary>
 public sealed record QualifyingRowViewModel(
     int GridPosition, string Driver, string Team, IBrush Accent, string Part, string BestLap, string Sectors);
+
+/// <summary>One car's marker on the schematic track map (M23e): the top-left canvas position of a dot of the
+/// given <paramref name="Size"/>, filled with the team colour, with a highlight <paramref name="Stroke"/> on
+/// the player's cars, and the driver name for a tooltip.</summary>
+public sealed record TrackMarkerViewModel(
+    double X, double Y, double Size, IBrush Fill, IBrush Stroke, string Name);
 
 /// <summary>
 /// One driver's pre-race strategy row (M23b): the starting compound the player picks for the upcoming round.
