@@ -1,6 +1,7 @@
 # ADR-0031 — Yarış hafta sonu: canlı zamanlama kulesi (replay) + oyuncu strateji kontrolü
 
-- **Durum:** Kabul edildi — indi (M23a kule replay, M23b oyuncu başlangıç-bileşimi)
+- **Durum:** Kabul edildi — indi (M23a–c kule replay + oyuncu başlangıç-bileşimi + docs; **M23d–j tam görsel
+  katman + gerçek canlı komutlar indi → ADR-0032**)
 - **Tarih:** 2026-08-07
 
 ## Bağlam
@@ -59,6 +60,10 @@ değişmez → golden dokunulmaz** (replay'de RNG yok; kule yalnızca kaydı oku
   `startingCompounds`) · Career (`SeasonSimulator.RunRound` okuma + `CareerState` persist) · App (`LiveCareer`
   sezon-sınırı temizleme + `RootViewModel.SetRaceStrategy` + `RaceWeekendViewModel`/`RaceWeekendView`: kule replay +
   strateji paneli).
-- **Ertelendi (M23 kalanı):** şematik pist haritası + hareketli araç işaretçileri (mockup SVG referansı, motor
-  telemetriden beslenir), Practice/Quali sekmeleri, mid-race canlı komutlar / telsiz (yarış içinde adım-adım
-  durdurulabilir stepping-seam ister → golden riski, ayrı milestone), post-race rapor / istatistik (= M24 sınırı).
+- **İndi (M23 kalanı — tam görsel katman + gerçek canlı komutlar, ADR-0032):** sekmeli Race/Qualifying ekranı
+  (quali reconstruct edilir, diske yazılmaz — M23d), şematik pist haritası + hareketli araç işaretçileri (zaman-farkı
+  yaklaşıklaması, tek generic outline — M23e), sektör renkleri/delta + telsiz feed'i (M23f), yarış motoru
+  stepping-seam refactor (`RaceStepper`, parity-gated — M23g), **gerçek yarış-içi canlı komutlar** (kaydedilmiş
+  komut günlüğü + interaktif stepper — M23h/i). Ayrıntı: ADR-0032.
+- **Ertelendi:** Practice sekmesi (kariyerde practice koşulmuyor → ayrı gameplay sistemi ister), post-race rapor /
+  istatistik (= M24 sınırı).

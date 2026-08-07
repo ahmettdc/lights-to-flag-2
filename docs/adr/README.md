@@ -34,3 +34,6 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0027](0027-phase3-pre-career-ui.md) | Faz 3 kariyer-öncesi UI (ana menü + yeni kariyer + kayıt) |
 | [0028](0028-phase3-live-career.md) | Faz 3 kabuk-içi kariyer merkezi (canlı Continue + 5 ekran) |
 | [0029](0029-banking-credit-enforcement.md) | Banka & kredi (kredi puanı + imzada-donan faiz + icra) |
+| [0030](0030-development-freeze.md) | FIA gelişim-dondurma rejimi (üç-mod eksen dondurması + ballot) |
+| [0031](0031-race-weekend.md) | Yarış hafta sonu (canlı zamanlama kulesi replay + oyuncu strateji) |
+| [0032](0032-live-race-control.md) | Canlı yarış kontrolü (stepping-seam + komut günlüğü + tam görsel katman) |
