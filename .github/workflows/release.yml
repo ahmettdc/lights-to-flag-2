@@ -1,9 +1,14 @@
 name: Release
 
-# Build a self-contained Windows package and cut a GitHub Release when a v* tag is pushed.
-# ci.yml / build-matrix.yml run on branch pushes (build + test); this runs only on tags, so it
-# never double-runs with them. A manual dispatch builds + uploads the zip as an artifact without
-# creating a Release (handy for a dry run).
+# Build a self-contained Windows package and cut a GitHub Release.
+# Two ways in:
+#   - push a v* tag                → release for that tag.
+#   - run manually (workflow_dispatch) → release created via the API against the commit the run
+#     started from (the tag is created server-side by `gh release create --target`). This path
+#     exists because some environments can push branches but not tags; set create_release=false
+#     for a build-only dry run that just uploads the zip as an artifact.
+# ci.yml / build-matrix.yml run on branch pushes (build + test); this is tag/dispatch only, so it
+# never double-runs with them.
 
 on:
   push:
@@ -15,6 +20,10 @@ on:
         description: "Version without the leading v (e.g. 0.9.0), used on manual dispatch"
         required: false
         default: "0.9.0"
+      create_release:
+        description: "Create the GitHub Release (false = build + upload artifact only)"
+        required: false
+        default: "true"
 
 permissions:
   contents: write
@@ -37,11 +46,14 @@ jobs:
         run: |
           if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             V="${GITHUB_REF_NAME#v}"
+            TAG="${GITHUB_REF_NAME}"
           else
             V="${{ github.event.inputs.version }}"
+            TAG="v${V}"
           fi
           echo "version=$V" >> "$GITHUB_OUTPUT"
-          echo "Resolved version: $V"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $V (tag $TAG)"
 
       - name: Publish win-x64 (self-contained, no .NET needed on the target)
         run: >
@@ -74,13 +86,17 @@ jobs:
           path: LightsToFlag2-v${{ steps.ver.outputs.version }}-win-x64.zip
 
       - name: Create GitHub Release
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' || github.event.inputs.create_release == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          gh release create "${GITHUB_REF_NAME}" \
+          # --target makes gh create the tag server-side (via the API) at this commit when it does
+          # not already exist; for a tag-triggered run the tag is already there and --target is a
+          # no-op. Either way no git tag push is required.
+          gh release create "${{ steps.ver.outputs.tag }}" \
             "LightsToFlag2-v${{ steps.ver.outputs.version }}-win-x64.zip" \
+            --target "${GITHUB_SHA}" \
             --title "Lights to Flag 2 v${{ steps.ver.outputs.version }}" \
             --notes-file "docs/release-notes/v0.9.0.md" \
             --prerelease
