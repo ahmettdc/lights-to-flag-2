@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.StandingsView"
+             x:DataType="screens:StandingsViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.cardHeader">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.6" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.pos">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextMuted}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.pts">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel Background="{DynamicResource BrushAppBackground}" LastChildFill="True">
+
+    <!-- Screen header strip -->
+    <Border DockPanel.Dock="Top" Height="32" Background="{DynamicResource BrushChrome}"
+            BorderBrush="{DynamicResource BrushDivider}" BorderThickness="0,0,0,1" Padding="14,0">
+      <TextBlock Text="{loc:Tr nav.standings}" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold" LetterSpacing="2"
+                 Foreground="{DynamicResource BrushTextPrimary}" />
+    </Border>
+
+    <Grid Margin="12" ColumnDefinitions="*,*">
+
+      <!-- Constructors -->
+      <Border Grid.Column="0" Margin="0,0,6,0" Background="{DynamicResource BrushStatCell}"
+              BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+            <TextBlock Classes="cardHeader" Text="{loc:Tr standings.constructors}" />
+          </Border>
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Constructors}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="screens:ConstructorRowViewModel">
+                  <Grid Height="32" ColumnDefinitions="24,Auto,*,Auto,44" Margin="14,0"
+                        Background="Transparent">
+                    <TextBlock Grid.Column="0" Classes="pos" Text="{Binding Position}" />
+                    <Border Grid.Column="1" Width="4" Height="16" CornerRadius="2" Margin="0,0,11,0"
+                            VerticalAlignment="Center" Background="{Binding Accent}" />
+                    <TextBlock Grid.Column="2" Text="{Binding Team}" VerticalAlignment="Center"
+                               FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                    <Border Grid.Column="3" Width="96" Height="5" CornerRadius="3" Margin="0,0,12,0"
+                            VerticalAlignment="Center" Background="{DynamicResource BrushDivider}" ClipToBounds="True">
+                      <Border HorizontalAlignment="Left" Width="{Binding BarWidth}" Background="{Binding Accent}" />
+                    </Border>
+                    <TextBlock Grid.Column="4" Classes="pts" Text="{Binding Points}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+      <!-- Drivers -->
+      <Border Grid.Column="1" Margin="6,0,0,0" Background="{DynamicResource BrushStatCell}"
+              BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="cardHeader" Text="{loc:Tr standings.drivers}" />
+              <TextBlock Grid.Column="1" Text="{Binding DriverCount}" Classes="cardHeader"
+                         Foreground="{DynamicResource BrushTextDim}" />
+            </Grid>
+          </Border>
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Drivers}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="screens:DriverStandingRowViewModel">
+                  <Grid Height="32" ColumnDefinitions="24,Auto,*,120,44" Margin="14,0"
+                        Background="Transparent">
+                    <TextBlock Grid.Column="0" Classes="pos" Text="{Binding Position}" />
+                    <Border Grid.Column="1" Width="4" Height="16" CornerRadius="2" Margin="0,0,11,0"
+                            VerticalAlignment="Center" Background="{Binding Accent}" />
+                    <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center"
+                               FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="3" Text="{Binding Team}" VerticalAlignment="Center"
+                               FontSize="11" Foreground="{DynamicResource BrushTextMuted}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="4" Classes="pts" Text="{Binding Points}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+    </Grid>
+  </DockPanel>
+
+</UserControl>

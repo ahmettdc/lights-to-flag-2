@@ -101,5 +101,10 @@ public static class EnglishStrings
         [StringKeys.QuickRaceCircuit] = "CIRCUIT",
         [StringKeys.QuickRaceRun] = "RACE",
         [StringKeys.QuickRaceBack] = "BACK",
+
+        [StringKeys.StandingsConstructors] = "CONSTRUCTORS",
+        [StringKeys.StandingsDrivers] = "DRIVERS",
+        [StringKeys.CalendarFixture] = "FIXTURE",
+        [StringKeys.CalendarTrackProfile] = "TRACK PROFILE",
     };
 }

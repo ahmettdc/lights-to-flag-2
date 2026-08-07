@@ -38,6 +38,13 @@
     <DataTemplate DataType="{x:Type screens:PlaceholderScreenViewModel}">
       <views:PlaceholderScreenView />
     </DataTemplate>
+    <!-- In-shell career screens (M21), resolved in the shell's content region. -->
+    <DataTemplate DataType="{x:Type screens:StandingsViewModel}">
+      <views:StandingsView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type screens:CalendarViewModel}">
+      <views:CalendarView />
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

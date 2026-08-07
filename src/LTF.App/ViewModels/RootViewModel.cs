@@ -6,7 +6,9 @@ using LTF.App.Services;
 using LTF.App.Session;
 using LTF.App.ViewModels.Menu;
 using LTF.App.ViewModels.Quick;
+using LTF.App.ViewModels.Screens;
 using LTF.App.ViewModels.Settings;
+using LTF.Career;
 
 namespace LTF.App.ViewModels;
 
@@ -66,6 +68,14 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
             _services.Settings.Load(),
             _services.Settings,
             onClose: () => navigation.Navigate(NavKey.PaddockHub)));
+
+        // In-shell career screens (M21). The factories close over the session's carset/clock, so
+        // re-navigating after a Continue rebuilds each screen from current state. Standings shows the
+        // zeroed table until a round is run (the live career wires results in M21d).
+        navigation.Register(NavKey.Standings, () =>
+            new StandingsViewModel(session.Carset, ChampionshipStandings.Empty(session.Carset)));
+        navigation.Register(NavKey.Calendar, () =>
+            new CalendarViewModel(session.Carset, session.Clock));
 
         Content = new ShellViewModel(navigation, snapshot, _services.Notifications, host: this);
     }

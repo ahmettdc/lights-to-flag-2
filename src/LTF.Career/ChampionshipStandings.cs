@@ -11,6 +11,11 @@ namespace LTF.Career;
 /// </summary>
 public static class ChampionshipStandings
 {
+    /// <summary>The zeroed table before a wheel is turned (M21): every driver and team present on zero
+    /// points, in id order. Equivalent to <see cref="From"/> with no results — the standings screen shows
+    /// this at season start, before any round has run.</summary>
+    public static Standings Empty(Carset carset) => From(carset, []);
+
     public static Standings From(Carset carset, IReadOnlyList<RaceResult> results)
     {
         var teamOfDriver = new Dictionary<string, string>(StringComparer.Ordinal);

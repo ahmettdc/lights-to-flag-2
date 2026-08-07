@@ -109,4 +109,10 @@ public static class StringKeys
     public const string QuickRaceCircuit = "quickrace.circuit";
     public const string QuickRaceRun = "quickrace.run";
     public const string QuickRaceBack = "quickrace.back";
+
+    // In-shell screens (M21).
+    public const string StandingsConstructors = "standings.constructors";
+    public const string StandingsDrivers = "standings.drivers";
+    public const string CalendarFixture = "calendar.fixture";
+    public const string CalendarTrackProfile = "calendar.trackProfile";
 }
