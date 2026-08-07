@@ -274,6 +274,7 @@ public sealed class LiveCareer
         var next = settled;
         next = RelationshipEvolution.Apply(next, result);          // incidents move the paddock
         next = CareerRollover.Apply(next, result);                 // roll the season into records
+        next = SeasonArchive.Append(next, SeasonStart, result);    // archive the season for the record books (M24)
         next = DriverProgression.Advance(next, seasonSeed);        // age, grow and decline
         next = DriverRetirement.Retire(next);                      // the over-age leave, seats open
         next = ContractLedger.AdvanceSeason(next);                 // contracts count down
