@@ -707,7 +707,27 @@ public static class CarsetLoader
         Description = r.Description ?? "",
         FavoredAxis = ReqEnum<CarAxis>(r.FavoredAxis, $"{p}.favoredAxis"),
         Magnitude = r.Magnitude ?? 0,
+        FreezeMode = r.FreezeMode is null ? null : ReqEnum<DevelopmentFreezeMode>(r.FreezeMode, $"{p}.freezeMode"),
+        FreezeAxes = MapFreezeAxes(r.FreezeAxes, p),
     };
+
+    // A freeze proposal's frozen axes (Ri4): absent → empty (an ordinary setback proposal). An unknown axis is a
+    // structural error (mirrors the other enums).
+    private static IReadOnlyList<CarAxis> MapFreezeAxes(List<string>? axes, string p)
+    {
+        if (axes is null || axes.Count == 0)
+        {
+            return [];
+        }
+
+        var mapped = new List<CarAxis>(axes.Count);
+        foreach (var a in axes)
+        {
+            mapped.Add(ReqEnum<CarAxis>(a, $"{p}.freezeAxes"));
+        }
+
+        return mapped;
+    }
 
     // --- Helpers ---
 

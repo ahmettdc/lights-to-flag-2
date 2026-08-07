@@ -48,6 +48,8 @@ internal sealed class RegulationProposalJson
     public string? Description { get; set; }
     public string? FavoredAxis { get; set; }
     public int? Magnitude { get; set; }
+    public string? FreezeMode { get; set; }
+    public List<string>? FreezeAxes { get; set; }
 }
 
 internal sealed class BoardJson

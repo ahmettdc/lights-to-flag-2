@@ -201,6 +201,10 @@ public sealed class LiveCareer
     /// (settled finances + evolved boards baked in) becomes the new save base, so a load resumes with no re-roll.</summary>
     private void RollToNextSeason()
     {
+        // The FIA development freeze in force this season, to detect (and announce) a change the regulation
+        // ballot makes below (Ri4).
+        var oldFreezes = SeasonStart.Regulations.DevelopmentFreezes;
+
         // The canonical result of the season just played — reproduced with mid-season R&D threaded in (Model B),
         // so it matches what the live Continues produced: the car evolves round by round via the progression.
         var rnd = new RndProgression(Seed, PlayerDirective());
@@ -261,6 +265,12 @@ public sealed class LiveCareer
         foreach (var action in enforcement.Actions)
         {
             news.Add(CareerNews.ForEnforcement(Clock.Date, action, next));
+        }
+
+        // Announce an FIA development-freeze change (the ballot froze or lifted an axis this boundary).
+        if (!oldFreezes.SequenceEqual(next.Regulations.DevelopmentFreezes))
+        {
+            news.Add(CareerNews.ForFreeze(Clock.Date, next.Regulations.DevelopmentFreezes));
         }
 
         LastStepNews = news;

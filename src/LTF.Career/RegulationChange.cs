@@ -20,23 +20,41 @@ public static class RegulationChange
 {
     public static Carset Apply(Carset carset, int seed)
     {
-        var penaltyCoeff = carset.Rules.RegulationUnreadinessPenalty;
-        if (carset.RegulationProposals.Count == 0 || penaltyCoeff <= 0.0)
+        if (carset.RegulationProposals.Count == 0)
         {
             return carset;
         }
 
+        // Re-resolve every proposal deterministically. The passed ones drive both the development-freeze regime
+        // (freeze proposals) and the car-rating setback for the unprepared (magnitude proposals).
         var passed = carset.RegulationProposals
             .Where(p => RegulationBallot.Resolve(carset, p, seed).Passed)
             .ToList();
-        if (passed.Count == 0)
+
+        // Development freezes (Ri4): the coming season's freeze list is exactly the passed freeze proposals'
+        // axes/modes — recomputed each boundary, so an unpassed (or repealed) freeze lapses. Only rewrites the
+        // regulations when the list actually changes, so a freeze-free ballot stays byte-identical.
+        var freezes = passed
+            .Where(p => p.FreezeMode is not null)
+            .SelectMany(p => p.FreezeAxes.Select(a => new AxisFreeze { Axis = a, Mode = p.FreezeMode!.Value }))
+            .ToList();
+        var next = SameFreezes(carset.Regulations.DevelopmentFreezes, freezes)
+            ? carset
+            : carset with { Regulations = carset.Regulations with { DevelopmentFreezes = freezes } };
+
+        // Car-rating setback for the unprepared (M18): only when the series runs a penalty and something passed.
+        var penaltyCoeff = carset.Rules.RegulationUnreadinessPenalty;
+        if (penaltyCoeff <= 0.0 || passed.Count == 0)
         {
-            return carset;
+            return next;
         }
 
-        var teams = carset.Teams.Select(t => SetBack(t, passed, penaltyCoeff)).ToList();
-        return carset with { Teams = teams };
+        var teams = next.Teams.Select(t => SetBack(t, passed, penaltyCoeff)).ToList();
+        return next with { Teams = teams };
     }
+
+    private static bool SameFreezes(IReadOnlyList<AxisFreeze> a, IReadOnlyList<AxisFreeze> b) =>
+        a.Count == b.Count && a.SequenceEqual(b);
 
     private static Team SetBack(Team team, IReadOnlyList<RegulationProposal> passed, double penaltyCoeff)
     {

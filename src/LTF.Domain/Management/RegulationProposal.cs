@@ -28,4 +28,13 @@ public sealed record RegulationProposal
 
     /// <summary>How large the change is (0–100); recorded for M18 to apply.</summary>
     public int Magnitude { get; init; }
+
+    /// <summary>If set, this is a development-freeze proposal (Ri4): passing the ballot freezes
+    /// <see cref="FreezeAxes"/> at this mode for the coming season(s), evolving the FIA freeze regime with the
+    /// world. Null (the default) → an ordinary car-setback proposal, byte-identical to before. A freeze proposal
+    /// with <see cref="Magnitude"/> 0 freezes without also setting the field back.</summary>
+    public DevelopmentFreezeMode? FreezeMode { get; init; }
+
+    /// <summary>The car axes a freeze proposal restricts (only read when <see cref="FreezeMode"/> is set).</summary>
+    public IReadOnlyList<CarAxis> FreezeAxes { get; init; } = [];
 }

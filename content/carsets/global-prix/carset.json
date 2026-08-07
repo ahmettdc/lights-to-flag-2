@@ -1371,7 +1371,9 @@
       "id": "power-unit-freeze",
       "description": "Extend the power-unit homologation freeze",
       "favoredAxis": "PowerUnit",
-      "magnitude": 30
+      "magnitude": 30,
+      "freezeMode": "InSeasonOnly",
+      "freezeAxes": ["PowerUnit", "PowerUnitReliability", "GearboxReliability", "MechanicalGrip", "Braking"]
     },
     {
       "id": "pit-lane-speed-cut",

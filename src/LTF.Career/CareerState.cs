@@ -213,6 +213,11 @@ public sealed record CareerState
     /// <summary>The free-agent staff pool (M22); empty unless the career has staff.</summary>
     public IReadOnlyList<StaffRecord> StaffPool { get; init; } = [];
 
+    /// <summary>The FIA development freezes in force (Ri4); empty unless a regulation ballot has voted one in,
+    /// in which case it is authoritative — the freeze evolves season-to-season and is not on the shipped
+    /// carset. Empty by default so a career with no freeze saves byte-identically.</summary>
+    public IReadOnlyList<AxisFreeze> DevelopmentFreezes { get; init; } = [];
+
     /// <summary>Snapshot a carset's mutable progress at a given game date and seed.</summary>
     public static CareerState Capture(Carset carset, DateOnly date, int seed)
     {
@@ -271,6 +276,9 @@ public sealed record CareerState
             // authoritative, since hiring/releasing or a bank seizure may have moved it.
             Staff = hasStaff ? carset.Teams.Select(CaptureTeamStaff).ToList() : [],
             StaffPool = hasStaff ? carset.StaffPool.Select(CaptureStaff).ToList() : [],
+            // FIA development freezes (Ri4): default-empty, so a freeze-free career is byte-identical. Value-typed
+            // (CarAxis + mode enums), so it round-trips a save byte-stably.
+            DevelopmentFreezes = carset.Regulations.DevelopmentFreezes,
         };
     }
 
@@ -419,6 +427,11 @@ public sealed record CareerState
             Boards = boards,
             Reserves = reserves,
             StaffPool = staffCaptured ? StaffPool.Select(RestoreStaff).ToList() : carset.StaffPool,
+            // Restore the voted-in development freezes onto the reloaded carset's regulations; empty leaves the
+            // carset's own (shipped) regulations untouched — byte-identical for a freeze-free career.
+            Regulations = DevelopmentFreezes.Count == 0
+                ? carset.Regulations
+                : carset.Regulations with { DevelopmentFreezes = DevelopmentFreezes },
         };
     }
 

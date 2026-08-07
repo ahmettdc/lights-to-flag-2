@@ -6,6 +6,7 @@ using LTF.App.Notifications;
 using LTF.Career;
 using LTF.Domain;
 using LTF.Domain.Racing;
+using LTF.Domain.Rnd;
 using LTF.Simulation.Racing;
 
 namespace LTF.App.Session;
@@ -101,6 +102,25 @@ internal static class CareerNews
             NavKey.Finance,
             date,
             RequiresAction: true);
+    }
+
+    /// <summary>An FIA development-freeze change (Ri4): the regulation ballot has frozen — or lifted — in-season
+    /// development on one or more car axes for the coming season. Informational; deep-links the R&amp;D screen.</summary>
+    public static Notification ForFreeze(DateOnly date, System.Collections.Generic.IReadOnlyList<AxisFreeze> freezes)
+    {
+        var lifted = freezes.Count == 0;
+        var body = lifted
+            ? "The FIA has lifted its development freeze — every axis develops freely again."
+            : $"The FIA has frozen development on: {string.Join(", ", freezes.Select(f => f.Axis))}.";
+
+        return new Notification(
+            $"freeze-{date.ToString("yyyyMMdd", CultureInfo.InvariantCulture)}",
+            NotificationCategory.Press,
+            NotificationSeverity.Info,
+            lifted ? "Development freeze lifted" : "Development freeze in force",
+            body,
+            NavKey.RndFacilities,
+            date);
     }
 
     private static string DriverName(Carset carset, string id)
