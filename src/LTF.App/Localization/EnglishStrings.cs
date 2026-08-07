@@ -160,5 +160,15 @@ public static class EnglishStrings
         [StringKeys.FinanceBorrowAmount] = "Amount",
         [StringKeys.FinanceBorrowTerm] = "Term (seasons)",
         [StringKeys.FinanceBorrowButton] = "TAKE LOAN",
+
+        [StringKeys.RndFacilities] = "FACILITIES",
+        [StringKeys.RndResearch] = "RESEARCH & DEVELOPMENT",
+        [StringKeys.RndReadiness] = "Regulation readiness",
+        [StringKeys.RndConceptAero] = "Aero concept",
+        [StringKeys.RndConceptPowertrain] = "Powertrain concept",
+        [StringKeys.RndNodesUnlocked] = "Nodes unlocked",
+        [StringKeys.RndProjects] = "ACTIVE PROJECTS",
+        [StringKeys.RndNoProjects] = "No active development",
+        [StringKeys.RndNoProjectsBody] = "The team is running no development projects.",
     };
 }

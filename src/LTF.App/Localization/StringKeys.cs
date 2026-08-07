@@ -170,4 +170,15 @@ public static class StringKeys
     public const string FinanceBorrowAmount = "finance.borrowAmount";
     public const string FinanceBorrowTerm = "finance.borrowTerm";
     public const string FinanceBorrowButton = "finance.borrowButton";
+
+    // R&D & Facilities screen (M22).
+    public const string RndFacilities = "rnd.facilities";
+    public const string RndResearch = "rnd.research";
+    public const string RndReadiness = "rnd.readiness";
+    public const string RndConceptAero = "rnd.conceptAero";
+    public const string RndConceptPowertrain = "rnd.conceptPowertrain";
+    public const string RndNodesUnlocked = "rnd.nodesUnlocked";
+    public const string RndProjects = "rnd.projects";
+    public const string RndNoProjects = "rnd.noProjects";
+    public const string RndNoProjectsBody = "rnd.noProjectsBody";
 }

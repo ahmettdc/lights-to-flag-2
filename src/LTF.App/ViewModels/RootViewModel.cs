@@ -98,6 +98,7 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         // Management screens (M22). Read-only projections over the live career; a Continue rebuilds them.
         // Finance also carries the first player mutation — taking a loan (M22c).
         navigation.Register(NavKey.Finance, () => new FinanceViewModel(live.Current, live.Standings, borrow: BorrowLoan));
+        navigation.Register(NavKey.RndFacilities, () => new RndFacilitiesViewModel(live.Current));
 
         // The career is endless (Continue rolls into the next season at a boundary) and the button also
         // acknowledges a Rev-15 pause, so it stays enabled unless an action is pending; ContinueCareerStep
