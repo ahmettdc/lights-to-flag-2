@@ -10,6 +10,7 @@ using LTF.App.Mvvm;
 using LTF.App.Session;
 using LTF.Domain;
 using LTF.Domain.Common;
+using LTF.Domain.Racing;
 using LTF.Simulation.Qualifying;
 using LTF.Simulation.Racing;
 
@@ -40,9 +41,13 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     public RaceWeekendViewModel(
         LiveCareer live,
         Action<int, string, TyreCompound>? setStrategy = null,
-        Action? startRace = null)
+        Action? startRace = null,
+        Func<RaceSimulator.RaceStepper?>? startLive = null,
+        Action<IReadOnlyList<RaceCommand>>? commitLive = null)
     {
         _startRace = startRace;
+        _startLive = startLive;
+        _commitLive = commitLive;
 
         var carset = live.Current;
         _driverName = carset.Drivers.ToDictionary(d => d.Id, d => d.FullName, StringComparer.Ordinal);
@@ -54,6 +59,9 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
             .Select((t, i) => (t.Id, Index: i))
             .ToDictionary(x => x.Id, x => x.Index, StringComparer.Ordinal);
         _playerDrivers = new HashSet<string>(carset.PlayerTeam()?.DriverIds ?? [], StringComparer.Ordinal);
+        LiveDrivers = carset.PlayerTeam() is { } playerTeam
+            ? playerTeam.DriverIds.Select(id => new LiveDriverViewModel(id, Name(id), IssueCommand)).ToList()
+            : [];
 
         var count = live.Results.Count;
 
@@ -63,6 +71,10 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         Strategy = BuildStrategy(carset, count, setStrategy, out var upcomingText);
         UpcomingText = upcomingText;
         HasUpcoming = Strategy.Count > 0;
+        if (HasUpcoming)
+        {
+            _upcomingRoundNumber = carset.Calendar[count].Round;
+        }
 
         HasRace = count > 0;
         if (!HasRace)
@@ -106,7 +118,7 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
 
     public string HeaderText { get; } = "";
 
-    public int TotalLaps { get; }
+    public int TotalLaps { get; private set; }
 
     /// <summary>The final classification (id → names joined); shown once the replay reaches the flag.</summary>
     public IReadOnlyList<RaceResultRowViewModel> Classification { get; }
@@ -117,6 +129,14 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
 
     // The host's "advance the career" step (M23b), invoked by Start Race; null on a read-only screen.
     private readonly Action? _startRace;
+
+    // Live-race hooks (M23i): a factory for the upcoming round's stepper, and a commit that records the orders
+    // the player gave and advances the career. Both null on a read-only screen.
+    private readonly Func<RaceSimulator.RaceStepper?>? _startLive;
+    private readonly Action<IReadOnlyList<RaceCommand>>? _commitLive;
+    private RaceSimulator.RaceStepper? _liveStepper;
+    private readonly List<RaceCommand> _recordedCommands = new();
+    private int _upcomingRoundNumber;
 
     /// <summary>True when there is an upcoming (not-yet-run) round to set a starting strategy for.</summary>
     public bool HasUpcoming { get; }
@@ -129,6 +149,31 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
 
     /// <summary>Whether Start Race can run: the screen can advance the career and a race is upcoming.</summary>
     public bool CanStartRace => _startRace is not null && HasUpcoming;
+
+    /// <summary>Whether Race Live is available: the screen can drive the upcoming round live (M23i).</summary>
+    public bool HasLiveOption => _startLive is not null && HasUpcoming;
+
+    /// <summary>True while the player is driving the upcoming race live (M23i).</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LapText))]
+    [NotifyPropertyChangedFor(nameof(RaceHeaderText))]
+    [NotifyPropertyChangedFor(nameof(RaceOver))]
+    [NotifyPropertyChangedFor(nameof(ShowStrategy))]
+    [NotifyPropertyChangedFor(nameof(ShowRaceArea))]
+    [NotifyPropertyChangedFor(nameof(ShowEmpty))]
+    private bool _isLive;
+
+    /// <summary>The player's drivers, each carrying the live pit-wall command buttons (M23i).</summary>
+    public IReadOnlyList<LiveDriverViewModel> LiveDrivers { get; }
+
+    /// <summary>Show the pre-race strategy card: there is an upcoming round and we are not already racing it live.</summary>
+    public bool ShowStrategy => HasUpcoming && !IsLive;
+
+    /// <summary>Show the race area (timing tower / map / feed): a race has run to replay, or one is running live.</summary>
+    public bool ShowRaceArea => HasRace || IsLive;
+
+    /// <summary>Show the empty state: no race has run and none is running live.</summary>
+    public bool ShowEmpty => NoRace && !IsLive;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LapText))]
@@ -156,12 +201,16 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     [ObservableProperty]
     private double _speed = 2.0;
 
-    public string LapText => HasRace
+    public string LapText => HasRace || IsLive
         ? string.Create(CultureInfo.InvariantCulture, $"LAP {CurrentLap} / {TotalLaps}")
         : "";
 
-    /// <summary>True once the replay has reached the chequered flag — the view reveals the classification.</summary>
-    public bool RaceOver => HasRace && CurrentLap >= TotalLaps;
+    /// <summary>The header shown over the race area: the round being driven live, else the replayed round.</summary>
+    public string RaceHeaderText => IsLive ? UpcomingText : HeaderText;
+
+    /// <summary>True once the replay has reached the chequered flag — the view reveals the classification. Never
+    /// during a live race (whose classification is not built until the round is committed at the flag).</summary>
+    public bool RaceOver => HasRace && !IsLive && CurrentLap >= TotalLaps;
 
     /// <summary>Jump the replay to a lap and rebuild the tower + feed for it. Public so the view's timer and the
     /// tests can drive the replay directly.</summary>
@@ -173,7 +222,15 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         }
 
         CurrentLap = Math.Clamp(lap, 1, TotalLaps);
-        var snapshot = _result.Telemetry.Laps[CurrentLap - 1];
+        Project(_result.Telemetry.Laps, _result.Events, CurrentLap);
+    }
+
+    // Build the flag, timing tower, sector colours, track-map markers and event feed for a lap from a snapshot
+    // list and event list (M23i). Shared by the replay of a finished race (M23a–f) and the live stepper, so the
+    // live race and its later replay look identical.
+    private void Project(IReadOnlyList<LapSnapshot> laps, IReadOnlyList<RaceEvent> events, int lap)
+    {
+        var snapshot = laps[lap - 1];
         FlagText = FlagOf(snapshot.State);
 
         // Sector-colour bookkeeping (M23f): the session-best and each driver's personal-best sector times up to
@@ -181,9 +238,9 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         // green if it is that driver's own best, or neutral otherwise — a pure projection of recorded sectors.
         var sessionBest = new[] { double.MaxValue, double.MaxValue, double.MaxValue };
         var personalBest = new Dictionary<string, double[]>(StringComparer.Ordinal);
-        for (var l = 0; l < CurrentLap; l++)
+        for (var l = 0; l < lap; l++)
         {
-            foreach (var s in _result.Telemetry.Laps[l].Order)
+            foreach (var s in laps[l].Order)
             {
                 if (!personalBest.TryGetValue(s.CompetitorId, out var pb))
                 {
@@ -238,7 +295,7 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
                 s.Position <= 1 ? "LEADER" : string.Create(CultureInfo.InvariantCulture, $"+{s.GapToLeader:0.0}"),
                 s.Position <= 1 ? "—" : string.Create(CultureInfo.InvariantCulture, $"+{s.IntervalAhead:0.0}"),
                 string.Create(CultureInfo.InvariantCulture, $"{Compound(s.TyreCompound)} {s.TyreAge}"),
-                PitsUpTo(s.CompetitorId, CurrentLap),
+                PitsUpTo(events, s.CompetitorId, lap),
                 SectorBrush(s.CompetitorId, s.Sector1, 0),
                 SectorBrush(s.CompetitorId, s.Sector2, 1),
                 SectorBrush(s.CompetitorId, s.Sector3, 2)))
@@ -259,8 +316,8 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
             })
             .ToList();
 
-        Feed = _result.Events
-            .Where(e => e.Lap <= CurrentLap)
+        Feed = events
+            .Where(e => e.Lap <= lap)
             .OrderByDescending(e => e.Lap)
             .Take(14)
             .Select(e => new RaceEventRowViewModel(
@@ -270,9 +327,16 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
             .ToList();
     }
 
-    /// <summary>Advance one lap; stops the playback at the flag. Called by the view's replay timer.</summary>
+    /// <summary>Advance one lap. In replay it steps the recorded telemetry; in live mode it advances the
+    /// stepper and commits the race at the flag. Called by the view's timer.</summary>
     public void AdvanceLap()
     {
+        if (IsLive)
+        {
+            AdvanceLiveLap();
+            return;
+        }
+
         if (CurrentLap >= TotalLaps)
         {
             IsPlaying = false;
@@ -280,6 +344,58 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         }
 
         SetLap(CurrentLap + 1);
+    }
+
+    // Advance the live stepper one lap and re-project; commit the race when the flag drops (M23i).
+    private void AdvanceLiveLap()
+    {
+        if (_liveStepper is null)
+        {
+            return;
+        }
+
+        if (_liveStepper.IsComplete)
+        {
+            FinishLive();
+            return;
+        }
+
+        _liveStepper.AdvanceLap();
+        CurrentLap = _liveStepper.CurrentLap;
+        Project(_liveStepper.Snapshots, _liveStepper.Events, _liveStepper.CurrentLap);
+
+        if (_liveStepper.IsComplete)
+        {
+            FinishLive();
+        }
+    }
+
+    // Record and inject a live pit-wall order for one of the player's drivers (M23i); it takes effect next lap.
+    private void IssueCommand(string driverId, RaceCommandKind kind)
+    {
+        if (_liveStepper is null || _liveStepper.IsComplete)
+        {
+            return;
+        }
+
+        var command = new RaceCommand
+        {
+            Round = _upcomingRoundNumber,
+            Lap = _liveStepper.CurrentLap + 1,
+            DriverId = driverId,
+            Kind = kind,
+        };
+        _liveStepper.Issue(command);
+        _recordedCommands.Add(command);
+    }
+
+    // The live race reached the flag: stop and commit the recorded orders, which advances the career (running
+    // the round with the log → the same result the live race produced) and re-navigates to the replay.
+    private void FinishLive()
+    {
+        IsPlaying = false;
+        IsLive = false;
+        _commitLive?.Invoke(_recordedCommands.ToList());
     }
 
     [RelayCommand]
@@ -309,6 +425,25 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     /// re-navigates afterward and the tower replays the just-run race.</summary>
     [RelayCommand(CanExecute = nameof(CanStartRace))]
     private void StartRace() => _startRace?.Invoke();
+
+    /// <summary>Enter live mode (M23i): build the upcoming round's stepper and start it. The view's timer then
+    /// advances it a lap at a time and the player issues orders via the driver command buttons.</summary>
+    [RelayCommand(CanExecute = nameof(HasLiveOption))]
+    private void RaceLive()
+    {
+        var stepper = _startLive?.Invoke();
+        if (stepper is null)
+        {
+            return;
+        }
+
+        _liveStepper = stepper;
+        _recordedCommands.Clear();
+        TotalLaps = stepper.Laps;
+        CurrentLap = 0;
+        IsLive = true;
+        IsPlaying = true;
+    }
 
     // Build the strategy rows for the upcoming (not-yet-run) round (M23b): the player team's drivers and each
     // one's chosen starting compound (defaulting to Medium). Empty — the panel hides — when there is no player
@@ -373,15 +508,10 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     private IBrush Accent(string id) =>
         ScreenBrushes.TeamAccent(_teamIndex.GetValueOrDefault(_teamOfDriver.GetValueOrDefault(id, ""), 0));
 
-    private int PitsUpTo(string competitorId, int lap)
+    private static int PitsUpTo(IReadOnlyList<RaceEvent> events, string competitorId, int lap)
     {
-        if (_result is null)
-        {
-            return 0;
-        }
-
         var count = 0;
-        foreach (var e in _result.Events)
+        foreach (var e in events)
         {
             if (e.Kind == RaceEventKind.Pit && e.Lap <= lap
                 && string.CompareOrdinal(e.CompetitorId, competitorId) == 0)
@@ -475,6 +605,36 @@ public sealed record QualifyingRowViewModel(
 /// the player's cars, and the driver name for a tooltip.</summary>
 public sealed record TrackMarkerViewModel(
     double X, double Y, double Size, IBrush Fill, IBrush Stroke, string Name);
+
+/// <summary>One of the player's drivers on the live-race command bar (M23i): the pit-wall buttons that issue an
+/// order (box / push / extend stint / manage tyres) for that driver on the next lap.</summary>
+public sealed partial class LiveDriverViewModel : ObservableObject
+{
+    private readonly Action<string, RaceCommandKind> _issue;
+
+    public LiveDriverViewModel(string driverId, string name, Action<string, RaceCommandKind> issue)
+    {
+        DriverId = driverId;
+        Name = name;
+        _issue = issue;
+    }
+
+    public string DriverId { get; }
+
+    public string Name { get; }
+
+    [RelayCommand]
+    private void Box() => _issue(DriverId, RaceCommandKind.BoxThisLap);
+
+    [RelayCommand]
+    private void Push() => _issue(DriverId, RaceCommandKind.PushMode);
+
+    [RelayCommand]
+    private void Extend() => _issue(DriverId, RaceCommandKind.ExtendStint);
+
+    [RelayCommand]
+    private void Manage() => _issue(DriverId, RaceCommandKind.ManageTyres);
+}
 
 /// <summary>
 /// One driver's pre-race strategy row (M23b): the starting compound the player picks for the upcoming round.

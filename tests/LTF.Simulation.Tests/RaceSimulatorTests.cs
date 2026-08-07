@@ -500,6 +500,50 @@ public class RaceSimulatorTests
         Assert.NotEqual(Digest(baseline), Digest(boxed));   // a real order feeds the sim
     }
 
+    // ---- Interactive live orders (M23i) -----------------------------------
+    // The live screen drives a plain stepper and injects each order the lap before it takes effect. That must be
+    // bit-for-bit identical to constructing the stepper with the whole order log up front — the path
+    // reconstruction takes — so a live-driven race and its later replay from the recorded log agree.
+
+    [Fact]
+    public void Issuing_orders_lap_by_lap_matches_constructing_with_the_whole_log()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var log = new[]
+        {
+            new RaceCommand { Round = 1, Lap = 4, DriverId = "d1", Kind = RaceCommandKind.PushMode },
+            new RaceCommand { Round = 1, Lap = 6, DriverId = "d1", Kind = RaceCommandKind.BoxThisLap },
+            new RaceCommand { Round = 1, Lap = 6, DriverId = "d2", Kind = RaceCommandKind.ManageTyres },
+            new RaceCommand { Round = 1, Lap = 9, DriverId = "d2", Kind = RaceCommandKind.ExtendStint },
+        };
+
+        // Reconstruction path: the whole log handed to the constructor.
+        var reconstructed = new RaceSimulator.RaceStepper(
+            carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024, commands: log);
+        while (!reconstructed.IsComplete)
+        {
+            reconstructed.AdvanceLap();
+        }
+
+        // Live path: a plain stepper, each order injected the lap before it applies (as the screen does).
+        var live = new RaceSimulator.RaceStepper(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        while (!live.IsComplete)
+        {
+            foreach (var command in log.Where(c => c.Lap == live.CurrentLap + 1))
+            {
+                live.Issue(command);
+            }
+
+            live.AdvanceLap();
+        }
+
+        var liveResult = live.Finish();
+        var baseline = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        Assert.Equal(Digest(reconstructed.Finish()), Digest(liveResult)); // live == reconstruct, bit-for-bit
+        Assert.NotEqual(Digest(baseline), Digest(liveResult));            // and the orders really did change it
+    }
+
     // ---- Race damage (R38) ------------------------------------------------
     // Inert-by-default is proved by the golden hash above: the canonical race uses the default
     // balance, where DamageAeroLoss and DamageRepairSeconds are 0, and its digest is unchanged.

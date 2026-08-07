@@ -126,6 +126,12 @@ public static partial class RaceSimulator
         /// <summary>The running order at the end of the lap just advanced (the live telemetry the screen reads).</summary>
         public LapSnapshot LatestLap => _snapshots[^1];
 
+        /// <summary>The lap-by-lap snapshots so far (M23i, live play): the growing telemetry the screen replays.</summary>
+        public IReadOnlyList<LapSnapshot> Snapshots => _snapshots;
+
+        /// <summary>The race events so far (M23i, live play): the growing feed the screen shows.</summary>
+        public IReadOnlyList<RaceEvent> Events => _events;
+
         /// <summary>Advance the race by one lap. A no-op once <see cref="IsComplete"/>. The body is the verbatim
         /// per-lap logic the monolithic <see cref="Run"/> loop used, so the draw sequence is unchanged.</summary>
         public void AdvanceLap()
@@ -376,6 +382,26 @@ public static partial class RaceSimulator
                         break;
                 }
             }
+        }
+
+        /// <summary>Inject a player order to take effect on a future lap (M23i, live play). Ignored for the
+        /// current or a past lap. Issuing an order before the lap it targets is advanced is equivalent to
+        /// carrying it in the construction log, so a live-driven race and its reconstruction from the recorded
+        /// log are byte-identical.</summary>
+        public void Issue(RaceCommand command)
+        {
+            if (command.Lap <= _lap)
+            {
+                return;
+            }
+
+            if (!_commandsByLap.TryGetValue(command.Lap, out var list))
+            {
+                list = new List<(string, RaceCommandKind)>();
+                _commandsByLap[command.Lap] = list;
+            }
+
+            list.Add((command.DriverId, command.Kind));
         }
 
         /// <summary>Classify the race once every lap has run.</summary>

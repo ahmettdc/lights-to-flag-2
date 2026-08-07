@@ -195,6 +195,12 @@ public static class StringKeys
     public const string RaceWeekendTabRace = "raceWeekend.tabRace";
     public const string RaceWeekendTabQualifying = "raceWeekend.tabQualifying";
     public const string RaceWeekendRadio = "raceWeekend.radio";
+    public const string RaceWeekendRaceLive = "raceWeekend.raceLive";
+    public const string RaceWeekendPitWall = "raceWeekend.pitWall";
+    public const string RaceWeekendCmdBox = "raceWeekend.cmdBox";
+    public const string RaceWeekendCmdPush = "raceWeekend.cmdPush";
+    public const string RaceWeekendCmdExtend = "raceWeekend.cmdExtend";
+    public const string RaceWeekendCmdManage = "raceWeekend.cmdManage";
 
     // Cars & Power Unit screen (M22).
     public const string CarsPerformance = "cars.performance";

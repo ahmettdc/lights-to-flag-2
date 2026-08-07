@@ -77,6 +77,27 @@ public sealed class LiveCareer
     /// the race-weekend screen can show a qualifying tab without changing the save format.</summary>
     public IReadOnlyList<QualifyingResult> Qualifying => _qualifying;
 
+    /// <summary>The next round still to run this season, or null at a season boundary (M23i). The race-weekend
+    /// screen offers Race Live for this round.</summary>
+    public CalendarRound? UpcomingRound =>
+        _results.Count < SeasonStart.Calendar.Count ? SeasonStart.Calendar[_results.Count] : null;
+
+    /// <summary>Set up the upcoming round's race as a resumable stepper the live screen drives (M23i), or null
+    /// at a season boundary. Built from the current (evolving) carset with the same seed and grid penalty a
+    /// Continue would use, so the interactively-driven race matches the one reconstruction later reproduces from
+    /// the recorded order log.</summary>
+    public RaceSimulator.RaceStepper? StartLiveRace()
+    {
+        var round = UpcomingRound;
+        if (round is null)
+        {
+            return null;
+        }
+
+        var penalty = _penaltyByRound.GetValueOrDefault(round.Round, NoPenalty);
+        return SeasonSimulator.StartRound(Current, round, SeasonSimulator.RoundSeed(Seed, round.Round), penalty).Stepper;
+    }
+
     /// <summary>The session as it stands now (current carset + clock), for the screens/top bar.</summary>
     public ShellSession Session => new(Current, Clock, Seed);
 

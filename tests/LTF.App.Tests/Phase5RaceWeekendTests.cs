@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Avalonia.Controls;
@@ -12,6 +13,8 @@ using LTF.App.ViewModels;
 using LTF.App.ViewModels.Screens;
 using LTF.App.Views.Screens;
 using LTF.Domain.Common;
+using LTF.Domain.Racing;
+using LTF.Simulation.Racing;
 using Xunit;
 
 namespace LTF.App.Tests;
@@ -341,5 +344,151 @@ public class Phase5RaceWeekendTests
 
         Assert.NotEmpty(vm.Feed);
         Assert.All(vm.Feed, e => Assert.StartsWith("L", e.Text)); // "L{lap} · <voiced message>"
+    }
+
+    // --- Interactive live race (M23i) ---
+
+    // A compact, deterministic signature of a race result: the finishing order with laps, times and points.
+    // Two byte-identical races share it; a race a pit-wall order changed does not.
+    private static string RaceDigest(RaceResult r) =>
+        string.Join("|", r.Classification.Select(e =>
+            $"{e.Position}:{e.CompetitorId}:{e.Status}:{e.Laps}:{e.TotalTime:R}:{e.Points}"));
+
+    // Advance a career until its first race has run (the round the live screen drives), acknowledging halts.
+    private static LiveCareer AdvanceToFirstRace(LiveCareer live)
+    {
+        var guard = 0;
+        while (live.Results.Count == 0 && guard++ < 1000)
+        {
+            if (live.PendingAction)
+            {
+                live.Acknowledge();
+            }
+            else
+            {
+                live.Continue();
+            }
+        }
+
+        return live;
+    }
+
+    [Fact]
+    public void The_live_stepper_with_no_orders_reproduces_the_plain_race()
+    {
+        // The round a plain Continue runs (M21d) and the round the live stepper drives with no orders are the
+        // same setup with the same seed — so a command-free live race is byte-identical (golden-safe).
+        var plain = AfterFirstRace().Results[0];
+
+        var stepper = new LiveCareer(SessionLoader.LoadFlagship()).StartLiveRace();
+        Assert.NotNull(stepper);
+        while (!stepper!.IsComplete)
+        {
+            stepper.AdvanceLap();
+        }
+
+        Assert.Equal(RaceDigest(plain), RaceDigest(stepper.Finish()));
+    }
+
+    [Fact]
+    public void A_live_order_is_reproduced_by_reconstruction_from_the_committed_log()
+    {
+        var session = SessionLoader.LoadFlagship();
+
+        // Drive the upcoming round live, boxing a player driver early (as the pit-wall button does).
+        var live = new LiveCareer(session);
+        var round = live.UpcomingRound!.Round;
+        var driver = live.Current.PlayerTeam()!.DriverIds[0];
+        var stepper = live.StartLiveRace()!;
+        var log = new List<RaceCommand>();
+        while (!stepper.IsComplete)
+        {
+            if (stepper.CurrentLap == 2)
+            {
+                var command = new RaceCommand { Round = round, Lap = 3, DriverId = driver, Kind = RaceCommandKind.BoxThisLap };
+                stepper.Issue(command);
+                log.Add(command);
+            }
+
+            stepper.AdvanceLap();
+        }
+
+        var liveResult = stepper.Finish();
+
+        // The committed log rides the season-start carset; a fresh (save/load) career reconstructs the round and
+        // must reproduce the live race bit-for-bit — live == reconstruct.
+        var committed = session with { Carset = session.Carset with { PlayerRaceCommands = log } };
+        var reconstructed = AdvanceToFirstRace(new LiveCareer(committed)).Results[0];
+
+        Assert.Equal(RaceDigest(liveResult), RaceDigest(reconstructed));
+    }
+
+    [Fact]
+    public void Race_live_enters_live_mode_and_projects_the_stepper()
+    {
+        var live = new LiveCareer(SessionLoader.LoadFlagship());
+        var vm = new RaceWeekendViewModel(live, startLive: live.StartLiveRace, commitLive: _ => { });
+
+        Assert.True(vm.HasLiveOption);
+        Assert.True(vm.ShowStrategy);
+        Assert.False(vm.IsLive);
+
+        vm.RaceLiveCommand.Execute(null);
+
+        Assert.True(vm.IsLive);
+        Assert.True(vm.IsPlaying);
+        Assert.True(vm.TotalLaps > 1);
+        Assert.False(vm.ShowStrategy);   // the strategy card gives way to the pit wall
+        Assert.True(vm.ShowRaceArea);
+
+        vm.AdvanceLap();
+        Assert.Equal(1, vm.CurrentLap);
+        Assert.NotEmpty(vm.Tower);       // live telemetry is projected exactly like the replay
+        Assert.NotEmpty(vm.Markers);
+    }
+
+    [Fact]
+    public void A_read_only_race_weekend_offers_no_live_option()
+    {
+        var vm = new RaceWeekendViewModel(new LiveCareer(SessionLoader.LoadFlagship())); // no hooks
+        Assert.False(vm.HasLiveOption);
+    }
+
+    [Fact]
+    public void Racing_live_to_the_flag_commits_the_order_through_the_shell()
+    {
+        var catalog = CarsetCatalog.Discover();
+        var dir = Directory.CreateTempSubdirectory().FullName;
+        var saves = new SaveStore(catalog, dir);
+        var settings = new SettingsStore(Path.Combine(dir, "settings.json"));
+        var root = new RootViewModel(new AppServices(catalog, saves, settings, new CareerNotificationSource()));
+
+        root.EnterCareer(SessionLoader.LoadFlagship());
+        var shell = (ShellViewModel)root.Content!;
+        shell.Navigation.Navigate(NavKey.RaceWeekend);
+        var vm = (RaceWeekendViewModel)shell.Navigation.CurrentScreen!;
+
+        Assert.True(vm.HasLiveOption);
+        vm.RaceLiveCommand.Execute(null);
+        var expectedDriver = vm.LiveDrivers[0].DriverId;
+
+        var guard = 0;
+        while (vm.IsLive && guard++ < 5000)
+        {
+            if (vm.CurrentLap == 2)
+            {
+                vm.LiveDrivers[0].BoxCommand.Execute(null); // box this player driver next lap
+            }
+
+            vm.AdvanceLap();
+        }
+
+        Assert.False(vm.IsLive); // the race reached the flag and committed
+
+        // The order was recorded on the season-start carset and autosaved, so a reload carries it.
+        var reloaded = saves.Load(saves.MostRecent()!);
+        Assert.NotEmpty(reloaded.Carset.PlayerRaceCommands);
+        Assert.Equal(expectedDriver, reloaded.Carset.PlayerRaceCommands[0].DriverId);
+        Assert.Equal(RaceCommandKind.BoxThisLap, reloaded.Carset.PlayerRaceCommands[0].Kind);
     }
 }

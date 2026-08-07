@@ -55,9 +55,10 @@
                  Foreground="{DynamicResource BrushTextPrimary}" />
     </Border>
 
-    <!-- Pre-race strategy (M23b): the upcoming round's starting tyres, one picker per player driver. -->
+    <!-- Pre-race strategy (M23b): the upcoming round's starting tyres, one picker per player driver. Hidden
+         while the player is driving that round live (M23i). -->
     <Border DockPanel.Dock="Top" Classes="card" Margin="12,12,12,0" Padding="12,10"
-            IsVisible="{Binding HasUpcoming}">
+            IsVisible="{Binding ShowStrategy}">
       <Grid ColumnDefinitions="*,Auto">
         <StackPanel Grid.Column="0" Spacing="8" VerticalAlignment="Center">
           <StackPanel Orientation="Horizontal" Spacing="10">
@@ -83,21 +84,57 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </StackPanel>
-        <Button Grid.Column="1" Classes="ctrl" Content="{loc:Tr raceWeekend.startRace}"
-                Command="{Binding StartRaceCommand}" VerticalAlignment="Center" />
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Classes="ctrl" Content="{loc:Tr raceWeekend.startRace}"
+                  Command="{Binding StartRaceCommand}" />
+          <Button Classes="ctrl" Content="{loc:Tr raceWeekend.raceLive}"
+                  Command="{Binding RaceLiveCommand}" IsVisible="{Binding HasLiveOption}"
+                  Background="{DynamicResource BrushAccent}" Foreground="{DynamicResource BrushTextOnRed}" />
+        </StackPanel>
       </Grid>
+    </Border>
+
+    <!-- Live pit wall (M23i): while driving the upcoming round live, each player driver's mid-race orders.
+         BOX pits next lap; PUSH / MANAGE flip the engine mode; EXTEND delays the next planned stop. -->
+    <Border DockPanel.Dock="Top" Classes="card" Margin="12,12,12,0" Padding="12,10"
+            IsVisible="{Binding IsLive}">
+      <StackPanel Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <TextBlock Classes="cardHeader" Text="{loc:Tr raceWeekend.pitWall}" />
+          <TextBlock Text="{Binding LapText}" Classes="cardHeader" Foreground="{DynamicResource BrushTextDim}" />
+        </StackPanel>
+        <ItemsControl ItemsSource="{Binding LiveDrivers}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Vertical" Spacing="6" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="screens:LiveDriverViewModel">
+              <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Name}" Classes="cell" Width="150" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+                <Button Classes="ctrl" Content="{loc:Tr raceWeekend.cmdBox}" Command="{Binding BoxCommand}" />
+                <Button Classes="ctrl" Content="{loc:Tr raceWeekend.cmdPush}" Command="{Binding PushCommand}" />
+                <Button Classes="ctrl" Content="{loc:Tr raceWeekend.cmdExtend}" Command="{Binding ExtendCommand}" />
+                <Button Classes="ctrl" Content="{loc:Tr raceWeekend.cmdManage}" Command="{Binding ManageCommand}" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
     </Border>
 
     <Panel>
 
     <!-- Empty state -->
-    <StackPanel IsVisible="{Binding NoRace}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
+    <StackPanel IsVisible="{Binding ShowEmpty}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
       <TextBlock Text="{loc:Tr raceWeekend.noRace}" FontSize="14" Foreground="{DynamicResource BrushTextSecondary}" />
       <TextBlock Text="Pick your starting tyres above, then Start Race." FontSize="11"
                  Foreground="{DynamicResource BrushTextDim}" HorizontalAlignment="Center" />
     </StackPanel>
 
-    <TabControl IsVisible="{Binding HasRace}" Margin="12,8,12,12">
+    <TabControl IsVisible="{Binding ShowRaceArea}" Margin="12,8,12,12">
 
     <TabItem Header="{loc:Tr raceWeekend.tabRace}">
     <Grid Margin="0,10,0,0" RowDefinitions="Auto,*">
@@ -105,7 +142,7 @@
       <!-- Top strip: round + lap/flag + replay controls -->
       <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
-          <TextBlock Text="{Binding HeaderText}" FontFamily="{DynamicResource FontNumeric}" FontSize="13"
+          <TextBlock Text="{Binding RaceHeaderText}" FontFamily="{DynamicResource FontNumeric}" FontSize="13"
                      FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
           <Border Background="{DynamicResource BrushStatCell}" BorderBrush="{DynamicResource BrushCardBorder}"
                   BorderThickness="1" CornerRadius="4" Padding="8,3">
@@ -113,13 +150,15 @@
           </Border>
           <TextBlock Text="{Binding FlagText}" Classes="cardHeader" Foreground="{DynamicResource BrushAccent}" />
         </StackPanel>
+        <!-- Replay transport (M23a). The step/restart/skip buttons manipulate the recorded telemetry, so they
+             are hidden while a race is being driven live (M23i) — only play/pause and speed apply then. -->
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-          <Button Classes="ctrl" Content="⏮" Command="{Binding RestartCommand}" />
-          <Button Classes="ctrl" Content="‹" Command="{Binding StepBackCommand}" />
+          <Button Classes="ctrl" Content="⏮" Command="{Binding RestartCommand}" IsVisible="{Binding !IsLive}" />
+          <Button Classes="ctrl" Content="‹" Command="{Binding StepBackCommand}" IsVisible="{Binding !IsLive}" />
           <Button Classes="ctrl" Content="▶" Command="{Binding TogglePlayCommand}" IsVisible="{Binding !IsPlaying}" />
           <Button Classes="ctrl" Content="⏸" Command="{Binding TogglePlayCommand}" IsVisible="{Binding IsPlaying}" />
-          <Button Classes="ctrl" Content="›" Command="{Binding StepForwardCommand}" />
-          <Button Classes="ctrl" Content="⏭" Command="{Binding SkipToEndCommand}" />
+          <Button Classes="ctrl" Content="›" Command="{Binding StepForwardCommand}" IsVisible="{Binding !IsLive}" />
+          <Button Classes="ctrl" Content="⏭" Command="{Binding SkipToEndCommand}" IsVisible="{Binding !IsLive}" />
           <Slider Minimum="1" Maximum="6" Value="{Binding Speed}" Width="90" VerticalAlignment="Center" />
         </StackPanel>
       </Grid>

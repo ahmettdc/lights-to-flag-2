@@ -43,6 +43,24 @@ public static class SeasonSimulator
     public static RoundOutcome RunRound(
         Carset carset, CalendarRound round, int roundSeed, IReadOnlyDictionary<string, int> gridPenalty)
     {
+        var (stepper, quali) = StartRound(carset, round, roundSeed, gridPenalty);
+        while (!stepper.IsComplete)
+        {
+            stepper.AdvanceLap();
+        }
+
+        return new RoundOutcome(stepper.Finish(), quali.PoleCompetitorId, quali);
+    }
+
+    /// <summary>Set up a round's race and return the resumable stepper plus the qualifying result (M23i). The
+    /// caller drives the stepper to the flag: <see cref="RunRound"/> does so in one go, while the live
+    /// race-weekend screen advances it a lap at a time and injects the player's orders as they are given
+    /// (<see cref="RaceSimulator.RaceStepper.Issue"/>). The setup — qualify, grid + penalties, format, the
+    /// player's pre-race compounds and any recorded orders — is a single implementation shared by both, so a
+    /// live-driven race and its later reconstruction are byte-identical.</summary>
+    public static (RaceSimulator.RaceStepper Stepper, QualifyingResult Qualifying) StartRound(
+        Carset carset, CalendarRound round, int roundSeed, IReadOnlyDictionary<string, int> gridPenalty)
+    {
         var circuit = FindCircuit(carset, round);
 
         var entries = SeasonEntries.Build(carset);
@@ -56,21 +74,17 @@ public static class SeasonSimulator
 
         var format = new RaceFormat { PoleSitterId = quali.PoleCompetitorId, IsSprint = round.IsSprint };
 
-        // The player's pre-race starting-tyre choices for this round (M23b), if any. Null when the carset
-        // carries none for this round, so RaceSimulator.Run runs exactly as before — the season, and its
-        // golden digest, stay byte-identical for a strategy-free carset.
+        // The player's pre-race starting-tyre choices (M23b) and recorded live orders (M23h) for this round.
+        // Null when the carset carries none for this round, so the race runs exactly as before — the season, and
+        // its golden digest, stay byte-identical for a strategy- and command-free carset.
         var startingCompounds = PlayerCompoundsFor(carset, round.Round);
-
-        // The player's recorded live pit-wall orders for this round (M23h), if any. Null when the carset carries
-        // none for this round, so RaceSimulator.Run runs exactly as before — byte-identical for a command-free
-        // carset — and reconstruction replays a live-driven race deterministically from the same log.
         var commands = PlayerCommandsFor(carset, round.Round);
-        var result = RaceSimulator.Run(
+        var stepper = new RaceSimulator.RaceStepper(
             circuit, grid, carset.Rules, carset.Balance, roundSeed,
             regulations: carset.Regulations, format: format, startingCompounds: startingCompounds,
             commands: commands);
 
-        return new RoundOutcome(result, quali.PoleCompetitorId, quali);
+        return (stepper, quali);
     }
 
     // Build the per-driver starting-compound map for one round from the carset's player strategies (M23b).

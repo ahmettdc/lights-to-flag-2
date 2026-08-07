@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LTF.App.Mvvm;
@@ -100,9 +101,11 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 
         // Race weekend (M23): a live timing tower replaying the last round's recorded telemetry (M23a, pure
         // playback of the deterministic RaceResult — no re-simulation), plus a pre-race strategy panel that
-        // sets the next round's starting tyres (M23b) and a Start Race that advances the career.
+        // sets the next round's starting tyres (M23b), a Start Race that advances the career, and Race Live
+        // (M23i) — driving the upcoming round a lap at a time and issuing live pit-wall orders.
         navigation.Register(NavKey.RaceWeekend, () => new RaceWeekendViewModel(
-            live, setStrategy: SetRaceStrategy, startRace: ContinueCareerStep));
+            live, setStrategy: SetRaceStrategy, startRace: ContinueCareerStep,
+            startLive: live.StartLiveRace, commitLive: CommitLiveRace));
 
         // Management screens (M22). Read-only projections over the live career; a Continue rebuilds them.
         // Finance also carries the first player mutation — taking a loan (M22c).
@@ -272,6 +275,27 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         });
 
         CommitCareerMutation();
+    }
+
+    // Commit a live-driven race (M23i): record the orders the player gave onto the season-start carset (so a
+    // reload reproduces the exact race) then advance the career — which runs the round with that log, producing
+    // the same result the live race did. An empty log is just a plain Continue.
+    private void CommitLiveRace(IReadOnlyList<RaceCommand> commands)
+    {
+        if (_live is null)
+        {
+            return;
+        }
+
+        if (commands.Count > 0)
+        {
+            _live.ApplyToSeasonStart(carset => carset with
+            {
+                PlayerRaceCommands = carset.PlayerRaceCommands.Concat(commands).ToList(),
+            });
+        }
+
+        ContinueCareerStep();
     }
 
     // Persist a player mutation and re-render: autosave the season-start carset (if enabled) then refresh.

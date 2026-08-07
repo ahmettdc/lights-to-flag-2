@@ -183,6 +183,12 @@ public static class EnglishStrings
         [StringKeys.RaceWeekendTabRace] = "RACE",
         [StringKeys.RaceWeekendTabQualifying] = "QUALIFYING",
         [StringKeys.RaceWeekendRadio] = "TEAM RADIO",
+        [StringKeys.RaceWeekendRaceLive] = "RACE LIVE",
+        [StringKeys.RaceWeekendPitWall] = "PIT WALL",
+        [StringKeys.RaceWeekendCmdBox] = "BOX",
+        [StringKeys.RaceWeekendCmdPush] = "PUSH",
+        [StringKeys.RaceWeekendCmdExtend] = "EXTEND",
+        [StringKeys.RaceWeekendCmdManage] = "MANAGE",
 
         [StringKeys.CarsPerformance] = "CAR PERFORMANCE",
         [StringKeys.CarsOverall] = "OVERALL",
