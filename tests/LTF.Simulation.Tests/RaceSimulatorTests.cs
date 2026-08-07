@@ -432,6 +432,53 @@ public class RaceSimulatorTests
         Assert.NotEqual(Digest(baseline), Digest(chosen));  // a real choice feeds the sim
     }
 
+    // ---- Stepper parity (M23g) --------------------------------------------
+    // Run drives a RaceStepper to the flag; driving that same stepper one lap at a time from outside must
+    // produce a bit-for-bit identical race. This locks the single lap-loop implementation (no drift) and is
+    // the seam the live race-weekend screen (M23i) advances one lap per tick.
+
+    [Fact]
+    public void The_stepper_driven_lap_by_lap_matches_the_one_shot_run()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var oneShot = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+
+        var stepper = new RaceSimulator.RaceStepper(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        while (!stepper.IsComplete)
+        {
+            stepper.AdvanceLap();
+        }
+
+        Assert.Equal(Digest(oneShot), Digest(stepper.Finish()));
+    }
+
+    [Fact]
+    public void The_stepper_exposes_each_lap_as_it_advances()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var stepper = new RaceSimulator.RaceStepper(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+
+        Assert.Equal(0, stepper.CurrentLap);
+        Assert.False(stepper.IsComplete);
+
+        stepper.AdvanceLap();
+        Assert.Equal(1, stepper.CurrentLap);
+        Assert.Equal(1, stepper.LatestLap.Lap);
+        Assert.NotEmpty(stepper.LatestLap.Order);
+
+        while (!stepper.IsComplete)
+        {
+            stepper.AdvanceLap();
+        }
+
+        Assert.Equal(stepper.Laps, stepper.CurrentLap);
+        stepper.AdvanceLap(); // past the flag is a no-op
+        Assert.Equal(stepper.Laps, stepper.CurrentLap);
+    }
+
     // ---- Race damage (R38) ------------------------------------------------
     // Inert-by-default is proved by the golden hash above: the canonical race uses the default
     // balance, where DamageAeroLoss and DamageRepairSeconds are 0, and its digest is unchanged.

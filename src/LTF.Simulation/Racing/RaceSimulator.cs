@@ -27,7 +27,7 @@ namespace LTF.Simulation.Racing;
 /// compound (the player's pre-race strategy); with none (the default) every car starts on the field-wide
 /// <c>startingCompound</c>, so the race is bit-for-bit unchanged.
 /// </summary>
-public static class RaceSimulator
+public static partial class RaceSimulator
 {
     private const long ReliabilitySalt = 0x5245_4C49; // "RELI"
     private const long IncidentSalt = 0x494E_4344;    // "INCD"
@@ -70,232 +70,17 @@ public static class RaceSimulator
         IReadOnlyDictionary<string, PracticeSetup>? setups = null, RaceFormat? format = null,
         IReadOnlyDictionary<string, TyreCompound>? startingCompounds = null)
     {
-        // Null regulations reproduce the DRS era exactly, so existing callers are unaffected.
-        var regs = regulations ?? RegulationSet.Drs;
-        var era2026 = regs.Era == RegulationEra.ActiveAero2026;
-
-        // A null format is a standard feature race, so existing callers run identically (M9).
-        var fmt = format ?? RaceFormat.Standard;
-
-        var baseRng = new DeterministicRandom(seed);
-        var raceControlRng = baseRng.Fork(RaceControlSalt);
-        var trafficRng = baseRng.Fork(TrafficSalt);
-        var laps = ResolveLaps(circuit, fmt);
-        var baseTargets = PlanPitLaps(laps, rules.MandatoryPitStops);
-
-        var cars = new List<CarRaceState>(grid.Count);
-        for (var i = 0; i < grid.Count; i++)
+        // Run the race to the flag through the resumable RaceStepper (M23g). A one-shot Run and a
+        // lap-by-lap drive execute the identical statements in the identical order, so the golden digest is
+        // preserved; the live race-weekend screen (M23i) drives the same stepper one lap at a time.
+        var stepper = new RaceStepper(
+            circuit, grid, rules, balance, seed, startingCompound, regulations, setups, format, startingCompounds);
+        while (!stepper.IsComplete)
         {
-            var paceRng = baseRng.Fork(i + 1);
-            var car = new CarRaceState(
-                grid[i], gridPosition: i + 1, rng: paceRng,
-                reliabilityRng: paceRng.Fork(ReliabilitySalt), incidentRng: paceRng.Fork(IncidentSalt),
-                pitRng: paceRng.Fork(PitSalt),
-                // A per-car starting compound (M23b, player strategy) overrides the field-wide default; with
-                // no per-car dictionary (every existing caller) this is exactly startingCompound, so the race
-                // — and the golden digest — is bit-for-bit unchanged.
-                tyre: TyreState.Fresh(startingCompounds?.GetValueOrDefault(grid[i].Id, startingCompound) ?? startingCompound),
-                fuel: 1.0,
-                health: ComponentHealth.Fresh(), mode: EngineMode.Standard,
-                topSpeed: TopSpeedFor(grid[i].Car, circuit, regs, era2026));
-            car.PitPlan = StaggeredPlan(baseTargets, i, grid.Count, laps, balance);
-            car.Setup = setups?.GetValueOrDefault(grid[i].Id) ?? PracticeSetup.None;
-            car.Ballast = fmt.Ballast.GetValueOrDefault(grid[i].Id);
-            cars.Add(car);
+            stepper.AdvanceLap();
         }
 
-        var snapshots = new List<LapSnapshot>(laps);
-        var events = new List<RaceEvent>();
-
-        // Lights out: start performance and any getaway trouble, before lap one.
-        foreach (var car in cars)
-        {
-            ApplyStart(car, balance, fmt.StartType, events);
-        }
-
-        var state = NeutralizationState.Green;
-        var neutralLapsLeft = 0;
-
-        for (var lap = 1; lap <= laps; lap++)
-        {
-            var stateThisLap = state;
-            var neutralized = stateThisLap != NeutralizationState.Green;
-            var aheadOf = AheadMap(cars);
-            var retiredThisLap = 0;
-            string? triggerCarId = null;
-
-            foreach (var car in cars)
-            {
-                if (!car.Running)
-                {
-                    continue;
-                }
-
-                if (neutralized)
-                {
-                    // Circulating behind the safety car: a slow, uniform lap, no racing.
-                    var neutralLap = NeutralizedLapTime(circuit, balance);
-                    car.TotalTime += neutralLap;
-                    car.LapsCompleted = lap;
-                    car.LastLap = neutralLap;
-                    car.LastSectors = EvenSectors(neutralLap);
-                    car.Fuel = FuelModel.Burn(car.Fuel, laps);
-
-                    // M7b: take a due stop now — a stop under a neutralisation is cheap.
-                    if (car.PitStops < car.PitPlan.Count
-                        && lap >= car.PitPlan[car.PitStops] - balance.NeutralizationPitWindowLaps)
-                    {
-                        ApplyPitStop(
-                            car, lap, startingCompound, balance, events,
-                            neutralized: true, refuellingAllowed: rules.RefuellingAllowed);
-                    }
-
-                    continue;
-                }
-
-                var conditions = new LapConditions
-                {
-                    Tyre = car.Tyre,
-                    FuelFraction = car.Fuel,
-                    Track = TrackConditions.Dry,
-                };
-
-                // Pace first: draws happen up front so the pace stream is identical whatever
-                // the reliability and incident models do this lap.
-                // R38: a damaged car runs reduced effective aero; inert (the original car) until a
-                // carset opts in via DamageAeroLoss, so the pace draw stays identical by default.
-                var effectiveCar = EffectiveCar(car, balance);
-                var sectors = LapTimeModel.Simulate(
-                    circuit, effectiveCar, car.Competitor.Driver.Attributes, balance, conditions, car.Rng);
-                var lapTime = sectors.Total
-                              + EngineModes.PaceDelta(car.Mode, balance)
-                              + LimpPenalty(car.Health, balance)
-                              + ComponentWearPenalty(car.Health, balance);
-
-                // 2026 only: active aero gains time, a depleted battery de-rates the car — both
-                // deterministic, no random draw.
-                if (era2026)
-                {
-                    lapTime += ActiveAeroDelta(effectiveCar, circuit, regs);
-                    lapTime += DeRatingPenalty(car, regs);
-                }
-
-                // M8: a productive practice weekend shaves a little off every green lap. Zero
-                // without practice, so a race with no practice setup is unchanged.
-                lapTime -= car.Setup.RaceBonusSeconds;
-
-                // M9c: success ballast adds lap time. Zero without ballast, so a race with none is
-                // unchanged.
-                lapTime += car.Ballast;
-
-                // Reliability (its own stream): wear the car, then roll each component.
-                DegradeHealth(car, balance);
-                if (TryFail(car, lap, balance, events))
-                {
-                    retiredThisLap++;
-                    triggerCarId = car.Id;
-                    continue;
-                }
-
-                // Incidents (its own stream): a driver error, then contact with the car ahead.
-                lapTime += ApplyDriverError(car, lap, conditions, balance, events);
-                if (!car.Running)
-                {
-                    retiredThisLap++;
-                    triggerCarId = car.Id;
-                    continue;
-                }
-
-                lapTime += ApplyCollision(car, aheadOf.GetValueOrDefault(car.Id), lap, balance, events);
-                if (!car.Running)
-                {
-                    retiredThisLap++;
-                    triggerCarId = car.Id;
-                    continue;
-                }
-
-                car.TotalTime += lapTime;
-                car.LapsCompleted = lap;
-                car.LastLap = sectors.Total;
-                car.LastSectors = sectors;
-                if (lapTime < car.BestLap)
-                {
-                    car.BestLap = lapTime;
-                }
-
-                car.Tyre = TyreModel.Advance(
-                    car.Tyre, circuit, car.Competitor.Driver.Attributes, car.Competitor.Car.TyreGentleness, balance);
-                car.Fuel = FuelModel.Burn(car.Fuel, laps);
-
-                // 2026 only: harvest energy back over the lap (Manual Override spends it in traffic).
-                if (era2026)
-                {
-                    car.Energy = Math.Min(1.0, car.Energy + regs.EnergyRegenPerLap);
-                }
-
-                // Pit stop (M7a/M7b): once the car reaches its planned stop lap, fresh tyres cost time.
-                if (car.PitStops < car.PitPlan.Count && lap >= car.PitPlan[car.PitStops])
-                {
-                    ApplyPitStop(
-                        car, lap, startingCompound, balance, events,
-                        neutralized: false, refuellingAllowed: rules.RefuellingAllowed);
-                }
-            }
-
-            // Traffic: cars in each other's wake battle for position (skipped under neutralisation).
-            if (!neutralized)
-            {
-                ResolveTraffic(cars, circuit, balance, regs, era2026, trafficRng, lap, events);
-            }
-
-            // Decide the next state before snapshotting, so a restart's bunching is captured now.
-            NeutralizationState nextState;
-            int nextLeft;
-            if (neutralized)
-            {
-                nextLeft = neutralLapsLeft - 1;
-                if (nextLeft <= 0)
-                {
-                    ApplyRestart(cars, stateThisLap, circuit, balance, startingCompound, rules.DriversUnlapUnderSafetyCar);
-                    nextState = NeutralizationState.Green;
-                    nextLeft = 0;
-                }
-                else
-                {
-                    nextState = stateThisLap;
-                }
-            }
-            else
-            {
-                nextState = NeutralizationState.Green;
-                nextLeft = 0;
-                if (retiredThisLap > 0 && TryTriggerNeutralization(raceControlRng, circuit, balance, retiredThisLap))
-                {
-                    nextState = ChooseNeutralization(raceControlRng, balance);
-                    nextLeft = balance.NeutralizationLaps;
-                    events.Add(new RaceEvent
-                    {
-                        Kind = ToEventKind(nextState),
-                        Lap = lap,
-                        CompetitorId = triggerCarId ?? string.Empty,
-                        Description = NeutralizationLabel(nextState),
-                    });
-                }
-            }
-
-            // Tally the lap leader for leading-lap points (M9b); deterministic, no random draw.
-            var lapLeader = LeaderOf(cars);
-            if (lapLeader is not null)
-            {
-                lapLeader.LapsLed++;
-            }
-
-            snapshots.Add(SnapshotOf(lap, cars, stateThisLap));
-            state = nextState;
-            neutralLapsLeft = nextLeft;
-        }
-
-        return Classify(cars, rules, snapshots, events, fmt);
+        return stepper.Finish();
     }
 
     /// <summary>The race length in laps (M9a): a lap-count override wins; else a target duration is
