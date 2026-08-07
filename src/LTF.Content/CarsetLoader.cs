@@ -152,6 +152,7 @@ public static class CarsetLoader
             ComponentLifeRounds = lifeRounds,
             ComponentReliabilityWearInfluence = r.ComponentReliabilityWearInfluence ?? 0,
             Economy = MapEconomy(r.Economy),
+            Bank = MapBank(r.Bank),
             Research = MapResearchRules(r.Research),
             DriverDevelopment = MapDriverDevelopment(r.DriverDevelopment),
             RegulationUnreadinessPenalty = r.RegulationUnreadinessPenalty ?? 0,
@@ -174,6 +175,26 @@ public static class CarsetLoader
             PhysicalDeclinePerSeason = r.PhysicalDeclinePerSeason ?? d.PhysicalDeclinePerSeason,
             ExperienceDeclinePerSeason = r.ExperienceDeclinePerSeason ?? d.ExperienceDeclinePerSeason,
             DevelopmentSpread = r.DevelopmentSpread ?? d.DevelopmentSpread,
+        };
+    }
+
+    private static BankRules MapBank(BankJson? b)
+    {
+        var d = new BankRules();
+        if (b is null)
+        {
+            return d;
+        }
+
+        return d with
+        {
+            BaseRatePercent = b.BaseRatePercent ?? d.BaseRatePercent,
+            MaxRiskPremiumPercent = b.MaxRiskPremiumPercent ?? d.MaxRiskPremiumPercent,
+            MaxLoanToRevenuePercent = b.MaxLoanToRevenuePercent ?? d.MaxLoanToRevenuePercent,
+            LatePenaltyPercent = b.LatePenaltyPercent ?? d.LatePenaltyPercent,
+            AssetSeizureAfterMisses = b.AssetSeizureAfterMisses ?? d.AssetSeizureAfterMisses,
+            InsolvencyAfterMisses = b.InsolvencyAfterMisses ?? d.InsolvencyAfterMisses,
+            InsolvencyPointsPenalty = b.InsolvencyPointsPenalty ?? d.InsolvencyPointsPenalty,
         };
     }
 

@@ -121,6 +121,7 @@ internal sealed class RulesJson
     public double? ComponentReliabilityWearInfluence { get; set; }
     public PointsJson? Points { get; set; }
     public EconomyJson? Economy { get; set; }
+    public BankJson? Bank { get; set; }
     public ResearchRulesJson? Research { get; set; }
     public DriverDevelopmentJson? DriverDevelopment { get; set; }
     public double? RegulationUnreadinessPenalty { get; set; }
@@ -154,6 +155,17 @@ internal sealed class EconomyJson
     public long? CrashCostPerIncident { get; set; }
     public int? CostCapFinePercent { get; set; }
     public long? CostCapPointsPerOverage { get; set; }
+}
+
+internal sealed class BankJson
+{
+    public int? BaseRatePercent { get; set; }
+    public int? MaxRiskPremiumPercent { get; set; }
+    public int? MaxLoanToRevenuePercent { get; set; }
+    public int? LatePenaltyPercent { get; set; }
+    public int? AssetSeizureAfterMisses { get; set; }
+    public int? InsolvencyAfterMisses { get; set; }
+    public int? InsolvencyPointsPenalty { get; set; }
 }
 
 internal sealed class BalanceJson

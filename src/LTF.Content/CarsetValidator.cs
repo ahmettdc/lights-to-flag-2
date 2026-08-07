@@ -137,6 +137,15 @@ public static class CarsetValidator
             Error("economy values must be non-negative");
         }
 
+        // Bank (ADR-0029): every rate, capacity, penalty and threshold must be non-negative.
+        var bank = carset.Rules.Bank;
+        if (bank.BaseRatePercent < 0 || bank.MaxRiskPremiumPercent < 0 || bank.MaxLoanToRevenuePercent < 0
+            || bank.LatePenaltyPercent < 0 || bank.AssetSeizureAfterMisses < 0 || bank.InsolvencyAfterMisses < 0
+            || bank.InsolvencyPointsPenalty < 0)
+        {
+            Error("bank values must be non-negative");
+        }
+
         // Sponsors and staff (M13): fees, bonuses and salaries must be non-negative.
         foreach (var team in carset.Teams)
         {
