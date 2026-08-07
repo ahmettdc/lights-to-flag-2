@@ -70,6 +70,9 @@
     <DataTemplate DataType="{x:Type screens:BoardSponsorsViewModel}">
       <views:BoardSponsorsView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type screens:StaffViewModel}">
+      <views:StaffView />
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

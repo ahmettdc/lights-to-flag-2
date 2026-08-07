@@ -1,0 +1,95 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.StaffView"
+             x:DataType="screens:StaffViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.cardHeader">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.6" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.colHead">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextDim}" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource BrushStatCell}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+  </UserControl.Styles>
+
+  <UserControl.Resources>
+    <DataTemplate x:Key="StaffRow" x:DataType="screens:StaffRowViewModel">
+      <Grid Height="40" ColumnDefinitions="*,120,44,60,72" Margin="14,0" Background="Transparent">
+        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="13" VerticalAlignment="Center"
+                   Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="1" Text="{Binding Role}" FontSize="11" VerticalAlignment="Center"
+                   Foreground="{DynamicResource BrushTextMuted}" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="2" Text="{Binding Skill}" FontFamily="{DynamicResource FontNumeric}"
+                   FontSize="13" FontWeight="Bold" TextAlignment="Right" VerticalAlignment="Center"
+                   Foreground="{DynamicResource BrushTextPrimary}" />
+        <TextBlock Grid.Column="3" Text="{Binding Salary}" FontFamily="{DynamicResource FontNumeric}"
+                   FontSize="12" TextAlignment="Right" VerticalAlignment="Center"
+                   Foreground="{DynamicResource BrushTextSecondary}" />
+        <Button Grid.Column="4" Classes="ghost" Content="{Binding ActionLabel}" Command="{Binding Action}"
+                HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="10"
+                IsVisible="{Binding CanAct}" />
+      </Grid>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <DockPanel Background="{DynamicResource BrushAppBackground}" LastChildFill="True">
+
+    <Border DockPanel.Dock="Top" Height="32" Background="{DynamicResource BrushChrome}"
+            BorderBrush="{DynamicResource BrushDivider}" BorderThickness="0,0,0,1" Padding="14,0">
+      <TextBlock Text="{loc:Tr nav.staff}" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold" LetterSpacing="2"
+                 Foreground="{DynamicResource BrushTextPrimary}" />
+    </Border>
+
+    <Grid Margin="12" ColumnDefinitions="*,*">
+
+      <!-- Technical staff -->
+      <Border Grid.Column="0" Margin="0,0,6,0" Classes="card">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+            <TextBlock Classes="cardHeader" Text="{loc:Tr staff.squad}" />
+          </Border>
+          <TextBlock DockPanel.Dock="Top" Text="{loc:Tr staff.noSquad}" Margin="14,12" FontSize="12"
+                     Foreground="{DynamicResource BrushTextDim}" IsVisible="{Binding NoSquad}" />
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Squad}" ItemTemplate="{StaticResource StaffRow}" />
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+      <!-- Free agents -->
+      <Border Grid.Column="1" Margin="6,0,0,0" Classes="card">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+            <TextBlock Classes="cardHeader" Text="{loc:Tr staff.freeAgents}" />
+          </Border>
+          <TextBlock DockPanel.Dock="Top" Text="{loc:Tr staff.noPool}" Margin="14,12" FontSize="12"
+                     Foreground="{DynamicResource BrushTextDim}" IsVisible="{Binding NoPool}" />
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Pool}" ItemTemplate="{StaticResource StaffRow}" />
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+    </Grid>
+  </DockPanel>
+
+</UserControl>

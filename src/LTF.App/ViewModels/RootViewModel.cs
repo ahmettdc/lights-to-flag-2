@@ -101,6 +101,7 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         navigation.Register(NavKey.RndFacilities, () => new RndFacilitiesViewModel(live.Current));
         navigation.Register(NavKey.CarsPowerUnit, () => new CarsPowerUnitViewModel(live.Current));
         navigation.Register(NavKey.BoardSponsors, () => new BoardSponsorsViewModel(live.Current));
+        navigation.Register(NavKey.Staff, () => new StaffViewModel(live.Current, hire: HireStaff, release: ReleaseStaff));
 
         // The career is endless (Continue rolls into the next season at a boundary) and the button also
         // acknowledges a Rev-15 pause, so it stays enabled unless an action is pending; ContinueCareerStep
@@ -182,6 +183,30 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
             return carset with { Teams = teams };
         });
 
+        CommitCareerMutation();
+    }
+
+    // Hire a free agent / release a team member (M22f) — the same season-start mutation pattern as borrowing.
+    // StaffLedger is a no-op on an unknown id, so a stale click changes nothing.
+    private void HireStaff(string staffId)
+    {
+        if (_live is null)
+        {
+            return;
+        }
+
+        _live.ApplyToSeasonStart(carset => StaffLedger.Hire(carset, carset.PlayerTeamId, staffId));
+        CommitCareerMutation();
+    }
+
+    private void ReleaseStaff(string staffId)
+    {
+        if (_live is null)
+        {
+            return;
+        }
+
+        _live.ApplyToSeasonStart(carset => StaffLedger.Release(carset, carset.PlayerTeamId, staffId));
         CommitCareerMutation();
     }
 

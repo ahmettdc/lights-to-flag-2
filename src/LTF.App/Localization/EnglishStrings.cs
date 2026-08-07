@@ -188,5 +188,13 @@ public static class EnglishStrings
         [StringKeys.BoardObjectives] = "SEASON OBJECTIVES",
         [StringKeys.BoardNoBoard] = "No board oversight",
         [StringKeys.BoardNoBoardBody] = "This team is AI-run and carries no board.",
+
+        [StringKeys.StaffSquad] = "TECHNICAL STAFF",
+        [StringKeys.StaffFreeAgents] = "FREE AGENTS",
+        [StringKeys.StaffColRole] = "ROLE",
+        [StringKeys.StaffColSkill] = "SKILL",
+        [StringKeys.StaffColSalary] = "SALARY",
+        [StringKeys.StaffNoSquad] = "No technical staff",
+        [StringKeys.StaffNoPool] = "No free agents available",
     };
 }

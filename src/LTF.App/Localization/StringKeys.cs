@@ -201,4 +201,13 @@ public static class StringKeys
     public const string BoardObjectives = "board.objectives";
     public const string BoardNoBoard = "board.noBoard";
     public const string BoardNoBoardBody = "board.noBoardBody";
+
+    // Staff screen (M22).
+    public const string StaffSquad = "staff.squad";
+    public const string StaffFreeAgents = "staff.freeAgents";
+    public const string StaffColRole = "staff.colRole";
+    public const string StaffColSkill = "staff.colSkill";
+    public const string StaffColSalary = "staff.colSalary";
+    public const string StaffNoSquad = "staff.noSquad";
+    public const string StaffNoPool = "staff.noPool";
 }

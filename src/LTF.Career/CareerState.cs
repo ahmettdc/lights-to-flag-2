@@ -35,6 +35,28 @@ public sealed record TeamRosterRecord
     public IReadOnlyList<string> DriverIds { get; init; } = [];
 }
 
+/// <summary>One staff member in a save (M22): the skill <see cref="Rating"/> is flattened to a plain int and
+/// rebuilt (clamped) on restore, the same trick as the other records.</summary>
+public sealed record StaffRecord
+{
+    public required string Id { get; init; }
+    public string FirstName { get; init; } = "";
+    public string LastName { get; init; } = "";
+    public StaffRole Role { get; init; }
+    public int Skill { get; init; }
+    public string Nationality { get; init; } = "";
+    public int Age { get; init; }
+    public long Salary { get; init; }
+}
+
+/// <summary>One team's staff roster in a save (M22): captured only when a career actually has staff (hiring,
+/// releasing or a bank asset-seizure moves it), so a series that ships no staff stays byte-identical.</summary>
+public sealed record TeamStaffRecord
+{
+    public required string TeamId { get; init; }
+    public IReadOnlyList<StaffRecord> Staff { get; init; } = [];
+}
+
 /// <summary>One relationship in a save (M12), stored with a plain integer affinity so the save format
 /// stays simple and round-trips exactly (the domain <see cref="Affinity"/> is rebuilt on restore).</summary>
 public sealed record RelationshipRecord
@@ -184,6 +206,13 @@ public sealed record CareerState
     /// transfer market may have moved seats and this is authoritative.</summary>
     public IReadOnlyList<TeamRosterRecord> TeamRosters { get; init; } = [];
 
+    /// <summary>Each team's staff roster (M22); empty unless the career has staff, in which case it is
+    /// authoritative — hiring, releasing (M22f) or a bank asset-seizure (ADR-0029) may have moved it.</summary>
+    public IReadOnlyList<TeamStaffRecord> Staff { get; init; } = [];
+
+    /// <summary>The free-agent staff pool (M22); empty unless the career has staff.</summary>
+    public IReadOnlyList<StaffRecord> StaffPool { get; init; } = [];
+
     /// <summary>Snapshot a carset's mutable progress at a given game date and seed.</summary>
     public static CareerState Capture(Carset carset, DateOnly date, int seed)
     {
@@ -191,6 +220,7 @@ public sealed record CareerState
         // shipped — so a full dynamic snapshot is captured (and made authoritative on restore). A series
         // that develops no one keeps the lighter id-keyed deltas, so its save is byte-identical to before.
         var develops = carset.Rules.DriverDevelopment.IsActive;
+        var hasStaff = carset.StaffPool.Count > 0 || carset.Teams.Any(t => t.Staff.Count > 0);
 
         return new CareerState
         {
@@ -237,6 +267,10 @@ public sealed record CareerState
             TeamRosters = develops
                 ? carset.Teams.Select(t => new TeamRosterRecord { TeamId = t.Id, DriverIds = t.DriverIds }).ToList()
                 : [],
+            // Staff is only worth storing once a career actually has staff (byte-identity gate); then it is
+            // authoritative, since hiring/releasing or a bank seizure may have moved it.
+            Staff = hasStaff ? carset.Teams.Select(CaptureTeamStaff).ToList() : [],
+            StaffPool = hasStaff ? carset.StaffPool.Select(CaptureStaff).ToList() : [],
         };
     }
 
@@ -294,6 +328,21 @@ public sealed record CareerState
         Traits = m.Traits,
     };
 
+    private static TeamStaffRecord CaptureTeamStaff(Team t) =>
+        new() { TeamId = t.Id, Staff = t.Staff.Select(CaptureStaff).ToList() };
+
+    private static StaffRecord CaptureStaff(Staff s) => new()
+    {
+        Id = s.Id,
+        FirstName = s.FirstName,
+        LastName = s.LastName,
+        Role = s.Role,
+        Skill = s.Skill.Value,
+        Nationality = s.Nationality,
+        Age = s.Age,
+        Salary = s.Salary,
+    };
+
     /// <summary>Reapply this snapshot onto a carset, returning a carset resumed at this point in the
     /// career. Drivers and teams the snapshot doesn't mention keep their carset values; the
     /// relationship graph and contract list are restored wholesale.</summary>
@@ -303,6 +352,8 @@ public sealed record CareerState
         var histories = Teams.ToDictionary(r => r.TeamId, StringComparer.Ordinal);
         var research = Research.ToDictionary(r => r.TeamId, StringComparer.Ordinal);
         var rosters = TeamRosters.ToDictionary(r => r.TeamId, StringComparer.Ordinal);
+        var staffByTeam = Staff.ToDictionary(r => r.TeamId, StringComparer.Ordinal);
+        var staffCaptured = Staff.Count > 0;
 
         // A developing career captured its full roster — evolved ages/attributes and the regen drivers the
         // carset never shipped — so that snapshot is authoritative; otherwise the id-keyed deltas overlay
@@ -331,7 +382,14 @@ public sealed record CareerState
                     updated = updated with { DriverIds = roster.DriverIds };
                 }
 
-                return research.TryGetValue(t.Id, out var r) ? RestoreResearch(updated, r) : updated;
+                updated = research.TryGetValue(t.Id, out var r) ? RestoreResearch(updated, r) : updated;
+
+                if (staffCaptured && staffByTeam.TryGetValue(t.Id, out var staff))
+                {
+                    updated = updated with { Staff = staff.Staff.Select(RestoreStaff).ToList() };
+                }
+
+                return updated;
             })
             .ToList();
 
@@ -360,8 +418,21 @@ public sealed record CareerState
             PlayerTeamId = PlayerTeamId,
             Boards = boards,
             Reserves = reserves,
+            StaffPool = staffCaptured ? StaffPool.Select(RestoreStaff).ToList() : carset.StaffPool,
         };
     }
+
+    private static Staff RestoreStaff(StaffRecord r) => new()
+    {
+        Id = r.Id,
+        FirstName = r.FirstName,
+        LastName = r.LastName,
+        Role = r.Role,
+        Skill = Rating.Clamped(r.Skill),
+        Nationality = r.Nationality,
+        Age = r.Age,
+        Salary = r.Salary,
+    };
 
     private static Team RestoreResearch(Team team, TeamResearchRecord r) => team with
     {
