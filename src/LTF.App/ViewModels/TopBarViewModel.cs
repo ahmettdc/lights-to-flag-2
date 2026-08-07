@@ -14,14 +14,32 @@ namespace LTF.App.ViewModels;
 /// </summary>
 public sealed partial class TopBarViewModel : ViewModelBase
 {
-    private readonly ISessionSnapshot _session;
+    private ISessionSnapshot _session;
     private readonly Action? _onToggleInbox;
+    private readonly Action? _onContinue;
+    private readonly Func<bool>? _canContinue;
 
-    public TopBarViewModel(ISessionSnapshot session, int inboxCount = 0, Action? onToggleInbox = null)
+    public TopBarViewModel(
+        ISessionSnapshot session,
+        int inboxCount = 0,
+        Action? onToggleInbox = null,
+        Action? onContinue = null,
+        Func<bool>? canContinue = null)
     {
         _session = session;
         InboxCount = inboxCount;
         _onToggleInbox = onToggleInbox;
+        _onContinue = onContinue;
+        _canContinue = canContinue;
+    }
+
+    /// <summary>Re-read the top bar from a fresh snapshot after a Continue (the date and, once the carset
+    /// evolves, cap/board move). Raises change for every snapshot-derived value and re-evaluates Continue.</summary>
+    public void Refresh(ISessionSnapshot session)
+    {
+        _session = session;
+        OnPropertyChanged(string.Empty);
+        ContinueCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>Date shown as e.g. "14 MAY 2027" (current culture for the month, invariant upper-casing).</summary>
@@ -60,11 +78,13 @@ public sealed partial class TopBarViewModel : ViewModelBase
 
     public string BoardConfLabel => Localizer.Current.Get(StringKeys.TopBoardConf);
 
-    [RelayCommand]
-    private void Continue()
-    {
-        // Inert in M19 — the per-event Continue runner arrives in M21.
-    }
+    /// <summary>Whether Continue can advance the career (false once the season is complete).</summary>
+    public bool CanContinue => _canContinue?.Invoke() ?? true;
+
+    // The per-event Continue runner (M21): advance the live career via the host-supplied callback. Inert only
+    // when no callback is wired (e.g. a snapshot-only shell in tests).
+    [RelayCommand(CanExecute = nameof(CanContinue))]
+    private void Continue() => _onContinue?.Invoke();
 
     [RelayCommand]
     private void ToggleInbox() => _onToggleInbox?.Invoke();

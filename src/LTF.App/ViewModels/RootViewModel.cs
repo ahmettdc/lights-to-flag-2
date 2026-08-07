@@ -24,7 +24,9 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 {
     private readonly AppServices _services;
     private readonly Action? _quit;
-    private ShellSession? _currentSession;
+    private LiveCareer? _live;
+    private NavigationService? _navigation;
+    private ShellViewModel? _shell;
 
     public RootViewModel(AppServices services, Action? quit = null)
     {
@@ -59,43 +61,70 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
 
     public void EnterCareer(ShellSession session)
     {
-        _services.Saves.Save(session);
-        _currentSession = session;
+        // The live career reconstructs its standings from (season-start carset, seed, date), so a loaded
+        // mid-season save shows the correct table without any change to the save format. Autosave the
+        // season-start carset + date so Continue/Load see it.
+        var live = new LiveCareer(session);
+        _live = live;
+        _services.Saves.Save(live.SaveSession);
 
-        var snapshot = new SessionSnapshot(session);
         var navigation = new NavigationService();
+        _navigation = navigation;
         navigation.Register(NavKey.Settings, () => new SettingsViewModel(
             _services.Settings.Load(),
             _services.Settings,
             onClose: () => navigation.Navigate(NavKey.PaddockHub)));
 
-        // In-shell career screens (M21). The factories close over the session's carset/clock, so
-        // re-navigating after a Continue rebuilds each screen from current state. Standings shows the
-        // zeroed table until a round is run (the live career wires results in M21d).
+        // In-shell career screens (M21). The factories close over the live career, so re-navigating after a
+        // Continue rebuilds each screen from current state (evolving carset, advancing clock, live standings).
         navigation.Register(NavKey.PaddockHub, () => new PaddockHubViewModel(
-            session,
-            ChampionshipStandings.Empty(session.Carset),
+            live.Session,
+            live.Standings,
             _services.Notifications,
             goToRaceWeekend: () => navigation.Navigate(NavKey.Calendar)));
-        navigation.Register(NavKey.Standings, () =>
-            new StandingsViewModel(session.Carset, ChampionshipStandings.Empty(session.Carset)));
-        navigation.Register(NavKey.Calendar, () =>
-            new CalendarViewModel(session.Carset, session.Clock));
-        navigation.Register(NavKey.Drivers, () => new DriversViewModel(session.Carset));
-        navigation.Register(NavKey.Database, () => new DatabaseViewModel(session.Carset));
+        navigation.Register(NavKey.Standings, () => new StandingsViewModel(live.Current, live.Standings));
+        navigation.Register(NavKey.Calendar, () => new CalendarViewModel(live.Current, live.Clock));
+        navigation.Register(NavKey.Drivers, () => new DriversViewModel(live.Current));
+        navigation.Register(NavKey.Database, () => new DatabaseViewModel(live.Current));
 
-        Content = new ShellViewModel(navigation, snapshot, _services.Notifications, host: this);
+        var shell = new ShellViewModel(
+            navigation, new SessionSnapshot(live.Session), _services.Notifications,
+            host: this, onContinue: ContinueCareerStep, canContinue: () => live.CanContinue);
+        _shell = shell;
+        Content = shell;
+    }
+
+    // One Football-Manager "Continue": advance the live career, autosave, then refresh the top bar and
+    // re-render the open screen from the new state (re-navigating the current key rebuilds its view-model).
+    private void ContinueCareerStep()
+    {
+        if (_live is null)
+        {
+            return;
+        }
+
+        _live.Continue();
+
+        if (_services.Settings.Load().Autosave)
+        {
+            _services.Saves.Save(_live.SaveSession);
+        }
+
+        _shell?.TopBar.Refresh(new SessionSnapshot(_live.Session));
+        _navigation?.Navigate(_navigation.CurrentKey);
     }
 
     public void ExitToMenu()
     {
-        // Autosave the current session on the way out (if enabled), then drop the shell.
-        if (_currentSession is not null && _services.Settings.Load().Autosave)
+        // Autosave the current career on the way out (if enabled), then drop the shell.
+        if (_live is not null && _services.Settings.Load().Autosave)
         {
-            _services.Saves.Save(_currentSession);
+            _services.Saves.Save(_live.SaveSession);
         }
 
-        _currentSession = null;
+        _live = null;
+        _navigation = null;
+        _shell = null;
         ShowMainMenu();
     }
 

@@ -22,14 +22,17 @@ public sealed partial class ShellViewModel : ViewModelBase
         INavigationService navigation,
         ISessionSnapshot session,
         INotificationSource notifications,
-        IAppShellController? host = null)
+        IAppShellController? host = null,
+        Action? onContinue = null,
+        Func<bool>? canContinue = null)
     {
         _host = host;
         Navigation = navigation;
         Inbox = new InboxViewModel(notifications, navigation);
         Sidebar = new SidebarViewModel(navigation, Dispatch);
         StatusBar = new StatusBarViewModel();
-        TopBar = new TopBarViewModel(session, Inbox.UnreadCount, () => IsInboxOpen = !IsInboxOpen);
+        TopBar = new TopBarViewModel(
+            session, Inbox.UnreadCount, () => IsInboxOpen = !IsInboxOpen, onContinue, canContinue);
 
         navigation.PropertyChanged += OnNavigationChanged;
         navigation.Navigate(NavKey.PaddockHub);
