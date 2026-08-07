@@ -91,6 +91,19 @@ public sealed class LiveCareer
         LastStepNews = [];
     }
 
+    /// <summary>Apply a player decision to the career (M22c) — e.g. taking a loan. The transform lands on the
+    /// <see cref="SeasonStart"/> carset (the save/reconstruction base) and is mirrored to <see cref="Current"/>,
+    /// so the change persists through save/load and shows immediately when the open screen rebuilds. Standings
+    /// are re-derived, which is a no-op for finance/staff/research edits (they never feed the race sim), so one
+    /// method serves every mid-season mutation while the reconstruction invariant holds.</summary>
+    public void ApplyToSeasonStart(System.Func<Carset, Carset> transform)
+    {
+        SeasonStart = transform(SeasonStart);
+        Current = SeasonStart;
+        RebuildRoundMaps();
+        Reconstruct();
+    }
+
     /// <summary>Advance one Football-Manager "Continue": jump the clock to the next event's date and dispatch
     /// every event falling on it — running the race for a round weekend, folding it into the standings, and
     /// raising a dated inbox item per event. Halts (sets <see cref="PendingAction"/>) when an event needs the

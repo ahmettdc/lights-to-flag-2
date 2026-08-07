@@ -163,6 +163,23 @@
                   <TextBlock Grid.Column="1" Classes="value" Text="{Binding HeadroomText}" Foreground="{DynamicResource BrushStatusGood}" />
                 </Grid>
               </StackPanel>
+
+              <!-- Borrow panel (M22c): the first in-shell player mutation. -->
+              <StackPanel IsVisible="{Binding CanOfferBorrow}" Margin="0,12,0,0">
+                <Border Height="1" Background="{DynamicResource BrushDivider}" Margin="0,0,0,10" />
+                <TextBlock Classes="colHead" Text="{loc:Tr finance.takeLoan}" />
+                <TextBlock Classes="label" Text="{loc:Tr finance.borrowAmount}" Margin="0,8,0,0" />
+                <Slider Minimum="0" Maximum="{Binding HeadroomValue}" Value="{Binding BorrowAmount}" />
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Classes="label" Text="{loc:Tr finance.borrowTerm}" />
+                  <TextBlock Grid.Column="1" Classes="value" Text="{Binding BorrowTerm}" />
+                </Grid>
+                <Slider Minimum="1" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding BorrowTermValue}" />
+                <TextBlock Text="{Binding BorrowSummaryText}" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"
+                           Foreground="{DynamicResource BrushTextSecondary}" />
+                <Button Classes="primary" HorizontalAlignment="Stretch" Margin="0,8,0,0"
+                        Content="{loc:Tr finance.borrowButton}" Command="{Binding BorrowCommand}" />
+              </StackPanel>
             </StackPanel>
           </DockPanel>
         </Border>

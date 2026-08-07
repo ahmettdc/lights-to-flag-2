@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LTF.App.Mvvm;
 using LTF.App.Navigation;
@@ -9,6 +10,7 @@ using LTF.App.ViewModels.Quick;
 using LTF.App.ViewModels.Screens;
 using LTF.App.ViewModels.Settings;
 using LTF.Career;
+using LTF.Domain;
 
 namespace LTF.App.ViewModels;
 
@@ -94,7 +96,8 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         navigation.Register(NavKey.Database, () => new DatabaseViewModel(live.Current));
 
         // Management screens (M22). Read-only projections over the live career; a Continue rebuilds them.
-        navigation.Register(NavKey.Finance, () => new FinanceViewModel(live.Current, live.Standings));
+        // Finance also carries the first player mutation — taking a loan (M22c).
+        navigation.Register(NavKey.Finance, () => new FinanceViewModel(live.Current, live.Standings, borrow: BorrowLoan));
 
         // The career is endless (Continue rolls into the next season at a boundary) and the button also
         // acknowledges a Rev-15 pause, so it stays enabled unless an action is pending; ContinueCareerStep
@@ -136,6 +139,67 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
             {
                 _services.Saves.Save(_live.SaveSession);
             }
+        }
+
+        RefreshOpenScreen();
+    }
+
+    // Take a bank loan for the player team (M22c) — the first in-shell player mutation. The draw lands on the
+    // season-start carset (the save/reconstruction base) via LiveCareer.ApplyToSeasonStart, freezing the
+    // offered rate into the loan, then autosaves + rebuilds the open screen. A declined draw leaves the carset
+    // unchanged (BankLedger.Borrow returns the original team).
+    private void BorrowLoan(long amount, int termSeasons)
+    {
+        if (_live is null)
+        {
+            return;
+        }
+
+        var standings = _live.Standings;
+        _live.ApplyToSeasonStart(carset =>
+        {
+            var team = carset.PlayerTeam();
+            if (team is null)
+            {
+                return carset;
+            }
+
+            var board = carset.Boards.FirstOrDefault(b => string.CompareOrdinal(b.TeamId, carset.PlayerTeamId) == 0);
+            var profile = CreditProfile.For(team, standings, board, carset.Rules.Bank, carset.Rules.Economy);
+            var loanId = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"loan-{team.Finances.Loans.Count + 1}");
+            var result = BankLedger.Borrow(team, profile, amount, termSeasons, loanId);
+            if (!result.Approved)
+            {
+                return carset;
+            }
+
+            var teams = carset.Teams
+                .Select(t => string.CompareOrdinal(t.Id, team.Id) == 0 ? result.Team : t)
+                .ToList();
+            return carset with { Teams = teams };
+        });
+
+        CommitCareerMutation();
+    }
+
+    // Persist a player mutation and re-render: autosave the season-start carset (if enabled) then refresh.
+    private void CommitCareerMutation()
+    {
+        if (_live is not null && _services.Settings.Load().Autosave)
+        {
+            _services.Saves.Save(_live.SaveSession);
+        }
+
+        RefreshOpenScreen();
+    }
+
+    // Refresh the top bar and rebuild the open screen from the current live state (the factory closes over the
+    // live career, so re-navigating the current key re-projects it).
+    private void RefreshOpenScreen()
+    {
+        if (_live is null)
+        {
+            return;
         }
 
         _shell?.TopBar.Refresh(new SessionSnapshot(_live.Session));

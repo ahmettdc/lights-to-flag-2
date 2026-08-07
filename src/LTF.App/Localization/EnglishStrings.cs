@@ -156,5 +156,9 @@ public static class EnglishStrings
         [StringKeys.FinanceColNext] = "NEXT",
         [StringKeys.FinanceSponsors] = "SPONSORS",
         [StringKeys.FinanceNoSponsors] = "No sponsors",
+        [StringKeys.FinanceTakeLoan] = "TAKE A LOAN",
+        [StringKeys.FinanceBorrowAmount] = "Amount",
+        [StringKeys.FinanceBorrowTerm] = "Term (seasons)",
+        [StringKeys.FinanceBorrowButton] = "TAKE LOAN",
     };
 }

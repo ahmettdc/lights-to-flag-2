@@ -166,4 +166,8 @@ public static class StringKeys
     public const string FinanceColNext = "finance.colNext";
     public const string FinanceSponsors = "finance.sponsors";
     public const string FinanceNoSponsors = "finance.noSponsors";
+    public const string FinanceTakeLoan = "finance.takeLoan";
+    public const string FinanceBorrowAmount = "finance.borrowAmount";
+    public const string FinanceBorrowTerm = "finance.borrowTerm";
+    public const string FinanceBorrowButton = "finance.borrowButton";
 }
