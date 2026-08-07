@@ -100,6 +100,7 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         navigation.Register(NavKey.Finance, () => new FinanceViewModel(live.Current, live.Standings, borrow: BorrowLoan));
         navigation.Register(NavKey.RndFacilities, () => new RndFacilitiesViewModel(live.Current));
         navigation.Register(NavKey.CarsPowerUnit, () => new CarsPowerUnitViewModel(live.Current));
+        navigation.Register(NavKey.BoardSponsors, () => new BoardSponsorsViewModel(live.Current));
 
         // The career is endless (Continue rolls into the next season at a boundary) and the button also
         // acknowledges a Rev-15 pause, so it stays enabled unless an action is pending; ContinueCareerStep

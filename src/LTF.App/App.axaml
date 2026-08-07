@@ -67,6 +67,9 @@
     <DataTemplate DataType="{x:Type screens:CarsPowerUnitViewModel}">
       <views:CarsPowerUnitView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type screens:BoardSponsorsViewModel}">
+      <views:BoardSponsorsView />
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

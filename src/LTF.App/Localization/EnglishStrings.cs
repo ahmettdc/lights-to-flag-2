@@ -180,5 +180,13 @@ public static class EnglishStrings
         [StringKeys.CarsColWear] = "WEAR",
         [StringKeys.CarsNoComponents] = "No component pool",
         [StringKeys.CarsNoComponentsBody] = "This series does not track component allocation.",
+
+        [StringKeys.BoardBoard] = "BOARD",
+        [StringKeys.BoardOwnership] = "Ownership",
+        [StringKeys.BoardFiringRisk] = "Firing risk",
+        [StringKeys.BoardMembers] = "BOARD MEMBERS",
+        [StringKeys.BoardObjectives] = "SEASON OBJECTIVES",
+        [StringKeys.BoardNoBoard] = "No board oversight",
+        [StringKeys.BoardNoBoardBody] = "This team is AI-run and carries no board.",
     };
 }

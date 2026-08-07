@@ -192,4 +192,13 @@ public static class StringKeys
     public const string CarsColWear = "cars.colWear";
     public const string CarsNoComponents = "cars.noComponents";
     public const string CarsNoComponentsBody = "cars.noComponentsBody";
+
+    // Board & Sponsors screen (M22).
+    public const string BoardBoard = "board.board";
+    public const string BoardOwnership = "board.ownership";
+    public const string BoardFiringRisk = "board.firingRisk";
+    public const string BoardMembers = "board.members";
+    public const string BoardObjectives = "board.objectives";
+    public const string BoardNoBoard = "board.noBoard";
+    public const string BoardNoBoardBody = "board.noBoardBody";
 }
