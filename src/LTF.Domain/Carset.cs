@@ -81,6 +81,12 @@ public sealed record Carset
     /// past. Cleared at a season boundary — each season is chosen fresh.</summary>
     public IReadOnlyList<RaceStrategy> PlayerRaceStrategies { get; init; } = [];
 
+    /// <summary>The player's recorded live pit-wall orders (M23h); empty unless the player raced a round live,
+    /// which keeps a career byte-identical. Like <see cref="PlayerRaceStrategies"/> it rides season-start → live
+    /// and feeds the race sim for the matching round, so replaying the log reproduces the race deterministically.
+    /// Cleared at a season boundary.</summary>
+    public IReadOnlyList<RaceCommand> PlayerRaceCommands { get; init; } = [];
+
     /// <summary>The team the player runs (M17), or null when none is designated (<see cref="PlayerTeamId"/>
     /// empty) or the id matches no team — the all-AI default that keeps a career byte-identical.</summary>
     public Team? PlayerTeam()

@@ -60,9 +60,15 @@ public static class SeasonSimulator
         // carries none for this round, so RaceSimulator.Run runs exactly as before — the season, and its
         // golden digest, stay byte-identical for a strategy-free carset.
         var startingCompounds = PlayerCompoundsFor(carset, round.Round);
+
+        // The player's recorded live pit-wall orders for this round (M23h), if any. Null when the carset carries
+        // none for this round, so RaceSimulator.Run runs exactly as before — byte-identical for a command-free
+        // carset — and reconstruction replays a live-driven race deterministically from the same log.
+        var commands = PlayerCommandsFor(carset, round.Round);
         var result = RaceSimulator.Run(
             circuit, grid, carset.Rules, carset.Balance, roundSeed,
-            regulations: carset.Regulations, format: format, startingCompounds: startingCompounds);
+            regulations: carset.Regulations, format: format, startingCompounds: startingCompounds,
+            commands: commands);
 
         return new RoundOutcome(result, quali.PoleCompetitorId, quali);
     }
@@ -86,6 +92,27 @@ public static class SeasonSimulator
         }
 
         return map;
+    }
+
+    // Build the ordered list of the player's live orders for one round (M23h), or null when the carset ships
+    // none for this round, so RaceSimulator.Run runs unchanged. Order is preserved as recorded.
+    private static IReadOnlyList<RaceCommand>? PlayerCommandsFor(Carset carset, int round)
+    {
+        if (carset.PlayerRaceCommands.Count == 0)
+        {
+            return null;
+        }
+
+        List<RaceCommand>? list = null;
+        foreach (var command in carset.PlayerRaceCommands)
+        {
+            if (command.Round == round)
+            {
+                (list ??= new List<RaceCommand>()).Add(command);
+            }
+        }
+
+        return list;
     }
 
     private static SeasonProgress RunCore(Carset carset, int seed, IBetweenRounds? between)

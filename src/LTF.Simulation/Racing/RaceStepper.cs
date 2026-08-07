@@ -34,11 +34,20 @@ public static partial class RaceSimulator
         private int _neutralLapsLeft;
         private int _lap;
 
+        // Player pit-wall orders for this race (M23h), keyed by the lap they take effect on, plus the per-car
+        // stint extension and this-lap "box" set they drive. All empty for any race that isn't driven live, so
+        // the lap body runs byte-identically and the golden digest is preserved.
+        private readonly Dictionary<int, List<(string DriverId, RaceCommandKind Kind)>> _commandsByLap = new();
+        private readonly Dictionary<string, int> _pitDelay = new(StringComparer.Ordinal);
+        private readonly HashSet<string> _boxThisLap = new(StringComparer.Ordinal);
+        private const int ExtendStintLaps = 6;
+
         public RaceStepper(
             Circuit circuit, IReadOnlyList<Competitor> grid, RulesSet rules, BalanceCoefficients balance,
             int seed, TyreCompound startingCompound = TyreCompound.Medium, RegulationSet? regulations = null,
             IReadOnlyDictionary<string, PracticeSetup>? setups = null, RaceFormat? format = null,
-            IReadOnlyDictionary<string, TyreCompound>? startingCompounds = null)
+            IReadOnlyDictionary<string, TyreCompound>? startingCompounds = null,
+            IReadOnlyList<RaceCommand>? commands = null)
         {
             _circuit = circuit;
             _rules = rules;
@@ -87,6 +96,22 @@ public static partial class RaceSimulator
             {
                 ApplyStart(car, balance, _fmt.StartType, _events);
             }
+
+            // Index the player's recorded orders by lap (M23h). No orders → the lookup is empty and every lap
+            // runs exactly as before.
+            if (commands is not null)
+            {
+                foreach (var command in commands)
+                {
+                    if (!_commandsByLap.TryGetValue(command.Lap, out var list))
+                    {
+                        list = new List<(string, RaceCommandKind)>();
+                        _commandsByLap[command.Lap] = list;
+                    }
+
+                    list.Add((command.DriverId, command.Kind));
+                }
+            }
         }
 
         /// <summary>The race length in laps.</summary>
@@ -111,6 +136,10 @@ public static partial class RaceSimulator
             }
 
             var lap = ++_lap;
+
+            // Apply the player's recorded orders for this lap (M23h) before the field is processed; a no-op
+            // when none were given, so the lap stays byte-identical.
+            ApplyCommands(lap);
 
             // Aliases so the lap body below reads identically to the original monolithic loop; the cross-lap
             // neutralisation state is loaded from the fields and written back at the end.
@@ -244,8 +273,11 @@ public static partial class RaceSimulator
                     car.Energy = Math.Min(1.0, car.Energy + regs.EnergyRegenPerLap);
                 }
 
-                // Pit stop (M7a/M7b): once the car reaches its planned stop lap, fresh tyres cost time.
-                if (car.PitStops < car.PitPlan.Count && lap >= car.PitPlan[car.PitStops])
+                // Pit stop (M7a/M7b): once the car reaches its planned stop lap, fresh tyres cost time. M23h:
+                // an ExtendStint order defers the planned lap (0 by default) and a BoxThisLap order forces the
+                // stop now — both inert when no order was given, so a command-free race is byte-identical.
+                if ((car.PitStops < car.PitPlan.Count && lap >= car.PitPlan[car.PitStops] + _pitDelay.GetValueOrDefault(car.Id))
+                    || _boxThisLap.Contains(car.Id))
                 {
                     ApplyPitStop(
                         car, lap, startingCompound, balance, events,
@@ -307,6 +339,43 @@ public static partial class RaceSimulator
 
             _state = state;
             _neutralLapsLeft = neutralLapsLeft;
+        }
+
+        // Apply the player's recorded orders for this lap (M23h). Mode changes are pure lap-time / risk
+        // arithmetic (no random draw), a stint extension defers the next planned stop, and "box this lap" forces
+        // a stop; the "box" set is per-lap. With no orders (every non-live race) this is a no-op.
+        private void ApplyCommands(int lap)
+        {
+            _boxThisLap.Clear();
+            if (!_commandsByLap.TryGetValue(lap, out var orders))
+            {
+                return;
+            }
+
+            foreach (var (driverId, kind) in orders)
+            {
+                var car = _cars.FirstOrDefault(c => string.CompareOrdinal(c.Id, driverId) == 0);
+                if (car is null || !car.Running)
+                {
+                    continue;
+                }
+
+                switch (kind)
+                {
+                    case RaceCommandKind.PushMode:
+                        car.Mode = EngineMode.Push;
+                        break;
+                    case RaceCommandKind.ManageTyres:
+                        car.Mode = EngineMode.Conserve;
+                        break;
+                    case RaceCommandKind.ExtendStint:
+                        _pitDelay[driverId] = _pitDelay.GetValueOrDefault(driverId) + ExtendStintLaps;
+                        break;
+                    case RaceCommandKind.BoxThisLap:
+                        _boxThisLap.Add(driverId);
+                        break;
+                }
+            }
         }
 
         /// <summary>Classify the race once every lap has run.</summary>

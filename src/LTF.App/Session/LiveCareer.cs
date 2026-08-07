@@ -258,7 +258,7 @@ public sealed class LiveCareer
         next = ContractLedger.AdvanceSeason(next);                 // contracts count down
         next = TransferMarket.Resolve(next, seatTargets, result.Standings, seasonSeed); // fill seats
         next = RegulationChange.Apply(next, seasonSeed);           // set back the unprepared
-        next = next with { PlayerRaceStrategies = [] };            // each season's tyre choices are made fresh (M23b)
+        next = next with { PlayerRaceStrategies = [], PlayerRaceCommands = [] }; // each season is raced fresh (M23b/h)
 
         _seasonIndex++;
         SeasonStart = next;

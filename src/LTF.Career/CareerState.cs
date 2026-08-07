@@ -223,6 +223,11 @@ public sealed record CareerState
     /// default so a career with no chosen strategy saves byte-identically.</summary>
     public IReadOnlyList<RaceStrategy> PlayerRaceStrategies { get; init; } = [];
 
+    /// <summary>The player's recorded live pit-wall orders (M23h); empty unless the player raced a round live.
+    /// Authoritative when present (a player mutation, not shipped content); empty by default so a career that
+    /// was never driven live saves byte-identically.</summary>
+    public IReadOnlyList<RaceCommand> PlayerRaceCommands { get; init; } = [];
+
     /// <summary>Snapshot a carset's mutable progress at a given game date and seed.</summary>
     public static CareerState Capture(Carset carset, DateOnly date, int seed)
     {
@@ -287,6 +292,8 @@ public sealed record CareerState
             // Player race strategies (M23b): default-empty, so a career with no chosen compound is byte-identical.
             // Value-typed (int + string + enum), so it round-trips a save byte-stably.
             PlayerRaceStrategies = carset.PlayerRaceStrategies,
+            // Player race commands (M23h): default-empty, so a career never driven live is byte-identical.
+            PlayerRaceCommands = carset.PlayerRaceCommands,
         };
     }
 
@@ -445,6 +452,10 @@ public sealed record CareerState
             PlayerRaceStrategies = PlayerRaceStrategies.Count == 0
                 ? carset.PlayerRaceStrategies
                 : PlayerRaceStrategies,
+            // Restore the player's recorded live orders; empty leaves the carset's own (none) untouched.
+            PlayerRaceCommands = PlayerRaceCommands.Count == 0
+                ? carset.PlayerRaceCommands
+                : PlayerRaceCommands,
         };
     }
 

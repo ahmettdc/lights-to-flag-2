@@ -479,6 +479,27 @@ public class RaceSimulatorTests
         Assert.Equal(stepper.Laps, stepper.CurrentLap);
     }
 
+    // ---- Live commands (M23h) ---------------------------------------------
+    // A recorded pit-wall order changes the race; with none (null, every non-live race) the race — and the
+    // golden digest — is bit-for-bit unchanged.
+
+    [Fact]
+    public void A_recorded_command_changes_the_race_but_none_leaves_it_bit_identical()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var baseline = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        var nulled = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024, commands: null);
+        var boxed = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024,
+            commands: new[] { new RaceCommand { Round = 1, Lap = 5, DriverId = "d1", Kind = RaceCommandKind.BoxThisLap } });
+
+        Assert.Equal(Digest(baseline), Digest(nulled));    // no commands → golden-safe (bit-for-bit unchanged)
+        Assert.NotEqual(Digest(baseline), Digest(boxed));   // a real order feeds the sim
+    }
+
     // ---- Race damage (R38) ------------------------------------------------
     // Inert-by-default is proved by the golden hash above: the canonical race uses the default
     // balance, where DamageAeroLoss and DamageRepairSeconds are 0, and its digest is unchanged.

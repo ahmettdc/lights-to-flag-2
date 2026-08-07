@@ -65,6 +65,42 @@ public class Phase5RaceStrategyTests
         Assert.Equal(Key(plain.Result), Key(future.Result)); // a round-2 choice does not touch round 1
     }
 
+    // --- Live commands (M23h) ---
+
+    [Fact]
+    public void Run_round_reads_player_commands_and_a_box_order_changes_the_race()
+    {
+        var carset = CareerFixtures.Carset();
+        var round = carset.Calendar[0];
+
+        var plain = SeasonSimulator.RunRound(carset, round, 7, NoPenalty);
+        var withCommand = SeasonSimulator.RunRound(
+            carset with
+            {
+                PlayerRaceCommands = [new RaceCommand { Round = 1, Lap = 5, DriverId = "d1", Kind = RaceCommandKind.BoxThisLap }],
+            },
+            round, 7, NoPenalty);
+
+        Assert.NotEqual(Key(plain.Result), Key(withCommand.Result));
+    }
+
+    [Fact]
+    public void A_command_for_another_round_leaves_this_round_unchanged()
+    {
+        var carset = CareerFixtures.Carset();
+        var round = carset.Calendar[0]; // round 1
+
+        var plain = SeasonSimulator.RunRound(carset, round, 7, NoPenalty);
+        var future = SeasonSimulator.RunRound(
+            carset with
+            {
+                PlayerRaceCommands = [new RaceCommand { Round = 2, Lap = 5, DriverId = "d1", Kind = RaceCommandKind.BoxThisLap }],
+            },
+            round, 7, NoPenalty);
+
+        Assert.Equal(Key(plain.Result), Key(future.Result)); // a round-2 order does not touch round 1
+    }
+
     private static string Key(RaceResult r) =>
         string.Join(";", r.Classification.Select(e => $"{e.Position},{e.CompetitorId},{e.Status},{e.TotalTime}"));
 }

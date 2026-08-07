@@ -68,13 +68,16 @@ public static partial class RaceSimulator
         Circuit circuit, IReadOnlyList<Competitor> grid, RulesSet rules, BalanceCoefficients balance,
         int seed, TyreCompound startingCompound = TyreCompound.Medium, RegulationSet? regulations = null,
         IReadOnlyDictionary<string, PracticeSetup>? setups = null, RaceFormat? format = null,
-        IReadOnlyDictionary<string, TyreCompound>? startingCompounds = null)
+        IReadOnlyDictionary<string, TyreCompound>? startingCompounds = null,
+        IReadOnlyList<RaceCommand>? commands = null)
     {
         // Run the race to the flag through the resumable RaceStepper (M23g). A one-shot Run and a
         // lap-by-lap drive execute the identical statements in the identical order, so the golden digest is
-        // preserved; the live race-weekend screen (M23i) drives the same stepper one lap at a time.
+        // preserved; the live race-weekend screen (M23i) drives the same stepper one lap at a time. M23h: the
+        // optional command log is the player's recorded live orders; null (every non-live race) → unchanged.
         var stepper = new RaceStepper(
-            circuit, grid, rules, balance, seed, startingCompound, regulations, setups, format, startingCompounds);
+            circuit, grid, rules, balance, seed, startingCompound, regulations, setups, format, startingCompounds,
+            commands);
         while (!stepper.IsComplete)
         {
             stepper.AdvanceLap();
