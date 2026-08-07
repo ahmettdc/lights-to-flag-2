@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.DriversView"
+             x:DataType="screens:DriversViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.cardHeader">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.6" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel Background="{DynamicResource BrushAppBackground}" LastChildFill="True">
+
+    <Border DockPanel.Dock="Top" Height="32" Background="{DynamicResource BrushChrome}"
+            BorderBrush="{DynamicResource BrushDivider}" BorderThickness="0,0,0,1" Padding="14,0">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{loc:Tr nav.drivers}" VerticalAlignment="Center"
+                   FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold" LetterSpacing="2"
+                   Foreground="{DynamicResource BrushTextPrimary}" />
+        <TextBlock Grid.Column="1" Text="{loc:Tr drivers.squadAndProfiles}" VerticalAlignment="Center"
+                   FontFamily="{DynamicResource FontNumeric}" FontSize="10" LetterSpacing="1.2"
+                   Foreground="{DynamicResource BrushTextDim}" />
+      </Grid>
+    </Border>
+
+    <Grid Margin="12" ColumnDefinitions="324,*">
+
+      <!-- Squad list -->
+      <Border Grid.Column="0" Margin="0,0,6,0" Background="{DynamicResource BrushStatCell}"
+              BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+            <TextBlock Classes="cardHeader" Text="{loc:Tr drivers.squadList}" />
+          </Border>
+          <ListBox ItemsSource="{Binding Squad}" SelectedItem="{Binding SelectedDriver}"
+                   Background="Transparent" BorderThickness="0" Padding="0">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="screens:DriverSquadRowViewModel">
+                <Grid ColumnDefinitions="3,Auto,*,Auto" Height="34">
+                  <Border Grid.Column="0" Width="3" Height="20" CornerRadius="2" VerticalAlignment="Center"
+                          Background="{Binding Accent}" />
+                  <TextBlock Grid.Column="1" Text="{Binding NumberLabel}" VerticalAlignment="Center" Margin="9,0,9,0"
+                             FontFamily="{DynamicResource FontNumeric}" FontSize="11" Foreground="{DynamicResource BrushTextDim}" />
+                  <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Text="{Binding Name}" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Subtitle}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}"
+                               TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="3" Text="{Binding Overall}" VerticalAlignment="Center" Margin="9,0,4,0"
+                             FontFamily="{DynamicResource FontNumeric}" FontSize="13" FontWeight="Bold"
+                             Foreground="{Binding OverallBrush}" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+
+      <!-- Selected driver profile -->
+      <Border Grid.Column="1" Margin="6,0,0,0" Background="{DynamicResource BrushStatCell}"
+              BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+        <ContentControl Content="{Binding Profile}" />
+      </Border>
+
+    </Grid>
+  </DockPanel>
+
+</UserControl>

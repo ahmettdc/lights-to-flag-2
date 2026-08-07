@@ -76,6 +76,8 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
             new StandingsViewModel(session.Carset, ChampionshipStandings.Empty(session.Carset)));
         navigation.Register(NavKey.Calendar, () =>
             new CalendarViewModel(session.Carset, session.Clock));
+        navigation.Register(NavKey.Drivers, () => new DriversViewModel(session.Carset));
+        navigation.Register(NavKey.Database, () => new DatabaseViewModel(session.Carset));
 
         Content = new ShellViewModel(navigation, snapshot, _services.Notifications, host: this);
     }

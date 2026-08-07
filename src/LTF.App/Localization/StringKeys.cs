@@ -115,4 +115,17 @@ public static class StringKeys
     public const string StandingsDrivers = "standings.drivers";
     public const string CalendarFixture = "calendar.fixture";
     public const string CalendarTrackProfile = "calendar.trackProfile";
+    public const string DriversSquadAndProfiles = "drivers.squadAndProfiles";
+    public const string DriversSquadList = "drivers.squadList";
+    public const string DriversCoreAttributes = "drivers.coreAttributes";
+    public const string DriversProfileDetails = "drivers.profileDetails";
+    public const string DatabaseTabDrivers = "database.tabDrivers";
+    public const string DatabaseTabJuniors = "database.tabJuniors";
+    public const string DatabaseTabTeams = "database.tabTeams";
+    public const string DatabaseColName = "database.colName";
+    public const string DatabaseColNat = "database.colNat";
+    public const string DatabaseColAge = "database.colAge";
+    public const string DatabaseColTeam = "database.colTeam";
+    public const string DatabaseColOvr = "database.colOvr";
+    public const string DatabaseColPot = "database.colPot";
 }

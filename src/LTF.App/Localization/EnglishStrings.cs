@@ -106,5 +106,18 @@ public static class EnglishStrings
         [StringKeys.StandingsDrivers] = "DRIVERS",
         [StringKeys.CalendarFixture] = "FIXTURE",
         [StringKeys.CalendarTrackProfile] = "TRACK PROFILE",
+        [StringKeys.DriversSquadAndProfiles] = "Squad & profiles",
+        [StringKeys.DriversSquadList] = "SQUAD LIST",
+        [StringKeys.DriversCoreAttributes] = "CORE ATTRIBUTES",
+        [StringKeys.DriversProfileDetails] = "DETAILS",
+        [StringKeys.DatabaseTabDrivers] = "DRIVERS",
+        [StringKeys.DatabaseTabJuniors] = "JUNIORS",
+        [StringKeys.DatabaseTabTeams] = "TEAMS",
+        [StringKeys.DatabaseColName] = "NAME",
+        [StringKeys.DatabaseColNat] = "NAT",
+        [StringKeys.DatabaseColAge] = "AGE",
+        [StringKeys.DatabaseColTeam] = "TEAM",
+        [StringKeys.DatabaseColOvr] = "OVR",
+        [StringKeys.DatabaseColPot] = "POT",
     };
 }

@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.DatabaseView"
+             x:DataType="screens:DatabaseViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Button.tab">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="5" />
+      <Setter Property="Padding" Value="16,7" />
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextMuted}" />
+    </Style>
+    <Style Selector="Button.tab.active">
+      <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+    </Style>
+    <Style Selector="TextBlock.colHead">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextFaint}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel Background="{DynamicResource BrushAppBackground}" LastChildFill="True">
+
+    <Border DockPanel.Dock="Top" Height="32" Background="{DynamicResource BrushChrome}"
+            BorderBrush="{DynamicResource BrushDivider}" BorderThickness="0,0,0,1" Padding="14,0">
+      <TextBlock Text="{loc:Tr nav.database}" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold" LetterSpacing="2"
+                 Foreground="{DynamicResource BrushTextPrimary}" />
+    </Border>
+
+    <!-- Tab strip -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="12,12,12,0">
+      <Button Classes="tab" Classes.active="{Binding IsDriversTab}"
+              Command="{Binding SelectTabCommand}" CommandParameter="{x:Static screens:DatabaseTab.Drivers}"
+              Content="{loc:Tr database.tabDrivers}" />
+      <Button Classes="tab" Classes.active="{Binding IsJuniorsTab}"
+              Command="{Binding SelectTabCommand}" CommandParameter="{x:Static screens:DatabaseTab.Juniors}"
+              Content="{loc:Tr database.tabJuniors}" />
+      <Button Classes="tab" Classes.active="{Binding IsTeamsTab}"
+              Command="{Binding SelectTabCommand}" CommandParameter="{x:Static screens:DatabaseTab.Teams}"
+              Content="{loc:Tr database.tabTeams}" />
+    </StackPanel>
+
+    <Grid Margin="12" ColumnDefinitions="1.5*,*">
+
+      <!-- Table -->
+      <Border Grid.Column="0" Margin="0,0,6,0" Background="{DynamicResource BrushStatCell}"
+              BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" Background="{DynamicResource BrushChrome}"
+                  BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="14,8">
+            <Grid ColumnDefinitions="*,48,40,*,50,46">
+              <TextBlock Grid.Column="0" Classes="colHead" Text="{loc:Tr database.colName}" />
+              <TextBlock Grid.Column="1" Classes="colHead" Text="{loc:Tr database.colNat}" />
+              <TextBlock Grid.Column="2" Classes="colHead" Text="{loc:Tr database.colAge}" />
+              <TextBlock Grid.Column="3" Classes="colHead" Text="{loc:Tr database.colTeam}" />
+              <TextBlock Grid.Column="4" Classes="colHead" Text="{loc:Tr database.colOvr}" TextAlignment="Center" />
+              <TextBlock Grid.Column="5" Classes="colHead" Text="{loc:Tr database.colPot}" TextAlignment="Center" />
+            </Grid>
+          </Border>
+          <ListBox ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}"
+                   Background="Transparent" BorderThickness="0" Padding="0">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="screens:DbRowViewModel">
+                <Grid ColumnDefinitions="*,48,40,*,50,46" Height="32">
+                  <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+                    <Border Width="3" Height="15" Background="{Binding Accent}" />
+                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="1" Text="{Binding Nationality}" VerticalAlignment="Center"
+                             FontFamily="{DynamicResource FontNumeric}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}"
+                             TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="2" Text="{Binding Age}" VerticalAlignment="Center"
+                             FontFamily="{DynamicResource FontNumeric}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                  <TextBlock Grid.Column="3" Text="{Binding Team}" VerticalAlignment="Center"
+                             FontSize="11" Foreground="{DynamicResource BrushTextMuted}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="4" Text="{Binding Overall}" VerticalAlignment="Center" TextAlignment="Center"
+                             FontFamily="{DynamicResource FontNumeric}" FontSize="13" FontWeight="Bold"
+                             Foreground="{Binding OverallBrush}" />
+                  <TextBlock Grid.Column="5" Text="{Binding Potential}" VerticalAlignment="Center" TextAlignment="Center"
+                             FontFamily="{DynamicResource FontNumeric}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+
+      <!-- Selected entry detail -->
+      <Border Grid.Column="1" Margin="6,0,0,0" Background="{DynamicResource BrushStatCell}"
+              BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" ClipToBounds="True">
+        <ContentControl Content="{Binding Detail}" />
+      </Border>
+
+    </Grid>
+  </DockPanel>
+
+</UserControl>

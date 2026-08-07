@@ -45,6 +45,15 @@
     <DataTemplate DataType="{x:Type screens:CalendarViewModel}">
       <views:CalendarView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type screens:DriversViewModel}">
+      <views:DriversView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type screens:DatabaseViewModel}">
+      <views:DatabaseView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type screens:EntityDetailViewModel}">
+      <views:EntityDetailView />
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

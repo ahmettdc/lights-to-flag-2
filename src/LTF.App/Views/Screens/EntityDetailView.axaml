@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.EntityDetailView"
+             x:DataType="screens:EntityDetailViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.sectionLabel">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextDim}" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel LastChildFill="True">
+
+    <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"
+                   FontFamily="{DynamicResource FontHeading}" FontSize="22"
+                   Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="1" Text="{Binding Subtitle}" VerticalAlignment="Center" Margin="10,0,0,0"
+                   FontFamily="{DynamicResource FontNumeric}" FontSize="10" LetterSpacing="1.2"
+                   Foreground="{DynamicResource BrushTextDim}" />
+      </Grid>
+    </Border>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="14" Spacing="12">
+
+        <TextBlock Classes="sectionLabel" Text="{loc:Tr drivers.coreAttributes}" IsVisible="{Binding HasAttributes}" />
+        <ItemsControl ItemsSource="{Binding Attributes}" IsVisible="{Binding HasAttributes}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="2" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="screens:AttributeBarViewModel">
+              <StackPanel Spacing="4" Margin="0,0,16,10">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Text="{Binding Label}" FontFamily="{DynamicResource FontNumeric}" FontSize="11"
+                             Foreground="{DynamicResource BrushTextMuted}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Value}" FontFamily="{DynamicResource FontNumeric}" FontSize="11"
+                             Foreground="{DynamicResource BrushTextPrimary}" />
+                </Grid>
+                <ProgressBar Theme="{StaticResource ThinProgressBar}" Height="5"
+                             Value="{Binding Value}" Foreground="{Binding BarBrush}" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Classes="sectionLabel" Text="{loc:Tr drivers.profileDetails}" />
+        <ItemsControl ItemsSource="{Binding Facts}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="2" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="screens:ProfileStatViewModel">
+              <Grid ColumnDefinitions="*,Auto" Margin="0,0,20,9">
+                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
+                           FontFamily="{DynamicResource FontNumeric}" FontSize="12"
+                           Foreground="{DynamicResource BrushTextMuted}" />
+                <TextBlock Grid.Column="1" Text="{Binding Value}" VerticalAlignment="Center"
+                           FontFamily="{DynamicResource FontNumeric}" FontSize="12"
+                           Foreground="{Binding ValueBrush}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+      </StackPanel>
+    </ScrollViewer>
+
+  </DockPanel>
+
+</UserControl>
