@@ -1,6 +1,6 @@
 # ADR-0029 — Banka & kredi sistemi (dinamik dünyayla entegre · kredi puanı · imzada-donan faiz · kademeli icra)
 
-- **Durum:** Kabul edildi — **Faz-A motoru indi** (arayüz M22'ye ertelendi)
+- **Durum:** Kabul edildi — **Faz-A motoru + Faz-B arayüzü indi** (M22a canlı settle zinciri, M22b/c Finance ekranı + kredi çekme)
 - **Tarih:** 2026-08-07
 
 ## Bağlam
@@ -107,5 +107,12 @@ tek ağır darbe kalır; tasfiye + baskı borç sürdükçe her sezon işlemeye 
 
 ## Sonuç
 Faz-A motoru (domain + içerik + `CreditProfile`/`BankLedger`/`BankEnforcement`/`BankSweep` + persistence
-round-trip + `ltf sweep` banka bloğu) indi; tüm testler yeşil, golden + byte-özdeşlik korunur. Kredi
-çekme arayüzü + finans ekranı **M22**'ye ertelendi.
+round-trip + `ltf sweep` banka bloğu) indi; tüm testler yeşil, golden + byte-özdeşlik korunur.
+
+**Faz-B (M22) de indi:** `LiveCareer.RollToNextSeason` artık sezon sınırında ekonomi→banka→icra→board
+settle zincirini koşuyor (M22a) — krediler canlı kariyerde servis ediliyor, ödenmezse icra eylem-gerektiren
+gelen-kutusu öğesi doğurup Continue'yu durduruyor (Rev 15). Finance ekranı (M22b) bakiye/gelir + kredi
+puanı/tier/oran/limit + açık borç/taksit + icra uyarılarını gösteriyor; **kredi çekme** (M22c) ilk in-shell
+oyuncu-mutasyonu — `LiveCareer.ApplyToSeasonStart` deseniyle krediyi `SeasonStart`'a (kayıt/rekonstrüksiyon
+tabanı) indirip teklif oranını donduruyor. Settle edilen finans/board yeni `SeasonStart`'a gömülüp bütün
+olarak round-trip ediyor; determinizm/golden/byte-özdeşlik korundu.

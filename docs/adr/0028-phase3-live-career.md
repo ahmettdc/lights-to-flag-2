@@ -80,6 +80,12 @@ mevcut motor fonksiyonları çağrılır, bu yüzden golden yolu kımıldamaz.
   `TreatWarningsAsErrors=true` → warning-clean.
 - Tur-seed her sezonda aynı `Seed`'i kullanır (kayıt yalnız carset+tarih+seed taşıdığından yeniden
   kurulum sezon indeksine ihtiyaç duymamalı); sezonlar farklı **çünkü carset devirle evrilir**.
+- **M22a güncellemesi:** `RollToNextSeason` artık world-sweep zincirinden **önce** yönetim settle
+  zincirini de koşuyor — `EconomyLedger.SettleSeason` → `BankLedger.SettleSeason` →
+  `BankEnforcement.Enforce` → `ConstructorPenalties.Apply` → `BoardReview.Assess` — böylece finans ve
+  board **canlı evriliyor** ve ödenmeyen bir kredi eylem-gerektiren icra gelen-kutusu öğesi doğurup
+  Continue'yu durduruyor (Rev 15; ADR-0029). Settle edilen finans/board yeni `SeasonStart`'a gömülüp
+  mevcut `CareerState` yakalamasıyla bütün olarak round-trip ettiğinden golden + byte-özdeşlik korunur.
 - Ertelenen: sezon-içi R&D/test-günü carset evrimi (`Current` şimdilik `SeasonStart`'a eşit); ADR-0021
   paddock **diyalog/müzakere** paneli ve Database **transfer/scout** eylemleri (M22); hava/lojistik/
   viraj sayısı ve sürücü "Adaptation" (domain modeli yok); çok-yıllı takvim (devrilen sezon aynı
