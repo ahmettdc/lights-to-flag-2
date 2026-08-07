@@ -416,6 +416,23 @@ parçaları gösterir.
 > Üçü de yeni RNG çekmez, altın hash değişmez. Kalan yapısal öğeler (paylaşımlı pit boksu,
 > quali-on-race-fuel, bileşim envanteri, stop-go, sezon-içi upgrade hızları) ayrı/daha büyük iş.
 
+> **Banka & kredi sistemi (planlı — kullanıcı isteği) ⬛ — kredi + faiz + icra:** Takım faizle
+> **kredi** çekebilir (banka/finansör; nakit-akışı kalemi, cost-cap harcaması değil). Kredi limiti
+> takım değeri/gelirine, faiz oranı kredi riskine (bakiye + geçmiş) bağlı — **deterministik, RNG yok**.
+> Faiz + taksitler sezon kapanışında ekonomi settlement'ına (M13 `EconomyLedger.SettleSeason`) katlanır;
+> anapara ödendikçe **açık bakiye** düşer. **İcra (ödenmezse) — kademeli alacaklı takibi:**
+> **(1)** kaçırılan taksit → **gecikme faizi** + board confidence düşüşü + tarihli gelen-kutusu uyarısı
+> ("alacaklılar peşinde"; **Rev 15 eylem-gerektiren** → Continue'yu durdurur); **(2)** tekrarlı kaçırma /
+> eşik-üstü borç → **zorunlu varlık satışı / icra** (tesis düşürme veya personel serbest bırakarak nakde
+> çevirme) + itibar/board darbesi; **(3)** sürdürülemez borç → **board güveni çöker → kovulma**
+> (ADR-0025 `FiringRisk`'i yeniden kullanır; kariyer sonu) *veya* idari puan silme (gerçek F1 iflası gibi)
+> — **terminal sertlik ayarlanabilir** (kovulma mı, yalnız ağır ceza mı). Saf aritmetik + eşik mantığı;
+> `RaceSimulator`/altın hash'e değmez. `Loan` `Team.Finances`'te; carset `banking` bloğu opsiyonel,
+> varsayılan boş → mevcut carsetler **byte-özdeş**; krediler `CareerState`'te round-trip (M13f/M18h kalıbı).
+> **Motor:** Career `BankLedger` (M13 ekonomi üstüne; sezon-kapanış zincirine katlanır). **Arayüz:**
+> **M22 Finance** (kredi çek + faiz/taksit önizleme + açık borç/geri-ödeme planı + icra uyarıları); akış
+> M21 bildirim merkezine besler. Detay tasarımı: `docs/adr/0029` (yazılacak).
+
 ### Faz 2 — Kariyer ve yönetim katmanı · M11–M18 ← *2. öncelik*
 
 > Bu faz iki kesişen sistem taşır (aşağıda ayrı blokta): **Takvim-tabanlı kariyer**
@@ -535,7 +552,7 @@ yüzeyi. Dağılım: **M17 ana yüzey**, M13/M11/M12/M24, Rev 21 (medya baskıs�
 | **M19** ✅ | Kabuk + marka kiti | **(a–o landed; ADR-0026)** Navigasyon, tema sistemi. **Bildirim merkezi** (rozet + açılır panel; kategori/önem/derin bağlantı; tüm sistemlerden beslenir — Rev 15). **Marka kiti hazır** (`design/`): palet (Track Black/Lights Out Red/Flag White), SVG logo, fontlar (Saira Condensed/Chakra Petch/Archivo). Yerelleştirme altyapısı (ileride TR dil paketi). **Görsel tasarım kullanıcının Claude Design mockup'ından gelir** (`design/mockups/ui.dc.html`); HTML/CSS doğrudan kullanılmaz, Avalonia'ya birebir çevrilir (ADR-0002). Faz 3 ekranları (M20–M25) bu mockup'ı takip eder. |
 | **M20** ✅ | Menü + kariyer başlatma | **(a–h landed; ADR-0027)** Ana menü + kök **menü↔kabuk** görünüm geçişi. Yeni **Takım Patronu kariyeri**: carset seçimi (iki carset) + takım seçimi + **etkileşimli yönetim kurulu hedef müzakeresi** (`BoardNegotiation`: kabul/karşı-teklif/ret). Carset keşfi (`CarsetCatalog`). Kayıt-yükleme (slot listesi + Devam; `SaveStore`, `CareerStore` üstünde; `ShellSession.Resume` tarih-sıfırlama hatasını düzeltir). Ayarlar + kalıcı `SettingsStore` (zorluk saklanır ama **motora bağlanmaz** — golden korunur). **Quick Race** (kariyer dışı tek yarış, motoru yeniden kullanır). Kabuktan Ayarlar + kaydet-Menüye-Çık. |
 | **M21** ✅ | Kariyer merkezi | **(a–g landed; ADR-0028)** Beş kabuk-içi ekran (**Paddock Hub · Drivers · Standings · Calendar · Database**) M20f kayıt-dikişiyle bağlandı. **Canlı Continue** (FM tarzı): saat bir sonraki tarihli olaya ilerler, yarış turunu koşar, puan durumunu günceller — yeni değişebilir `LiveCareer`; deterministik public `SeasonSimulator.RunRound` (byte-özdeş çıkarım). Kayıt formatı değişmez: puan durumu `(SeasonStart, seed, Date)`'ten **yeniden kurulur**. **Tarihli gelen kutusu / haber akışı**: `CareerNotificationSource` (eklenebilir) + `CareerNews` eşleyici; kabuk bildirim merkezinde toplanır; eylem-gerektiren öğe (sözleşme deadline) Continue'yu **duraklatır** (Rev 15). **Sezon-devri**: sezon sonunda M18 world-sweep zinciri (ilişki/yaşlanma/emeklilik/transfer/sözleşme/regülasyon) + sonraki sezon takvimi (kariyer sonsuz; devrilen carset kayıttan yeniden kurulur). Golden digest + byte-özdeş kayıt korunur. |
-| **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (Takım Patronu). **Regülasyon & Uyum ekranı** (ADR-0010): aktif kurallar, kendi uyum/risk durumun, bekleyen değişiklikler, `Readiness` + Patron modunda **oylama** arayüzü. |
+| **M22** ⬛ | Yönetim ekranları | Finans, Ar-Ge, personel, tesisler, sözleşmeler (Takım Patronu). **Banka & kredi** (kredi çek + faiz/taksit + açık borç + icra uyarıları — deterministik `BankLedger`; ödenmezse kademeli icra → varlık satışı → kovulma, Rev 15; ADR-0029). **Regülasyon & Uyum ekranı** (ADR-0010): aktif kurallar, kendi uyum/risk durumun, bekleyen değişiklikler, `Readiness` + Patron modunda **oylama** arayüzü. |
 | **M23** ⬛ | Yarış hafta sonu | Canlı zamanlama kulesi, **şematik pist haritası + hareketli araç işaretçileri** (mockup SVG referansı; 3B değil — Motorsport/Football Manager tarzı, motor telemetriden beslenir), sektör renkleri ve delta'lar, strateji paneli (pit çağrısı, bileşim seçimi), telsiz mesajları, hız kontrolü / atlama / tekrar. |
 | **M24** ⬛ | **İstatistik ve rekorlar** | Pilot ve takım profilleri, sezon istatistikleri, **tüm zamanların rekorları**, şeref listesi (hall of fame), kafa kafaya karşılaştırma, kariyer grafikleri, pist rekorları. |
 | **M25** | **Öğretici** | Rehberli ilk hafta sonu, bağlama duyarlı ipuçları, terimler sözlüğü (undercut, graining, VSC…), yeni oyuncu için "önerilen ayar" profili. |
