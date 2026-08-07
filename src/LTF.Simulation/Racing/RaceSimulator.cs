@@ -23,7 +23,9 @@ namespace LTF.Simulation.Racing;
 /// M8 accepts an optional practice setup per car that shaves a little off each green lap and cuts
 /// the driver-error chance; with no setup (the default) the race is unchanged. M9 accepts an
 /// optional <see cref="RaceFormat"/> bundle; M9a lets it set the race length (a timed duration or a
-/// lap-count override), defaulting to the circuit's laps.
+/// lap-count override), defaulting to the circuit's laps. M23b accepts an optional per-car starting
+/// compound (the player's pre-race strategy); with none (the default) every car starts on the field-wide
+/// <c>startingCompound</c>, so the race is bit-for-bit unchanged.
 /// </summary>
 public static class RaceSimulator
 {
@@ -65,7 +67,8 @@ public static class RaceSimulator
     public static RaceResult Run(
         Circuit circuit, IReadOnlyList<Competitor> grid, RulesSet rules, BalanceCoefficients balance,
         int seed, TyreCompound startingCompound = TyreCompound.Medium, RegulationSet? regulations = null,
-        IReadOnlyDictionary<string, PracticeSetup>? setups = null, RaceFormat? format = null)
+        IReadOnlyDictionary<string, PracticeSetup>? setups = null, RaceFormat? format = null,
+        IReadOnlyDictionary<string, TyreCompound>? startingCompounds = null)
     {
         // Null regulations reproduce the DRS era exactly, so existing callers are unaffected.
         var regs = regulations ?? RegulationSet.Drs;
@@ -88,7 +91,11 @@ public static class RaceSimulator
                 grid[i], gridPosition: i + 1, rng: paceRng,
                 reliabilityRng: paceRng.Fork(ReliabilitySalt), incidentRng: paceRng.Fork(IncidentSalt),
                 pitRng: paceRng.Fork(PitSalt),
-                tyre: TyreState.Fresh(startingCompound), fuel: 1.0,
+                // A per-car starting compound (M23b, player strategy) overrides the field-wide default; with
+                // no per-car dictionary (every existing caller) this is exactly startingCompound, so the race
+                // — and the golden digest — is bit-for-bit unchanged.
+                tyre: TyreState.Fresh(startingCompounds?.GetValueOrDefault(grid[i].Id, startingCompound) ?? startingCompound),
+                fuel: 1.0,
                 health: ComponentHealth.Fresh(), mode: EngineMode.Standard,
                 topSpeed: TopSpeedFor(grid[i].Car, circuit, regs, era2026));
             car.PitPlan = StaggeredPlan(baseTargets, i, grid.Count, laps, balance);

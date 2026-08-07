@@ -55,10 +55,45 @@
                  Foreground="{DynamicResource BrushTextPrimary}" />
     </Border>
 
+    <!-- Pre-race strategy (M23b): the upcoming round's starting tyres, one picker per player driver. -->
+    <Border DockPanel.Dock="Top" Classes="card" Margin="12,12,12,0" Padding="12,10"
+            IsVisible="{Binding HasUpcoming}">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="8" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Classes="cardHeader" Text="{loc:Tr raceWeekend.strategy}" />
+            <TextBlock Text="{Binding UpcomingText}" Classes="cardHeader"
+                       Foreground="{DynamicResource BrushTextDim}" />
+          </StackPanel>
+          <ItemsControl ItemsSource="{Binding Strategy}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="20" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="screens:StrategyRowViewModel">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding DriverName}" Classes="cell" VerticalAlignment="Center" />
+                  <ComboBox ItemsSource="{Binding Compounds}"
+                            SelectedItem="{Binding SelectedCompound, Mode=TwoWay}"
+                            IsEnabled="{Binding CanEdit}" MinWidth="108" />
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+        <Button Grid.Column="1" Classes="ctrl" Content="{loc:Tr raceWeekend.startRace}"
+                Command="{Binding StartRaceCommand}" VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+
+    <Panel>
+
     <!-- Empty state -->
     <StackPanel IsVisible="{Binding NoRace}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
       <TextBlock Text="{loc:Tr raceWeekend.noRace}" FontSize="14" Foreground="{DynamicResource BrushTextSecondary}" />
-      <TextBlock Text="Continue to the next round to see the race unfold." FontSize="11"
+      <TextBlock Text="Pick your starting tyres above, then Start Race." FontSize="11"
                  Foreground="{DynamicResource BrushTextDim}" HorizontalAlignment="Center" />
     </StackPanel>
 
@@ -185,6 +220,8 @@
       </Grid>
 
     </Grid>
+
+    </Panel>
   </DockPanel>
 
 </UserControl>

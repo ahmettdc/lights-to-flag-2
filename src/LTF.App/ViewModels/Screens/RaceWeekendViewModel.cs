@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LTF.App.Mvvm;
 using LTF.App.Session;
+using LTF.Domain;
 using LTF.Domain.Common;
 using LTF.Simulation.Racing;
 
@@ -28,8 +29,13 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     private readonly IReadOnlyDictionary<string, string> _teamOfDriver;
     private readonly IReadOnlyDictionary<string, int> _teamIndex;
 
-    public RaceWeekendViewModel(LiveCareer live)
+    public RaceWeekendViewModel(
+        LiveCareer live,
+        Action<int, string, TyreCompound>? setStrategy = null,
+        Action? startRace = null)
     {
+        _startRace = startRace;
+
         var carset = live.Current;
         _driverName = carset.Drivers.ToDictionary(d => d.Id, d => d.FullName, StringComparer.Ordinal);
         _teamName = carset.Teams.ToDictionary(t => t.Id, t => t.Name, StringComparer.Ordinal);
@@ -41,6 +47,14 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
             .ToDictionary(x => x.Id, x => x.Index, StringComparer.Ordinal);
 
         var count = live.Results.Count;
+
+        // Strategy panel (M23b): the upcoming (not-yet-run) round's player-team drivers and each one's chosen
+        // starting compound. Built independently of the replay, so a brand-new career (no race yet) still
+        // shows it and a season finale (no upcoming race) simply has none.
+        Strategy = BuildStrategy(carset, count, setStrategy, out var upcomingText);
+        UpcomingText = upcomingText;
+        HasUpcoming = Strategy.Count > 0;
+
         HasRace = count > 0;
         if (!HasRace)
         {
@@ -81,6 +95,21 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
 
     /// <summary>The final classification (id → names joined); shown once the replay reaches the flag.</summary>
     public IReadOnlyList<RaceResultRowViewModel> Classification { get; }
+
+    // The host's "advance the career" step (M23b), invoked by Start Race; null on a read-only screen.
+    private readonly Action? _startRace;
+
+    /// <summary>True when there is an upcoming (not-yet-run) round to set a starting strategy for.</summary>
+    public bool HasUpcoming { get; }
+
+    /// <summary>The upcoming round's label (round number · circuit), for the strategy panel header.</summary>
+    public string UpcomingText { get; } = "";
+
+    /// <summary>One row per player-team driver for the upcoming round: their chosen starting compound (M23b).</summary>
+    public IReadOnlyList<StrategyRowViewModel> Strategy { get; }
+
+    /// <summary>Whether Start Race can run: the screen can advance the career and a race is upcoming.</summary>
+    public bool CanStartRace => _startRace is not null && HasUpcoming;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LapText))]
@@ -181,6 +210,38 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     [RelayCommand]
     private void TogglePlay() => IsPlaying = !IsPlaying;
 
+    /// <summary>Advance the career to run the upcoming race (M23b) with the chosen starting tyres; the shell
+    /// re-navigates afterward and the tower replays the just-run race.</summary>
+    [RelayCommand(CanExecute = nameof(CanStartRace))]
+    private void StartRace() => _startRace?.Invoke();
+
+    // Build the strategy rows for the upcoming (not-yet-run) round (M23b): the player team's drivers and each
+    // one's chosen starting compound (defaulting to Medium). Empty — the panel hides — when there is no player
+    // team or no upcoming round (season finale). Sets upcomingText to the round's label for the panel header.
+    private IReadOnlyList<StrategyRowViewModel> BuildStrategy(
+        Carset carset, int racesRun, Action<int, string, TyreCompound>? setStrategy, out string upcomingText)
+    {
+        upcomingText = "";
+        var team = carset.PlayerTeam();
+        if (team is null || racesRun >= carset.Calendar.Count)
+        {
+            return [];
+        }
+
+        var upcoming = carset.Calendar[racesRun];
+        var circuit = carset.Circuits.FirstOrDefault(c => string.CompareOrdinal(c.Id, upcoming.CircuitId) == 0);
+        upcomingText = string.Create(CultureInfo.InvariantCulture, $"Round {upcoming.Round} · {circuit?.Name ?? upcoming.CircuitId}");
+
+        var chosen = carset.PlayerRaceStrategies
+            .Where(s => s.Round == upcoming.Round)
+            .ToDictionary(s => s.DriverId, s => s.Compound, StringComparer.Ordinal);
+
+        return team.DriverIds
+            .Select(id => new StrategyRowViewModel(
+                upcoming.Round, id, Name(id), chosen.GetValueOrDefault(id, TyreCompound.Medium), setStrategy))
+            .ToList();
+    }
+
     private string Name(string id) => _driverName.GetValueOrDefault(id, id);
 
     private string TeamName(string id) =>
@@ -264,3 +325,53 @@ public sealed record RaceEventRowViewModel(int Lap, string Text, IBrush Brush);
 
 /// <summary>One line of the final classification on the race-weekend screen (M23).</summary>
 public sealed record RaceResultRowViewModel(int Position, string Driver, string Team, IBrush Accent, string Status, string Points);
+
+/// <summary>
+/// One driver's pre-race strategy row (M23b): the starting compound the player picks for the upcoming round.
+/// Changing <see cref="SelectedCompound"/> calls back to the host, which lands the choice on the season-start
+/// carset and re-navigates — so the picker is a mutation trigger, not local state. The initial assignment is
+/// suppressed so building the row from a saved choice does not fire the callback.
+/// </summary>
+public sealed partial class StrategyRowViewModel : ObservableObject
+{
+    private readonly int _round;
+    private readonly string _driverId;
+    private readonly Action<int, string, TyreCompound>? _setStrategy;
+    private bool _suppress;
+
+    public StrategyRowViewModel(
+        int round, string driverId, string driverName, TyreCompound selected,
+        Action<int, string, TyreCompound>? setStrategy)
+    {
+        _round = round;
+        _driverId = driverId;
+        DriverName = driverName;
+        _setStrategy = setStrategy;
+
+        _suppress = true;
+        SelectedCompound = selected;
+        _suppress = false;
+    }
+
+    public string DriverName { get; }
+
+    /// <summary>The compounds a player may start on — slick only; wets are weather-driven, not a pre-race pick.</summary>
+    public IReadOnlyList<TyreCompound> Compounds { get; } =
+        [TyreCompound.Soft, TyreCompound.Medium, TyreCompound.Hard];
+
+    /// <summary>False on a read-only screen (no callback), which disables the picker.</summary>
+    public bool CanEdit => _setStrategy is not null;
+
+    [ObservableProperty]
+    private TyreCompound _selectedCompound;
+
+    partial void OnSelectedCompoundChanged(TyreCompound value)
+    {
+        if (_suppress)
+        {
+            return;
+        }
+
+        _setStrategy?.Invoke(_round, _driverId, value);
+    }
+}

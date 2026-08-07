@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -385,6 +386,50 @@ public class RaceSimulatorTests
 
         var hash = HashOf(Digest(result));
         Assert.True(hash == GoldenDigestHash, $"golden digest hash mismatch — actual: {hash}");
+    }
+
+    // ---- Player starting strategy (M23b) ----------------------------------
+    // A per-car starting compound overrides the field-wide default. With no dictionary (every caller
+    // before M23b, and null explicitly) the race — and the golden digest above — is bit-for-bit unchanged.
+
+    [Fact]
+    public void A_per_car_starting_compound_overrides_the_field_default()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+        var startingCompounds = new Dictionary<string, TyreCompound>(System.StringComparer.Ordinal)
+        {
+            ["d1"] = TyreCompound.Soft,
+        };
+
+        var result = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, SimFixtures.CalmBalance, 7,
+            startingCompounds: startingCompounds);
+
+        var lap1 = result.Telemetry.Laps[0].Order;
+        Assert.Equal(TyreCompound.Soft, lap1.Single(o => o.CompetitorId == "d1").TyreCompound);
+        Assert.All(lap1.Where(o => o.CompetitorId != "d1"), o => Assert.Equal(TyreCompound.Medium, o.TyreCompound));
+    }
+
+    [Fact]
+    public void A_chosen_starting_compound_changes_the_race_but_null_leaves_it_bit_identical()
+    {
+        var carset = SimFixtures.Carset();
+        var grid = EntryList.Build(carset);
+
+        var baseline = RaceSimulator.Run(carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024);
+        var nulled = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024, startingCompounds: null);
+        var chosen = RaceSimulator.Run(
+            carset.Circuits[0], grid, carset.Rules, carset.Balance, 2024,
+            startingCompounds: new Dictionary<string, TyreCompound>(System.StringComparer.Ordinal)
+            {
+                ["d1"] = TyreCompound.Hard,
+                ["d2"] = TyreCompound.Soft,
+            });
+
+        Assert.Equal(Digest(baseline), Digest(nulled));    // null → golden-safe (bit-for-bit unchanged)
+        Assert.NotEqual(Digest(baseline), Digest(chosen));  // a real choice feeds the sim
     }
 
     // ---- Race damage (R38) ------------------------------------------------

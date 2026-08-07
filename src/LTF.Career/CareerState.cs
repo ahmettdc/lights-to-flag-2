@@ -218,6 +218,11 @@ public sealed record CareerState
     /// carset. Empty by default so a career with no freeze saves byte-identically.</summary>
     public IReadOnlyList<AxisFreeze> DevelopmentFreezes { get; init; } = [];
 
+    /// <summary>The player's per-round starting-tyre choices (M23b); empty unless the player has set one, in
+    /// which case it is authoritative — the choice is a player mutation, not on the shipped carset. Empty by
+    /// default so a career with no chosen strategy saves byte-identically.</summary>
+    public IReadOnlyList<RaceStrategy> PlayerRaceStrategies { get; init; } = [];
+
     /// <summary>Snapshot a carset's mutable progress at a given game date and seed.</summary>
     public static CareerState Capture(Carset carset, DateOnly date, int seed)
     {
@@ -279,6 +284,9 @@ public sealed record CareerState
             // FIA development freezes (Ri4): default-empty, so a freeze-free career is byte-identical. Value-typed
             // (CarAxis + mode enums), so it round-trips a save byte-stably.
             DevelopmentFreezes = carset.Regulations.DevelopmentFreezes,
+            // Player race strategies (M23b): default-empty, so a career with no chosen compound is byte-identical.
+            // Value-typed (int + string + enum), so it round-trips a save byte-stably.
+            PlayerRaceStrategies = carset.PlayerRaceStrategies,
         };
     }
 
@@ -432,6 +440,11 @@ public sealed record CareerState
             Regulations = DevelopmentFreezes.Count == 0
                 ? carset.Regulations
                 : carset.Regulations with { DevelopmentFreezes = DevelopmentFreezes },
+            // Restore the player's chosen race strategies; empty leaves the carset's own (none) untouched —
+            // byte-identical for a career where the player never picked a starting compound.
+            PlayerRaceStrategies = PlayerRaceStrategies.Count == 0
+                ? carset.PlayerRaceStrategies
+                : PlayerRaceStrategies,
         };
     }
 

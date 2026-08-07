@@ -1,4 +1,5 @@
 using LTF.Domain;
+using LTF.Domain.Common;
 using LTF.Domain.Racing;
 using LTF.Simulation;
 using LTF.Simulation.Qualifying;
@@ -54,11 +55,37 @@ public static class SeasonSimulator
         }
 
         var format = new RaceFormat { PoleSitterId = quali.PoleCompetitorId, IsSprint = round.IsSprint };
+
+        // The player's pre-race starting-tyre choices for this round (M23b), if any. Null when the carset
+        // carries none for this round, so RaceSimulator.Run runs exactly as before — the season, and its
+        // golden digest, stay byte-identical for a strategy-free carset.
+        var startingCompounds = PlayerCompoundsFor(carset, round.Round);
         var result = RaceSimulator.Run(
             circuit, grid, carset.Rules, carset.Balance, roundSeed,
-            regulations: carset.Regulations, format: format);
+            regulations: carset.Regulations, format: format, startingCompounds: startingCompounds);
 
         return new RoundOutcome(result, quali.PoleCompetitorId);
+    }
+
+    // Build the per-driver starting-compound map for one round from the carset's player strategies (M23b).
+    // Returns null when the carset ships none or none target this round, so the round runs unchanged.
+    private static IReadOnlyDictionary<string, TyreCompound>? PlayerCompoundsFor(Carset carset, int round)
+    {
+        if (carset.PlayerRaceStrategies.Count == 0)
+        {
+            return null;
+        }
+
+        Dictionary<string, TyreCompound>? map = null;
+        foreach (var strategy in carset.PlayerRaceStrategies)
+        {
+            if (strategy.Round == round)
+            {
+                (map ??= new Dictionary<string, TyreCompound>(StringComparer.Ordinal))[strategy.DriverId] = strategy.Compound;
+            }
+        }
+
+        return map;
     }
 
     private static SeasonProgress RunCore(Carset carset, int seed, IBetweenRounds? between)

@@ -11,6 +11,7 @@ using LTF.App.Settings;
 using LTF.App.ViewModels;
 using LTF.App.ViewModels.Screens;
 using LTF.App.Views.Screens;
+using LTF.Domain.Common;
 using Xunit;
 
 namespace LTF.App.Tests;
@@ -184,5 +185,52 @@ public class Phase5RaceWeekendTests
 
         shell.Navigation.Navigate(NavKey.RaceWeekend);
         Assert.IsType<RaceWeekendViewModel>(shell.Navigation.CurrentScreen);
+    }
+
+    // --- Player pre-race strategy (M23b) ---
+
+    [Fact]
+    public void The_strategy_panel_lists_the_player_drivers_for_the_upcoming_round()
+    {
+        var live = new LiveCareer(SessionLoader.LoadFlagship());
+        var vm = new RaceWeekendViewModel(live, setStrategy: (_, _, _) => { });
+
+        var team = live.Current.PlayerTeam()!;
+        Assert.True(vm.HasUpcoming);
+        Assert.Equal(team.DriverIds.Count, vm.Strategy.Count);
+        Assert.All(vm.Strategy, s => Assert.True(s.CanEdit));
+        Assert.False(string.IsNullOrWhiteSpace(vm.UpcomingText));
+    }
+
+    [Fact]
+    public void A_read_only_race_weekend_offers_no_strategy_edit_or_start()
+    {
+        var live = new LiveCareer(SessionLoader.LoadFlagship());
+        var vm = new RaceWeekendViewModel(live); // no callbacks
+
+        Assert.All(vm.Strategy, s => Assert.False(s.CanEdit));
+        Assert.False(vm.CanStartRace);
+    }
+
+    [Fact]
+    public void Setting_a_starting_compound_through_the_shell_persists_it()
+    {
+        var catalog = CarsetCatalog.Discover();
+        var dir = Directory.CreateTempSubdirectory().FullName;
+        var saves = new SaveStore(catalog, dir);
+        var settings = new SettingsStore(Path.Combine(dir, "settings.json"));
+        var root = new RootViewModel(new AppServices(catalog, saves, settings, new CareerNotificationSource()));
+
+        root.EnterCareer(SessionLoader.LoadFlagship());
+        var shell = (ShellViewModel)root.Content!;
+        shell.Navigation.Navigate(NavKey.RaceWeekend);
+        var vm = (RaceWeekendViewModel)shell.Navigation.CurrentScreen!;
+
+        Assert.True(vm.HasUpcoming);
+        vm.Strategy[0].SelectedCompound = TyreCompound.Hard; // fires the callback → mutation + autosave
+
+        var reloaded = saves.Load(saves.MostRecent()!);
+        Assert.Single(reloaded.Carset.PlayerRaceStrategies);
+        Assert.Equal(TyreCompound.Hard, reloaded.Carset.PlayerRaceStrategies[0].Compound);
     }
 }

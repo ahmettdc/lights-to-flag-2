@@ -75,6 +75,12 @@ public sealed record Carset
     /// Per-team development progress lives on each team, not here.</summary>
     public TechTree TechTree { get; init; } = TechTree.Empty;
 
+    /// <summary>The player's per-round starting-tyre choices (M23b); empty unless the player has set one,
+    /// which keeps a career byte-identical. Rides season-start → live (R&amp;D never touches it) and feeds the
+    /// race sim for the matching round; a choice affects only its own race, so setting one never rewrites the
+    /// past. Cleared at a season boundary — each season is chosen fresh.</summary>
+    public IReadOnlyList<RaceStrategy> PlayerRaceStrategies { get; init; } = [];
+
     /// <summary>The team the player runs (M17), or null when none is designated (<see cref="PlayerTeamId"/>
     /// empty) or the id matches no team — the all-AI default that keeps a career byte-identical.</summary>
     public Team? PlayerTeam()

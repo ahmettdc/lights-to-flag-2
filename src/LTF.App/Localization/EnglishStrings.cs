@@ -177,6 +177,9 @@ public static class EnglishStrings
         [StringKeys.RaceWeekendTower] = "TIMING TOWER",
         [StringKeys.RaceWeekendEvents] = "RACE EVENTS",
         [StringKeys.RaceWeekendClassification] = "FINAL CLASSIFICATION",
+        [StringKeys.RaceWeekendStrategy] = "STARTING STRATEGY",
+        [StringKeys.RaceWeekendStartTyre] = "Start tyre",
+        [StringKeys.RaceWeekendStartRace] = "START RACE",
 
         [StringKeys.CarsPerformance] = "CAR PERFORMANCE",
         [StringKeys.CarsOverall] = "OVERALL",

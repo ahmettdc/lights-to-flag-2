@@ -11,6 +11,8 @@ using LTF.App.ViewModels.Screens;
 using LTF.App.ViewModels.Settings;
 using LTF.Career;
 using LTF.Domain;
+using LTF.Domain.Common;
+using LTF.Domain.Racing;
 using LTF.Domain.Rnd;
 
 namespace LTF.App.ViewModels;
@@ -96,9 +98,11 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         navigation.Register(NavKey.Drivers, () => new DriversViewModel(live.Current));
         navigation.Register(NavKey.Database, () => new DatabaseViewModel(live.Current));
 
-        // Race weekend (M23): a live timing tower replaying the last round's recorded telemetry. Pure
-        // playback of the deterministic RaceResult — no re-simulation — so the golden race is untouched.
-        navigation.Register(NavKey.RaceWeekend, () => new RaceWeekendViewModel(live));
+        // Race weekend (M23): a live timing tower replaying the last round's recorded telemetry (M23a, pure
+        // playback of the deterministic RaceResult — no re-simulation), plus a pre-race strategy panel that
+        // sets the next round's starting tyres (M23b) and a Start Race that advances the career.
+        navigation.Register(NavKey.RaceWeekend, () => new RaceWeekendViewModel(
+            live, setStrategy: SetRaceStrategy, startRace: ContinueCareerStep));
 
         // Management screens (M22). Read-only projections over the live career; a Continue rebuilds them.
         // Finance also carries the first player mutation — taking a loan (M22c).
@@ -241,6 +245,30 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
                 .Select(t => string.CompareOrdinal(t.Id, team.Id) == 0 ? team with { Research = research } : t)
                 .ToList();
             return carset with { Teams = teams };
+        });
+
+        CommitCareerMutation();
+    }
+
+    // Set the player's starting-tyre choice for one driver at one round (M23b). Lands on the season-start
+    // carset like the other mutations (upsert by round+driver), so it persists through save/load and rides
+    // reconstruction; SeasonSimulator.RunRound reads it for the matching round and feeds it to the race sim.
+    // A choice for a future round is a no-op on the current standings (Reconstruct replays only run rounds),
+    // but rides the carset and lives in the save until that round runs.
+    private void SetRaceStrategy(int round, string driverId, TyreCompound compound)
+    {
+        if (_live is null)
+        {
+            return;
+        }
+
+        _live.ApplyToSeasonStart(carset =>
+        {
+            var updated = carset.PlayerRaceStrategies
+                .Where(s => s.Round != round || string.CompareOrdinal(s.DriverId, driverId) != 0)
+                .Append(new RaceStrategy { Round = round, DriverId = driverId, Compound = compound })
+                .ToList();
+            return carset with { PlayerRaceStrategies = updated };
         });
 
         CommitCareerMutation();
