@@ -170,5 +170,15 @@ public static class EnglishStrings
         [StringKeys.RndProjects] = "ACTIVE PROJECTS",
         [StringKeys.RndNoProjects] = "No active development",
         [StringKeys.RndNoProjectsBody] = "The team is running no development projects.",
+
+        [StringKeys.CarsPerformance] = "CAR PERFORMANCE",
+        [StringKeys.CarsOverall] = "OVERALL",
+        [StringKeys.CarsEngineSupplier] = "Engine supplier",
+        [StringKeys.CarsComponents] = "COMPONENTS",
+        [StringKeys.CarsColReliability] = "REL",
+        [StringKeys.CarsColUsage] = "USED",
+        [StringKeys.CarsColWear] = "WEAR",
+        [StringKeys.CarsNoComponents] = "No component pool",
+        [StringKeys.CarsNoComponentsBody] = "This series does not track component allocation.",
     };
 }

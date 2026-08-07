@@ -1,0 +1,143 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.CarsPowerUnitView"
+             x:DataType="screens:CarsPowerUnitViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.cardHeader">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.6" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextMuted}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.value">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.colHead">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextDim}" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource BrushStatCell}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel Background="{DynamicResource BrushAppBackground}" LastChildFill="True">
+
+    <Border DockPanel.Dock="Top" Height="32" Background="{DynamicResource BrushChrome}"
+            BorderBrush="{DynamicResource BrushDivider}" BorderThickness="0,0,0,1" Padding="14,0">
+      <TextBlock Text="{loc:Tr nav.carsPowerUnit}" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold" LetterSpacing="2"
+                 Foreground="{DynamicResource BrushTextPrimary}" />
+    </Border>
+
+    <Grid Margin="12" ColumnDefinitions="*,*">
+
+      <!-- Car performance -->
+      <Border Grid.Column="0" Margin="0,0,6,0" Classes="card">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+            <TextBlock Classes="cardHeader" Text="{loc:Tr cars.performance}" />
+          </Border>
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" Margin="14,10">
+            <StackPanel Grid.Column="0">
+              <TextBlock Text="{loc:Tr cars.overall}" Classes="colHead" />
+              <TextBlock Text="{Binding Overall}" FontFamily="{DynamicResource FontNumeric}" FontSize="34"
+                         FontWeight="Bold" Foreground="{Binding OverallBrush}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                        IsVisible="{Binding HasEngineSupplier}">
+              <TextBlock Text="{loc:Tr cars.engineSupplier}" Classes="colHead" TextAlignment="Right" />
+              <TextBlock Text="{Binding EngineSupplier}" FontSize="13" TextAlignment="Right"
+                         Foreground="{DynamicResource BrushTextPrimary}" />
+            </StackPanel>
+          </Grid>
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Ratings}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="screens:CarRatingRowViewModel">
+                  <Grid Height="34" ColumnDefinitions="*,96,32" Margin="14,0" Background="Transparent">
+                    <TextBlock Grid.Column="0" Text="{Binding Name}" Classes="label"
+                               Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                    <Border Grid.Column="1" Width="96" Height="5" CornerRadius="3" Margin="0,0,10,0"
+                            VerticalAlignment="Center" Background="{DynamicResource BrushDivider}" ClipToBounds="True">
+                      <Border HorizontalAlignment="Left" Width="{Binding BarWidth}" Background="{Binding Brush}" />
+                    </Border>
+                    <TextBlock Grid.Column="2" Text="{Binding Value}" Classes="value" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+      <!-- Components -->
+      <Border Grid.Column="1" Margin="6,0,0,0" Classes="card">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+            <TextBlock Classes="cardHeader" Text="{loc:Tr cars.components}" />
+          </Border>
+
+          <StackPanel DockPanel.Dock="Top" Margin="14,16" IsVisible="{Binding NoComponents}">
+            <TextBlock Text="{loc:Tr cars.noComponents}" FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" />
+            <TextBlock Text="{loc:Tr cars.noComponentsBody}" FontSize="11" Margin="0,3,0,0"
+                       Foreground="{DynamicResource BrushTextDim}" />
+          </StackPanel>
+
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,44,56,48" Margin="14,4" IsVisible="{Binding HasComponents}">
+            <TextBlock Grid.Column="0" Classes="colHead" Text="{loc:Tr cars.components}" />
+            <TextBlock Grid.Column="1" Classes="colHead" Text="{loc:Tr cars.colReliability}" TextAlignment="Right" />
+            <TextBlock Grid.Column="2" Classes="colHead" Text="{loc:Tr cars.colUsage}" TextAlignment="Right" />
+            <TextBlock Grid.Column="3" Classes="colHead" Text="{loc:Tr cars.colWear}" TextAlignment="Right" />
+          </Grid>
+
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Components}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="screens:ComponentRowViewModel">
+                  <Grid Height="34" ColumnDefinitions="*,44,56,48" Margin="14,0" Background="Transparent">
+                    <TextBlock Grid.Column="0" Text="{Binding Kind}" FontSize="12" VerticalAlignment="Center"
+                               Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Text="{Binding Reliability}" Classes="value" FontSize="12" />
+                    <TextBlock Grid.Column="2" Text="{Binding Usage}" FontFamily="{DynamicResource FontNumeric}"
+                               FontSize="12" TextAlignment="Right" VerticalAlignment="Center"
+                               Foreground="{DynamicResource BrushTextMuted}" />
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="5" VerticalAlignment="Center">
+                      <Border Width="6" Height="6" CornerRadius="3" VerticalAlignment="Center" Background="{Binding WearBrush}" />
+                      <TextBlock Text="{Binding WearPercent}" FontFamily="{DynamicResource FontNumeric}" FontSize="12"
+                                 Foreground="{DynamicResource BrushTextSecondary}" />
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+
+    </Grid>
+  </DockPanel>
+
+</UserControl>

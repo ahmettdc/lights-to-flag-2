@@ -181,4 +181,15 @@ public static class StringKeys
     public const string RndProjects = "rnd.projects";
     public const string RndNoProjects = "rnd.noProjects";
     public const string RndNoProjectsBody = "rnd.noProjectsBody";
+
+    // Cars & Power Unit screen (M22).
+    public const string CarsPerformance = "cars.performance";
+    public const string CarsOverall = "cars.overall";
+    public const string CarsEngineSupplier = "cars.engineSupplier";
+    public const string CarsComponents = "cars.components";
+    public const string CarsColReliability = "cars.colReliability";
+    public const string CarsColUsage = "cars.colUsage";
+    public const string CarsColWear = "cars.colWear";
+    public const string CarsNoComponents = "cars.noComponents";
+    public const string CarsNoComponentsBody = "cars.noComponentsBody";
 }
