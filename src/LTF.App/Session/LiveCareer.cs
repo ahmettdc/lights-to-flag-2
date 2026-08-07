@@ -4,6 +4,7 @@ using LTF.App.Notifications;
 using LTF.Career;
 using LTF.Domain;
 using LTF.Domain.Racing;
+using LTF.Domain.Rnd;
 using LTF.Simulation.Racing;
 
 namespace LTF.App.Session;
@@ -14,15 +15,17 @@ namespace LTF.App.Session;
 /// when it lands on a round, accumulates the results and recomputes the championship <see cref="Standings"/>.
 ///
 /// Determinism / save-format: the save persists only the season-start carset + the date (unchanged from
-/// M11/M20). Standings are never persisted — they are <em>reconstructed</em> deterministically from
-/// <c>(SeasonStart, Seed, Date)</c> by re-running every round already in the past, so a loaded mid-season
-/// save shows the same table it would after advancing there live. Component grid penalties are the
-/// season-scoped quantity keyed by round (as <see cref="SeasonSimulator"/> does), so a full season of
-/// Continues reproduces <see cref="SeasonSimulator.Run"/> exactly.
+/// M11/M20). Neither the standings nor the evolved car are persisted — both are <em>reconstructed</em>
+/// deterministically from <c>(SeasonStart, Seed, Date)</c> by replaying every past round with the R&amp;D
+/// progression threaded in, so a loaded mid-season save shows the same table — and the same evolved car — it
+/// would after advancing there live. Component grid penalties are the season-scoped quantity keyed by round
+/// (as <see cref="SeasonSimulator"/> does), so a full season of Continues reproduces
+/// <see cref="SeasonSimulator.RunProgressed"/> exactly.
 ///
 /// The dated inbox + action-required halt is M21e; the season-boundary rollover (M21f) evolves the world at
-/// season end and opens the next season on the rolled carset. In-season carset evolution (R&amp;D/test days)
-/// is not applied yet, so <see cref="Current"/> equals <see cref="SeasonStart"/> within a season.
+/// season end and opens the next season on the rolled carset. In-season R&amp;D development (Model B) evolves
+/// <see cref="Current"/> round by round within a season, so it drifts from <see cref="SeasonStart"/> as the
+/// car develops.
 /// </summary>
 public sealed class LiveCareer
 {
@@ -32,6 +35,8 @@ public sealed class LiveCareer
     private readonly List<RaceResult> _results = new();
     private readonly Dictionary<int, IReadOnlyDictionary<string, int>> _penaltyByRound = new();
     private readonly Dictionary<int, CalendarRound> _roundByNumber = new();
+    private readonly Dictionary<int, int> _indexByRound = new();
+    private RndProgression _progression = null!;
     private int _seasonIndex;
 
     public LiveCareer(ShellSession session)
@@ -130,7 +135,7 @@ public sealed class LiveCareer
             switch (todaysEvent.Kind)
             {
                 case CalendarEventKind.RaceWeekend when _roundByNumber.TryGetValue(todaysEvent.Round, out var round):
-                    var result = RunRound(round, todaysEvent.Round);
+                    var result = RunAndEvolve(round, _indexByRound[round.Round]);
                     news.Add(CareerNews.ForRace(Clock.Date, round, result, Current));
                     break;
 
@@ -151,13 +156,37 @@ public sealed class LiveCareer
         PendingAction = news.Any(n => n.RequiresAction);
     }
 
-    private RaceResult RunRound(CalendarRound round, int roundNumber)
+    // Run one round on the live (evolving) carset, then evolve it for the remaining rounds via the R&D
+    // progression — mirroring SeasonSimulator.RunCore so a live season reproduces RunProgressed exactly
+    // (Model B: the car develops mid-season). The grid penalty stays season-scoped (from SeasonStart), never
+    // recomputed from the evolved carset, so byte-identity holds. AfterRound is called after every round
+    // (including the last), matching RunCore, and evolves the carset the next round is contested with.
+    private RaceResult RunAndEvolve(CalendarRound round, int roundIndex)
     {
-        var penalty = _penaltyByRound.GetValueOrDefault(roundNumber, NoPenalty);
-        var outcome = SeasonSimulator.RunRound(Current, round, SeasonSimulator.RoundSeed(Seed, roundNumber), penalty);
+        var penalty = _penaltyByRound.GetValueOrDefault(round.Round, NoPenalty);
+        var outcome = SeasonSimulator.RunRound(Current, round, SeasonSimulator.RoundSeed(Seed, round.Round), penalty);
         _results.Add(outcome.Result);
+
+        System.DateOnly? nextDate = roundIndex + 1 < SeasonStart.Calendar.Count
+            ? SeasonStart.Calendar[roundIndex + 1].Date
+            : null;
+        Current = _progression.AfterRound(Current, new BetweenRoundsContext
+        {
+            Round = round,
+            RoundIndex = roundIndex,
+            RoundCount = SeasonStart.Calendar.Count,
+            NextRoundDate = nextDate,
+            Seed = SeasonSimulator.RoundSeed(Seed, round.Round),
+        });
+
         return outcome.Result;
     }
+
+    // The player team's development directive: its concept lean steers node choices (neutral is a no-op, so an
+    // all-AI or unset carset develops byte-identically to no directive). Read fresh from SeasonStart, so a
+    // concept change (Ri2) re-steers the whole reconstructed season.
+    private IDevelopmentDirectives PlayerDirective() =>
+        new RndDirection(SeasonStart.PlayerTeamId, SeasonStart.PlayerTeam()?.Research.Concept ?? ConceptDirection.Neutral);
 
     /// <summary>Cross a season boundary (M21f + M22a): settle the season just played and evolve the world.
     /// First the management settle chain — economy, bank loans, enforcement (icra) and the board review,
@@ -168,14 +197,20 @@ public sealed class LiveCareer
     /// (settled finances + evolved boards baked in) becomes the new save base, so a load resumes with no re-roll.</summary>
     private void RollToNextSeason()
     {
-        // The canonical result of the season just played (LiveCareer reproduces SeasonSimulator.Run exactly).
-        var result = SeasonSimulator.Run(SeasonStart, Seed);
+        // The canonical result of the season just played — reproduced with mid-season R&D threaded in (Model B),
+        // so it matches what the live Continues produced: the car evolves round by round via the progression.
+        var rnd = new RndProgression(Seed, PlayerDirective());
+        var progress = SeasonSimulator.RunProgressed(SeasonStart, Seed, rnd);
+        var result = progress.Result;
         var seasonSeed = SeasonSimulator.RoundSeed(Seed, _seasonIndex);
         var seatTargets = SeasonStart.Teams.ToDictionary(t => t.Id, t => t.DriverIds.Count, System.StringComparer.Ordinal);
 
         // Management settle chain — economy → loans → enforcement → board — before the world evolution, so the
-        // settled finances/boards are what CareerRollover and the save base carry forward.
-        var settlement = EconomyLedger.SettleSeason(SeasonStart, result);
+        // settled finances/boards are what CareerRollover and the save base carry forward. Economy settles on the
+        // evolved end-of-season carset; the season's R&D spend is folded into the cost-cap check (already debited
+        // from the balance during development, so it is not re-charged).
+        var rndSpend = rnd.Developments.ToDictionary(d => d.TeamId, d => d.BudgetSpent, System.StringComparer.Ordinal);
+        var settlement = EconomyLedger.SettleSeason(progress.Carset, result, rndSpend);
         var banked = BankLedger.SettleSeason(settlement.Carset);
         var enforcement = BankEnforcement.Enforce(banked.Carset, banked.Missed);
         var penalties = settlement.Penalties.Concat(enforcement.PointsPenalties).ToList();
@@ -215,6 +250,7 @@ public sealed class LiveCareer
     {
         _roundByNumber.Clear();
         _penaltyByRound.Clear();
+        _indexByRound.Clear();
 
         // Component grid penalties are season-scoped: computed once from the season-start carset and keyed by
         // round number, so a round always draws the same penalty whether it runs live or on reconstruction.
@@ -224,20 +260,28 @@ public sealed class LiveCareer
             var round = SeasonStart.Calendar[i];
             _roundByNumber[round.Round] = round;
             _penaltyByRound[round.Round] = penalties[i];
+            _indexByRound[round.Round] = i;
         }
     }
 
-    /// <summary>Rebuild results + standings for the current date: re-run every round already in the past from
-    /// the season-start carset. Deterministic, so it matches advancing there live with no persisted standings.</summary>
+    /// <summary>Rebuild results + standings + the evolved carset for the current date: replay every past round
+    /// from the season-start carset, threading the R&amp;D progression so the car evolves mid-season exactly as it
+    /// did live (Model B). Deterministic in <c>(SeasonStart, Seed, Date)</c>, so a load reproduces the live
+    /// table <em>and</em> the live car with no persisted standings or car — the save format is unchanged. The
+    /// progression instance is retained so the next live Continue resumes its state.</summary>
     private void Reconstruct()
     {
         _results.Clear();
+        _progression = new RndProgression(Seed, PlayerDirective());
+        Current = SeasonStart;
 
-        foreach (var round in SeasonStart.Calendar.Where(r => r.Date <= Clock.Date).OrderBy(r => r.Round))
+        for (var i = 0; i < SeasonStart.Calendar.Count; i++)
         {
-            var penalty = _penaltyByRound.GetValueOrDefault(round.Round, NoPenalty);
-            var outcome = SeasonSimulator.RunRound(SeasonStart, round, SeasonSimulator.RoundSeed(Seed, round.Round), penalty);
-            _results.Add(outcome.Result);
+            var round = SeasonStart.Calendar[i];
+            if (round.Date <= Clock.Date)
+            {
+                RunAndEvolve(round, i);
+            }
         }
 
         Standings = ChampionshipStandings.From(SeasonStart, _results);

@@ -7,6 +7,8 @@ using LTF.App.Settings;
 using LTF.App.ViewModels;
 using LTF.App.ViewModels.Screens;
 using LTF.Career;
+using LTF.Domain;
+using LTF.Domain.Rnd;
 using Xunit;
 
 namespace LTF.App.Tests;
@@ -62,8 +64,15 @@ public class Phase3LiveCareerTests
         Assert.True(live.SeasonComplete);
         Assert.Equal(session.Carset.Calendar.Count, live.Results.Count);
 
-        // The live career, run round-by-round, reproduces the one-shot whole-season simulation exactly.
-        var expected = SeasonSimulator.Run(session.Carset, session.Seed).Standings;
+        // The live career, run round-by-round with mid-season R&D threaded in (Model B), reproduces the one-shot
+        // progressed whole-season simulation exactly — it matches RunProgressed (the car evolves each round),
+        // not the pristine Run.
+        var directive = new RndDirection(
+            session.Carset.PlayerTeamId,
+            session.Carset.PlayerTeam()?.Research.Concept ?? ConceptDirection.Neutral);
+        var expected = SeasonSimulator
+            .RunProgressed(session.Carset, session.Seed, new RndProgression(session.Seed, directive))
+            .Result.Standings;
         Assert.Equal(expected.Drivers, live.Standings.Drivers);
         Assert.Equal(expected.Constructors, live.Standings.Constructors);
         Assert.True(live.Standings.Drivers.Sum(d => d.Points) > 0);
