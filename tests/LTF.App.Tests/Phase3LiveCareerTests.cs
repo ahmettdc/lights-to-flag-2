@@ -47,12 +47,19 @@ public class Phase3LiveCareerTests
         var live = new LiveCareer(session);
 
         var guard = 0;
-        while (live.CanContinue && guard++ < 1000)
+        while (!live.SeasonComplete && guard++ < 1000)
         {
-            live.Continue();
+            if (live.PendingAction)
+            {
+                live.Acknowledge();
+            }
+            else
+            {
+                live.Continue();
+            }
         }
 
-        Assert.False(live.CanContinue);
+        Assert.True(live.SeasonComplete);
         Assert.Equal(session.Carset.Calendar.Count, live.Results.Count);
 
         // The live career, run round-by-round, reproduces the one-shot whole-season simulation exactly.
@@ -90,16 +97,15 @@ public class Phase3LiveCareerTests
 
         var beforeDate = shell.TopBar.DateText;
 
-        var guard = 0;
-        while (shell.TopBar.CanContinue && guard++ < 1000)
+        // A dozen continues run several rounds without leaving the first season.
+        for (var i = 0; i < 12; i++)
         {
             shell.TopBar.ContinueCommand.Execute(null);
         }
 
         Assert.NotEqual(beforeDate, shell.TopBar.DateText); // the top bar re-read the advanced clock
-        Assert.False(shell.TopBar.CanContinue);
 
-        // The open screen rebuilds from live state: the standings now carry a full season's points.
+        // The open screen rebuilds from live state: the standings now carry the season's points so far.
         shell.Navigation.Navigate(NavKey.Standings);
         var standings = (StandingsViewModel)shell.Navigation.CurrentScreen!;
         Assert.True(standings.Drivers.Sum(d => d.Points) > 0);

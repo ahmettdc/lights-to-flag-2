@@ -48,6 +48,16 @@ internal static class CareerNews
             RequiresAction: true);
     }
 
+    public static Notification ForNewSeason(DateOnly date, int seasonNumber) =>
+        new(
+            $"season-{seasonNumber}",
+            NotificationCategory.Press,
+            NotificationSeverity.Info,
+            "A new season begins",
+            "The grid resets and a fresh championship gets under way.",
+            NavKey.PaddockHub,
+            date);
+
     public static Notification ForBoardReview(DateOnly date) =>
         new(
             $"board-{date.ToString("yyyyMMdd", CultureInfo.InvariantCulture)}",

@@ -20,9 +20,9 @@ namespace LTF.App.Session;
 /// season-scoped quantity keyed by round (as <see cref="SeasonSimulator"/> does), so a full season of
 /// Continues reproduces <see cref="SeasonSimulator.Run"/> exactly.
 ///
-/// M21d runs the in-season rounds only; the dated inbox + action-required halt (M21e) and the season-boundary
-/// rollover (M21f) build on this. In-season carset evolution (R&amp;D/test days) is not applied yet, so
-/// <see cref="Current"/> equals <see cref="SeasonStart"/> for now.
+/// The dated inbox + action-required halt is M21e; the season-boundary rollover (M21f) evolves the world at
+/// season end and opens the next season on the rolled carset. In-season carset evolution (R&amp;D/test days)
+/// is not applied yet, so <see cref="Current"/> equals <see cref="SeasonStart"/> within a season.
 /// </summary>
 public sealed class LiveCareer
 {
@@ -32,6 +32,7 @@ public sealed class LiveCareer
     private readonly List<RaceResult> _results = new();
     private readonly Dictionary<int, IReadOnlyDictionary<string, int>> _penaltyByRound = new();
     private readonly Dictionary<int, CalendarRound> _roundByNumber = new();
+    private int _seasonIndex;
 
     public LiveCareer(ShellSession session)
     {
@@ -40,22 +41,14 @@ public sealed class LiveCareer
         Seed = session.Seed;
         Clock = session.Clock;
 
-        // Component grid penalties are season-scoped: computed once from the season-start carset and keyed
-        // by round number, so a round always draws the same penalty whether it runs live or on reconstruction.
-        var penalties = ComponentPenalties.ForSeason(SeasonStart);
-        for (var i = 0; i < SeasonStart.Calendar.Count; i++)
-        {
-            var round = SeasonStart.Calendar[i];
-            _roundByNumber[round.Round] = round;
-            _penaltyByRound[round.Round] = penalties[i];
-        }
-
+        RebuildRoundMaps();
         Standings = ChampionshipStandings.Empty(SeasonStart);
         Reconstruct();
     }
 
-    /// <summary>The season's opening carset — the deterministic reconstruction base.</summary>
-    public Carset SeasonStart { get; }
+    /// <summary>The current season's opening carset — the deterministic reconstruction base (advances at a
+    /// season boundary to the rolled carset).</summary>
+    public Carset SeasonStart { get; private set; }
 
     /// <summary>The carset the shell reads today (M21d: equals <see cref="SeasonStart"/>).</summary>
     public Carset Current { get; private set; }
@@ -75,11 +68,13 @@ public sealed class LiveCareer
     /// save format is unchanged and a load reconstructs.</summary>
     public ShellSession SaveSession => new(SeasonStart, Clock, Seed);
 
-    /// <summary>Whether a plain <see cref="Continue"/> can advance now: the season isn't over and no
-    /// action-required item is pending (Rev 15). Clear a pending item with <see cref="Acknowledge"/>.</summary>
-    public bool CanContinue => !Clock.SeasonComplete && !PendingAction;
+    /// <summary>Whether a plain <see cref="Continue"/> can advance now: the career is endless (Continue rolls
+    /// into the next season at a boundary), so it is blocked only by an unacknowledged action-required item
+    /// (Rev 15). Clear a pending item with <see cref="Acknowledge"/>.</summary>
+    public bool CanContinue => !PendingAction;
 
-    /// <summary>True once the season's events are exhausted (Continue has nowhere left to go).</summary>
+    /// <summary>True at a season boundary — the current season's events are exhausted and the next Continue
+    /// rolls the world into a new season.</summary>
     public bool SeasonComplete => Clock.SeasonComplete;
 
     /// <summary>Set when the last step surfaced an action-required event (a contract deadline): Continue
@@ -104,6 +99,13 @@ public sealed class LiveCareer
     {
         if (!CanContinue)
         {
+            return;
+        }
+
+        // At a season boundary, Continue rolls the world into the next season (M21f) rather than stalling.
+        if (Clock.SeasonComplete)
+        {
+            RollToNextSeason();
             return;
         }
 
@@ -142,6 +144,54 @@ public sealed class LiveCareer
         var outcome = SeasonSimulator.RunRound(Current, round, SeasonSimulator.RoundSeed(Seed, roundNumber), penalty);
         _results.Add(outcome.Result);
         return outcome.Result;
+    }
+
+    /// <summary>Cross a season boundary (M21f): settle the season just played into records and evolve the
+    /// world — relationships, driver aging/retirement, the transfer market, contracts and any passed
+    /// regulation — then open the next season on the rolled carset. Reuses the exact boundary chain the M18
+    /// <see cref="WorldSweep"/> runs. Deterministic in the career seed; the rolled carset becomes the new save
+    /// base, so a load resumes the new season with no re-roll.</summary>
+    private void RollToNextSeason()
+    {
+        // The canonical result of the season just played (LiveCareer reproduces SeasonSimulator.Run exactly).
+        var result = SeasonSimulator.Run(SeasonStart, Seed);
+        var seasonSeed = SeasonSimulator.RoundSeed(Seed, _seasonIndex);
+        var seatTargets = SeasonStart.Teams.ToDictionary(t => t.Id, t => t.DriverIds.Count, System.StringComparer.Ordinal);
+
+        var next = SeasonStart;
+        next = RelationshipEvolution.Apply(next, result);          // incidents move the paddock
+        next = CareerRollover.Apply(next, result);                 // roll the season into records
+        next = DriverProgression.Advance(next, seasonSeed);        // age, grow and decline
+        next = DriverRetirement.Retire(next);                      // the over-age leave, seats open
+        next = ContractLedger.AdvanceSeason(next);                 // contracts count down
+        next = TransferMarket.Resolve(next, seatTargets, result.Standings, seasonSeed); // fill seats
+        next = RegulationChange.Apply(next, seasonSeed);           // set back the unprepared
+
+        _seasonIndex++;
+        SeasonStart = next;
+        Current = next;
+        Clock = CareerClock.Start(next);
+        RebuildRoundMaps();
+        _results.Clear();
+        Standings = ChampionshipStandings.Empty(next);
+        LastStepNews = new List<Notification> { CareerNews.ForNewSeason(Clock.Date, _seasonIndex) };
+        PendingAction = false;
+    }
+
+    private void RebuildRoundMaps()
+    {
+        _roundByNumber.Clear();
+        _penaltyByRound.Clear();
+
+        // Component grid penalties are season-scoped: computed once from the season-start carset and keyed by
+        // round number, so a round always draws the same penalty whether it runs live or on reconstruction.
+        var penalties = ComponentPenalties.ForSeason(SeasonStart);
+        for (var i = 0; i < SeasonStart.Calendar.Count; i++)
+        {
+            var round = SeasonStart.Calendar[i];
+            _roundByNumber[round.Round] = round;
+            _penaltyByRound[round.Round] = penalties[i];
+        }
     }
 
     /// <summary>Rebuild results + standings for the current date: re-run every round already in the past from

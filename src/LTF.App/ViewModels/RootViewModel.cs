@@ -93,11 +93,12 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         navigation.Register(NavKey.Drivers, () => new DriversViewModel(live.Current));
         navigation.Register(NavKey.Database, () => new DatabaseViewModel(live.Current));
 
-        // The top-bar Continue stays enabled through a Rev-15 pause so it can acknowledge it; whether it
-        // advances or acknowledges is decided in ContinueCareerStep.
+        // The career is endless (Continue rolls into the next season at a boundary) and the button also
+        // acknowledges a Rev-15 pause, so it stays enabled unless an action is pending; ContinueCareerStep
+        // decides whether a click advances, rolls over or acknowledges.
         var shell = new ShellViewModel(
             navigation, new SessionSnapshot(live.Session), _services.Notifications,
-            host: this, onContinue: ContinueCareerStep, canContinue: () => !live.SeasonComplete);
+            host: this, onContinue: ContinueCareerStep, canContinue: () => live.CanContinue);
         _shell = shell;
         Content = shell;
     }

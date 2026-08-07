@@ -116,8 +116,8 @@ public class Phase3InboxTests
 
         Assert.Empty(shell.Inbox.Items); // a fresh career opens on an empty feed
 
-        var guard = 0;
-        while (shell.TopBar.CanContinue && guard++ < 500)
+        // A dozen continues within the first season fill the inbox with race + board items.
+        for (var i = 0; i < 12; i++)
         {
             shell.TopBar.ContinueCommand.Execute(null);
         }
