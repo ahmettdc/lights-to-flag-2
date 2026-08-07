@@ -312,4 +312,34 @@ public class Phase5RaceWeekendTests
 
         Assert.NotEqual(early, late); // the field spreads differently around the lap as the gaps evolve
     }
+
+    // --- Sector colours + radio (M23f) ---
+
+    [Fact]
+    public void The_tower_rows_carry_sector_status_colours()
+    {
+        var vm = new RaceWeekendViewModel(AfterFirstRace());
+        vm.SetLap(1);
+
+        Assert.All(vm.Tower, r =>
+        {
+            Assert.NotNull(r.S1);
+            Assert.NotNull(r.S2);
+            Assert.NotNull(r.S3);
+        });
+
+        // The session-fastest S1 is coloured differently from a merely personal-best one, so a full grid
+        // shows at least two distinct sector colours.
+        Assert.True(vm.Tower.Select(r => r.S1).Distinct().Count() >= 2);
+    }
+
+    [Fact]
+    public void The_radio_feed_voices_the_recorded_events()
+    {
+        var vm = new RaceWeekendViewModel(AfterFirstRace());
+        vm.SetLap(vm.TotalLaps);
+
+        Assert.NotEmpty(vm.Feed);
+        Assert.All(vm.Feed, e => Assert.StartsWith("L", e.Text)); // "L{lap} · <voiced message>"
+    }
 }

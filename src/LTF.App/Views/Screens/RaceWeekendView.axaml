@@ -166,11 +166,11 @@
           <Border Classes="card" IsVisible="{Binding !RaceOver}">
             <DockPanel LastChildFill="True">
               <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
-                <Grid ColumnDefinitions="30,*,64,52,50,34">
+                <Grid ColumnDefinitions="28,*,56,54,44,26">
                   <TextBlock Grid.Column="0" Classes="colHead" Text="P" />
                   <TextBlock Grid.Column="1" Classes="colHead" Text="DRIVER" Margin="8,0,0,0" />
                   <TextBlock Grid.Column="2" Classes="colHead" Text="GAP" />
-                  <TextBlock Grid.Column="3" Classes="colHead" Text="INT" />
+                  <TextBlock Grid.Column="3" Classes="colHead" Text="SECT" />
                   <TextBlock Grid.Column="4" Classes="colHead" Text="TYRE" />
                   <TextBlock Grid.Column="5" Classes="colHead" Text="PIT" />
                 </Grid>
@@ -179,7 +179,7 @@
                 <ItemsControl ItemsSource="{Binding Tower}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="screens:TimingRowViewModel">
-                      <Grid Height="30" ColumnDefinitions="30,*,64,52,50,34" Margin="12,0" Background="Transparent">
+                      <Grid Height="30" ColumnDefinitions="28,*,56,54,44,26" Margin="12,0" Background="Transparent">
                         <TextBlock Grid.Column="0" Text="{Binding Position}" Classes="num" FontWeight="Bold" />
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="8,0,0,0" VerticalAlignment="Center">
                           <Border Width="3" Height="16" CornerRadius="1.5" Background="{Binding Accent}" />
@@ -187,8 +187,11 @@
                         </StackPanel>
                         <TextBlock Grid.Column="2" Text="{Binding Gap}" Classes="num" FontSize="11"
                                    Foreground="{DynamicResource BrushTextSecondary}" />
-                        <TextBlock Grid.Column="3" Text="{Binding Interval}" Classes="num" FontSize="11"
-                                   Foreground="{DynamicResource BrushTextDim}" />
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
+                          <Border Width="12" Height="5" CornerRadius="1" Background="{Binding S1}" />
+                          <Border Width="12" Height="5" CornerRadius="1" Background="{Binding S2}" />
+                          <Border Width="12" Height="5" CornerRadius="1" Background="{Binding S3}" />
+                        </StackPanel>
                         <TextBlock Grid.Column="4" Text="{Binding Tyre}" Classes="num" FontSize="11"
                                    Foreground="{DynamicResource BrushStatusGood}" />
                         <TextBlock Grid.Column="5" Text="{Binding PitStops}" Classes="num" FontSize="11"
@@ -234,7 +237,7 @@
         <Border Grid.Row="1" Classes="card">
           <DockPanel LastChildFill="True">
             <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
-              <TextBlock Classes="cardHeader" Text="{loc:Tr raceWeekend.events}" />
+              <TextBlock Classes="cardHeader" Text="{loc:Tr raceWeekend.radio}" />
             </Border>
             <ScrollViewer HorizontalScrollBarVisibility="Disabled">
               <ItemsControl ItemsSource="{Binding Feed}">

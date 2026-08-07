@@ -182,6 +182,7 @@ public static class EnglishStrings
         [StringKeys.RaceWeekendStartRace] = "START RACE",
         [StringKeys.RaceWeekendTabRace] = "RACE",
         [StringKeys.RaceWeekendTabQualifying] = "QUALIFYING",
+        [StringKeys.RaceWeekendRadio] = "TEAM RADIO",
 
         [StringKeys.CarsPerformance] = "CAR PERFORMANCE",
         [StringKeys.CarsOverall] = "OVERALL",

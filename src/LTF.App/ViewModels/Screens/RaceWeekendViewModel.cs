@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LTF.App.Mvvm;
@@ -31,6 +32,10 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     private readonly IReadOnlyDictionary<string, int> _teamIndex;
     private readonly IReadOnlySet<string> _playerDrivers;
     private double _referenceLap = 90.0;
+
+    // The "fastest sector" colour (F1-style magenta) for the timing tower (M23f). Immutable so it is safe to
+    // create once at static-init on any thread (a mutable SolidColorBrush is thread-affine and would throw).
+    private static readonly IBrush SectorPurple = new ImmutableSolidColorBrush(Color.FromRgb(0xB8, 0x5C, 0xF0));
 
     public RaceWeekendViewModel(
         LiveCareer live,
@@ -171,6 +176,59 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         var snapshot = _result.Telemetry.Laps[CurrentLap - 1];
         FlagText = FlagOf(snapshot.State);
 
+        // Sector-colour bookkeeping (M23f): the session-best and each driver's personal-best sector times up to
+        // and including the current lap. A car's current-lap sector is then purple if it is the session best,
+        // green if it is that driver's own best, or neutral otherwise — a pure projection of recorded sectors.
+        var sessionBest = new[] { double.MaxValue, double.MaxValue, double.MaxValue };
+        var personalBest = new Dictionary<string, double[]>(StringComparer.Ordinal);
+        for (var l = 0; l < CurrentLap; l++)
+        {
+            foreach (var s in _result.Telemetry.Laps[l].Order)
+            {
+                if (!personalBest.TryGetValue(s.CompetitorId, out var pb))
+                {
+                    pb = new[] { double.MaxValue, double.MaxValue, double.MaxValue };
+                    personalBest[s.CompetitorId] = pb;
+                }
+
+                var secs = new[] { s.Sector1, s.Sector2, s.Sector3 };
+                for (var i = 0; i < 3; i++)
+                {
+                    if (secs[i] <= 0)
+                    {
+                        continue;
+                    }
+
+                    if (secs[i] < sessionBest[i])
+                    {
+                        sessionBest[i] = secs[i];
+                    }
+
+                    if (secs[i] < pb[i])
+                    {
+                        pb[i] = secs[i];
+                    }
+                }
+            }
+        }
+
+        IBrush SectorBrush(string id, double value, int i)
+        {
+            if (value <= 0)
+            {
+                return ScreenBrushes.Faint;
+            }
+
+            if (value <= sessionBest[i] + 1e-6)
+            {
+                return SectorPurple;
+            }
+
+            return personalBest.TryGetValue(id, out var pb) && value <= pb[i] + 1e-6
+                ? ScreenBrushes.Good
+                : ScreenBrushes.Secondary;
+        }
+
         Tower = snapshot.Order
             .Select(s => new TimingRowViewModel(
                 s.Position,
@@ -180,7 +238,10 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
                 s.Position <= 1 ? "LEADER" : string.Create(CultureInfo.InvariantCulture, $"+{s.GapToLeader:0.0}"),
                 s.Position <= 1 ? "—" : string.Create(CultureInfo.InvariantCulture, $"+{s.IntervalAhead:0.0}"),
                 string.Create(CultureInfo.InvariantCulture, $"{Compound(s.TyreCompound)} {s.TyreAge}"),
-                PitsUpTo(s.CompetitorId, CurrentLap)))
+                PitsUpTo(s.CompetitorId, CurrentLap),
+                SectorBrush(s.CompetitorId, s.Sector1, 0),
+                SectorBrush(s.CompetitorId, s.Sector2, 1),
+                SectorBrush(s.CompetitorId, s.Sector3, 2)))
             .ToList();
 
         // Track-map markers (M23e): a car g laps' worth of time behind the leader sits g of a lap short of the
@@ -204,7 +265,7 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
             .Take(14)
             .Select(e => new RaceEventRowViewModel(
                 e.Lap,
-                string.Create(CultureInfo.InvariantCulture, $"L{e.Lap} · {e.Description}"),
+                string.Create(CultureInfo.InvariantCulture, $"L{e.Lap} · {Radio(e.Kind, e.Description)}"),
                 EventBrush(e.Kind)))
             .ToList();
     }
@@ -360,6 +421,21 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         _ => ScreenBrushes.Dim,
     };
 
+    // Voice a race event as a team-radio line (M23f): a short message keyed on the event kind, followed by the
+    // engine's own description. Pure text projection of the recorded events — nothing new is simulated.
+    private static string Radio(RaceEventKind kind, string description) => kind switch
+    {
+        RaceEventKind.Pit => $"Box confirmed — {description}",
+        RaceEventKind.Overtake => $"Position change — {description}",
+        RaceEventKind.MechanicalFailure => $"Car problem — {description}",
+        RaceEventKind.DriverError or RaceEventKind.Collision or RaceEventKind.StartIncident => $"Incident — {description}",
+        RaceEventKind.SafetyCar => $"Safety car — {description}",
+        RaceEventKind.VirtualSafetyCar => $"VSC deployed — {description}",
+        RaceEventKind.RedFlag => $"Red flag — {description}",
+        RaceEventKind.Penalty => $"Penalty — {description}",
+        _ => description,
+    };
+
     // Split a PascalCase enum name into words (DidNotStart → "Did Not Start").
     private static string Spaced(string pascal)
     {
@@ -378,9 +454,11 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
     }
 }
 
-/// <summary>One row of the live timing tower (M23): order, names, gaps, tyre and pit count.</summary>
+/// <summary>One row of the live timing tower (M23): order, names, gaps, tyre and pit count, plus the three
+/// sector-status colours (M23f: purple = session best, green = personal best, else neutral).</summary>
 public sealed record TimingRowViewModel(
-    int Position, string Driver, string Team, IBrush Accent, string Gap, string Interval, string Tyre, int PitStops);
+    int Position, string Driver, string Team, IBrush Accent, string Gap, string Interval, string Tyre, int PitStops,
+    IBrush S1, IBrush S2, IBrush S3);
 
 /// <summary>One entry in the race event feed (M23).</summary>
 public sealed record RaceEventRowViewModel(int Lap, string Text, IBrush Brush);
