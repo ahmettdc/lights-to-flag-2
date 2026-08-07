@@ -31,3 +31,6 @@ Bu klasör, Lights to Flag 2'nin bağlayıcı mimari kararlarını tutar. Kaynak
 | [0024](0024-car-rating-rnd-validation.md) | Araç puanlama modeli & R&D doğrulama |
 | [0025](0025-board-management-pressure.md) | Yönetim kurulu, sahiplik & baskı sistemi |
 | [0026](0026-phase3-ui-architecture.md) | Faz 3 UI mimarisi (Avalonia MVVM kabuk) |
+| [0027](0027-phase3-pre-career-ui.md) | Faz 3 kariyer-öncesi UI (ana menü + yeni kariyer + kayıt) |
+| [0028](0028-phase3-live-career.md) | Faz 3 kabuk-içi kariyer merkezi (canlı Continue + 5 ekran) |
+| [0029](0029-banking-credit-enforcement.md) | Banka & kredi (kredi puanı + imzada-donan faiz + icra) |
