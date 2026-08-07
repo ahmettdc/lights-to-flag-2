@@ -220,6 +220,7 @@ public static class EnglishStrings
         [StringKeys.RecordsHthRace] = "RACE",
         [StringKeys.RecordsHthPoints] = "POINTS",
         [StringKeys.RecordsEmptySeason] = "The season's statistics appear once racing is under way.",
+        [StringKeys.RecordsCareerTrend] = "CAREER TREND · POINTS BY SEASON",
 
         [StringKeys.CarsPerformance] = "CAR PERFORMANCE",
         [StringKeys.CarsOverall] = "OVERALL",

@@ -233,6 +233,7 @@ public static class StringKeys
     public const string RecordsHthRace = "records.hthRace";
     public const string RecordsHthPoints = "records.hthPoints";
     public const string RecordsEmptySeason = "records.emptySeason";
+    public const string RecordsCareerTrend = "records.careerTrend";
 
     // Cars & Power Unit screen (M22).
     public const string CarsPerformance = "cars.performance";

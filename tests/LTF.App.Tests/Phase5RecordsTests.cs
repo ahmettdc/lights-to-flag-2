@@ -270,4 +270,65 @@ public class Phase5RecordsTests
         Assert.Empty(vm.PointsChart);
         Assert.False(vm.HasHeadToHead);
     }
+
+    // --- Multi-season career trend (M24g) ---
+
+    // Drive a fresh flagship career until the given number of seasons have completed.
+    private static LiveCareer AfterSeasons(int n)
+    {
+        var live = new LiveCareer(SessionLoader.LoadFlagship());
+        var guard = 0;
+        while (live.Current.SeasonHistory.Count < n && guard++ < 12000)
+        {
+            if (live.PendingAction)
+            {
+                live.Acknowledge();
+            }
+            else
+            {
+                live.Continue();
+            }
+        }
+
+        return live;
+    }
+
+    [Fact]
+    public void The_career_trend_is_hidden_before_a_second_season()
+    {
+        var vm = new RecordsViewModel(AfterFirstSeason()); // one season only — nothing to trend
+
+        Assert.False(vm.HasCareerTrend);
+        Assert.Null(vm.CareerTrend);
+    }
+
+    [Fact]
+    public void The_career_trend_draws_across_multiple_seasons()
+    {
+        var vm = new RecordsViewModel(AfterSeasons(2));
+
+        // At least one driver contested both seasons, so it has a trend line.
+        var withTrend = new List<CareerProfileRowViewModel>();
+        foreach (var profile in vm.Profiles)
+        {
+            vm.SelectedProfile = profile;
+            if (vm.HasCareerTrend)
+            {
+                withTrend.Add(profile);
+            }
+        }
+
+        Assert.NotEmpty(withTrend);
+
+        vm.SelectedProfile = withTrend[0];
+        Assert.NotNull(vm.CareerTrend);
+        Assert.False(string.IsNullOrEmpty(vm.CareerTrend!.LineData));
+
+        if (withTrend.Count > 1)
+        {
+            var first = vm.CareerTrend;
+            vm.SelectedProfile = withTrend[1];
+            Assert.NotSame(first, vm.CareerTrend); // the trend follows the selection
+        }
+    }
 }

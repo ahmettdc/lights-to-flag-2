@@ -112,6 +112,35 @@ public sealed partial class RecordsViewModel : ViewModelBase
 
         HasHistory = carset.SeasonHistory.Count > 0;
 
+        // Per-driver career-trend line (M24g): season-by-season points, shown in the selected profile. Needs at
+        // least two seasons of the driver's own history, else there is nothing to trend.
+        var trend = new Dictionary<string, ChartSeriesViewModel>(StringComparer.Ordinal);
+        var seasons = carset.SeasonHistory;
+        if (seasons.Count >= 2)
+        {
+            foreach (var d in carset.Drivers)
+            {
+                var line = new List<(double X, double Y)>();
+                for (var s = 0; s < seasons.Count; s++)
+                {
+                    var entry = seasons[s].Drivers.FirstOrDefault(x => string.CompareOrdinal(x.DriverId, d.Id) == 0);
+                    if (entry is not null)
+                    {
+                        line.Add((s, entry.Points));
+                    }
+                }
+
+                if (line.Count >= 2)
+                {
+                    var maxY = Math.Max(1, line.Max(p => p.Y));
+                    var scale = new ChartScale(0, Math.Max(1, seasons.Count - 1), 0, maxY, TrendWidth, TrendHeight, TrendPad);
+                    trend[d.Id] = new ChartSeriesViewModel(BuildLineXY(line, scale), AccentOf(d.Id), d.FullName);
+                }
+            }
+        }
+
+        _trendByDriver = trend;
+
         // This-season statistics (THIS SEASON): computed from the current season's run rounds so far.
         var results = live.Results;
         var qualifying = live.Qualifying;
@@ -270,10 +299,20 @@ public sealed partial class RecordsViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ProfileDetail))]
+    [NotifyPropertyChangedFor(nameof(CareerTrend))]
+    [NotifyPropertyChangedFor(nameof(HasCareerTrend))]
     private CareerProfileRowViewModel? _selectedProfile;
 
     /// <summary>The full profile card for the selected driver (the shared driver/team detail panel).</summary>
     public EntityDetailViewModel? ProfileDetail => SelectedProfile?.Detail;
+
+    /// <summary>The selected driver's season-by-season points trend (M24g), or null with fewer than two seasons of
+    /// their own history — nothing to trend.</summary>
+    public ChartSeriesViewModel? CareerTrend =>
+        SelectedProfile is null ? null : _trendByDriver.GetValueOrDefault(SelectedProfile.DriverId);
+
+    /// <summary>Whether the selected driver has a multi-season trend to draw.</summary>
+    public bool HasCareerTrend => CareerTrend is not null;
 
     /// <summary>The all-time record leaderboards (ALL-TIME tab): the top of each cumulative tally.</summary>
     public IReadOnlyList<RecordBoardViewModel> AllTimeBoards { get; }
@@ -307,6 +346,14 @@ public sealed partial class RecordsViewModel : ViewModelBase
     public const double ChartHeight = 260;
     private const double ChartPad = 14;
 
+    /// <summary>The logical drawing size of the per-profile career-trend chart (matches the view's Canvas).</summary>
+    public const double TrendWidth = 300;
+    public const double TrendHeight = 96;
+    private const double TrendPad = 12;
+
+    // Every driver's career-trend line by id (M24g), built once; the selected profile reads its own.
+    private readonly IReadOnlyDictionary<string, ChartSeriesViewModel> _trendByDriver;
+
     // "1"…"5" for a leaderboard row (the display rank).
     private static string Ordinal(int index) => (index + 1).ToString(CultureInfo.InvariantCulture);
 
@@ -321,6 +368,15 @@ public sealed partial class RecordsViewModel : ViewModelBase
         string.Join(" ", values.Select((v, i) =>
         {
             var point = scale.At(i, v);
+            return string.Create(CultureInfo.InvariantCulture, $"{(i == 0 ? "M" : "L")} {point.X:0.##} {point.Y:0.##}");
+        }));
+
+    // As BuildLine, but for explicit (x, y) data points (the career trend plots points against the season index,
+    // which may skip a season the driver did not contest).
+    private static string BuildLineXY(IReadOnlyList<(double X, double Y)> points, ChartScale scale) =>
+        string.Join(" ", points.Select((p, i) =>
+        {
+            var point = scale.At(p.X, p.Y);
             return string.Create(CultureInfo.InvariantCulture, $"{(i == 0 ? "M" : "L")} {point.X:0.##} {point.Y:0.##}");
         }));
 
@@ -369,6 +425,7 @@ public sealed class CareerProfileRowViewModel
 {
     public CareerProfileRowViewModel(int rank, Driver driver, string teamLabel, IBrush accent)
     {
+        DriverId = driver.Id;
         Rank = rank.ToString(CultureInfo.InvariantCulture);
         Name = driver.FullName;
         Accent = accent;
@@ -381,6 +438,7 @@ public sealed class CareerProfileRowViewModel
         Detail = EntityDetailViewModel.ForDriver(driver, teamLabel);
     }
 
+    public string DriverId { get; }
     public string Rank { get; }
     public string Name { get; }
     public IBrush Accent { get; }
