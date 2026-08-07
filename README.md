@@ -8,9 +8,19 @@ The engine is data-driven and deterministic, and is deliberately split from the 
 every layer — including the interface — builds and is tested on CI (Linux, plus Windows
 and macOS, the ship targets).
 
-> **Status:** Phase 0 / M0 — solution skeleton. The engine and UI are being built
-> milestone by milestone. See [`ROADMAP.md`](ROADMAP.md) (Turkish) for the full plan
-> and [`docs/adr/`](docs/adr/) for the architecture decisions behind it.
+> **Status:** **v0.9 (pre-release).** Phase 0–2 complete (deterministic race engine +
+> career / management layer) and Phase 3 through **M24** (the Avalonia shell, live career,
+> race weekend with live racing, management screens, and statistics & records) — **784 tests
+> green**. Next up is **M25** (tutorial). See [`ROADMAP.md`](ROADMAP.md) (Turkish) for the full
+> plan and [`docs/adr/`](docs/adr/) for the architecture decisions behind it.
+
+## Download & play (Windows)
+
+Grab the latest **`LightsToFlag2-v*-win-x64.zip`** from the
+[**Releases**](https://github.com/ahmettdc/lights-to-flag-2/releases) page, extract it, and run
+`LightsToFlag2\LTF.App.exe`. The build is **self-contained** — no .NET install required. Saves
+live in `%AppData%\LightsToFlag2\`. (Not code-signed yet, so SmartScreen may prompt — *More info →
+Run anyway*.) See the release notes for the full v0.9 feature list and known limitations.
 
 ## What it is
 

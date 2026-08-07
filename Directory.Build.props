@@ -13,6 +13,18 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
 
     <!--
+      Product version + branding (v0.9). Solution-wide so every assembly stamps the same
+      version and product name (otherwise binaries default to 1.0.0.0 / "LTF.App"). A release
+      build overrides Version from the git tag (-p:Version=<tag>); this is the default.
+      Metadata only — it never affects the deterministic engine or the golden race digest.
+    -->
+    <Version>0.9.0</Version>
+    <InformationalVersion>0.9.0</InformationalVersion>
+    <Product>Lights to Flag 2</Product>
+    <Company>ahmettdc</Company>
+    <Authors>ahmettdc</Authors>
+
+    <!--
       WARNING: never set InvariantGlobalization to true.
       In the previous version it crashed the New Career screen with a
       CultureNotFoundException. Culture-sensitive parsing/formatting must be

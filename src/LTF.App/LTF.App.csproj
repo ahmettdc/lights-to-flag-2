@@ -28,6 +28,12 @@
     <AvaloniaResource Include="Assets/Fonts/*.ttf" />
   </ItemGroup>
 
+  <!-- The fonts are OFL-licensed; ship the license texts next to the app so a distributed build is
+       compliant (the .ttf themselves are compiled into the dll, but the licenses must travel with it). -->
+  <ItemGroup>
+    <None Include="Assets/Fonts/OFL-*.txt" Link="licenses/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <!-- Embed the brand logo/icon kit (from design/brand/). icon-512.png is the window icon; the logos
        are addressed via avares:// (the main menu uses them in M20). -->
   <ItemGroup>

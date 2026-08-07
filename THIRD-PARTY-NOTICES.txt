@@ -1,0 +1,28 @@
+Lights to Flag 2 — Third-party notices
+=======================================
+
+This product bundles third-party components. Their licenses are reproduced here
+and (for the fonts) alongside the application in the `licenses/` folder.
+
+Fonts (SIL Open Font License 1.1)
+---------------------------------
+The user interface uses these open-source fonts, embedded in the application:
+
+  - Archivo            — Copyright the Archivo Project Authors
+  - Chakra Petch       — Copyright the Chakra Petch Project Authors
+  - Saira Condensed    — Copyright the Saira Project Authors
+
+Each is licensed under the SIL Open Font License, Version 1.1. The full license
+text ships with the application (`licenses/OFL-Archivo.txt`,
+`licenses/OFL-ChakraPetch.txt`, `licenses/OFL-Saira.txt`) and lives in the
+repository at `src/LTF.App/Assets/Fonts/`.
+
+Runtime and UI framework
+------------------------
+  - .NET 9 runtime (self-contained in the distributed build) — MIT License,
+    Copyright (c) .NET Foundation and Contributors.
+  - Avalonia UI — MIT License, Copyright (c) .NET Foundation and Contributors.
+  - CommunityToolkit.Mvvm — MIT License, Copyright (c) .NET Foundation and Contributors.
+
+The full MIT and .NET license texts are distributed with the .NET runtime and
+the respective NuGet packages.

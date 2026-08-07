@@ -1,0 +1,86 @@
+name: Release
+
+# Build a self-contained Windows package and cut a GitHub Release when a v* tag is pushed.
+# ci.yml / build-matrix.yml run on branch pushes (build + test); this runs only on tags, so it
+# never double-runs with them. A manual dispatch builds + uploads the zip as an artifact without
+# creating a Release (handy for a dry run).
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the leading v (e.g. 0.9.0), used on manual dispatch"
+        required: false
+        default: "0.9.0"
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Windows (win-x64, self-contained)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Resolve version
+        id: ver
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            V="${GITHUB_REF_NAME#v}"
+          else
+            V="${{ github.event.inputs.version }}"
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $V"
+
+      - name: Publish win-x64 (self-contained, no .NET needed on the target)
+        run: >
+          dotnet publish src/LTF.App/LTF.App.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:Version=${{ steps.ver.outputs.version }}
+          -o publish/LightsToFlag2
+
+      - name: Verify payload
+        shell: bash
+        run: |
+          set -e
+          root="publish/LightsToFlag2"
+          test -f "$root/LTF.App.exe"              || { echo "missing LTF.App.exe"; exit 1; }
+          test -f "$root/carsets/global-prix.json" || { echo "missing flagship carset"; exit 1; }
+          ls "$root"/licenses/OFL-*.txt            || { echo "missing OFL licenses"; exit 1; }
+          cp THIRD-PARTY-NOTICES.txt "$root/"
+          echo "Payload OK"
+
+      - name: Zip
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.ver.outputs.version }}"
+          Compress-Archive -Path publish/LightsToFlag2 -DestinationPath "LightsToFlag2-v$ver-win-x64.zip"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LightsToFlag2-v${{ steps.ver.outputs.version }}-win-x64
+          path: LightsToFlag2-v${{ steps.ver.outputs.version }}-win-x64.zip
+
+      - name: Create GitHub Release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "LightsToFlag2-v${{ steps.ver.outputs.version }}-win-x64.zip" \
+            --title "Lights to Flag 2 v${{ steps.ver.outputs.version }}" \
+            --notes-file "docs/release-notes/v0.9.0.md" \
+            --prerelease
