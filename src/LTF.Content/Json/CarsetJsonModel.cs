@@ -104,6 +104,13 @@ internal sealed class RegulationsJson
     public double? LowDragLapGainSeconds { get; set; }
     public double? HighDownforceLapGainSeconds { get; set; }
     public double? LowDragTopSpeedKph { get; set; }
+    public List<AxisFreezeJson>? DevelopmentFreezes { get; set; }
+}
+
+internal sealed class AxisFreezeJson
+{
+    public string? Axis { get; set; }
+    public string? Mode { get; set; }
 }
 
 internal sealed class RulesJson

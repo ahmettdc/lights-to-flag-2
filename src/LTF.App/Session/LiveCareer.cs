@@ -32,6 +32,10 @@ public sealed class LiveCareer
     private static readonly IReadOnlyDictionary<string, int> NoPenalty =
         new Dictionary<string, int>(System.StringComparer.Ordinal);
 
+    // A fixed salt mixed with the season seed for the winter R&D pulse, so its draws never collide with a
+    // round's race seed.
+    private const int WinterSeedSalt = 0x7157;
+
     private readonly List<RaceResult> _results = new();
     private readonly Dictionary<int, IReadOnlyDictionary<string, int>> _penaltyByRound = new();
     private readonly Dictionary<int, CalendarRound> _roundByNumber = new();
@@ -205,12 +209,29 @@ public sealed class LiveCareer
         var seasonSeed = SeasonSimulator.RoundSeed(Seed, _seasonIndex);
         var seatTargets = SeasonStart.Teams.ToDictionary(t => t.Id, t => t.DriverIds.Count, System.StringComparer.Ordinal);
 
+        // Winter development (Ri3): axes an FIA regulation freezes to "in-season only" were held back all season;
+        // at the boundary they get their season's development in one pulse (fully-frozen axes stay frozen).
+        // Inert (returns progress.Carset unchanged) when no such freeze is active, so a freeze-free career rolls
+        // over byte-identically.
+        var winter = ResearchLedger.DevelopWinter(
+            progress.Carset, SeasonSimulator.RoundSeed(seasonSeed, WinterSeedSalt), PlayerDirective());
+
         // Management settle chain — economy → loans → enforcement → board — before the world evolution, so the
         // settled finances/boards are what CareerRollover and the save base carry forward. Economy settles on the
-        // evolved end-of-season carset; the season's R&D spend is folded into the cost-cap check (already debited
-        // from the balance during development, so it is not re-charged).
-        var rndSpend = rnd.Developments.ToDictionary(d => d.TeamId, d => d.BudgetSpent, System.StringComparer.Ordinal);
-        var settlement = EconomyLedger.SettleSeason(progress.Carset, result, rndSpend);
+        // evolved end-of-season carset; the season's total R&D spend (mid-season + winter) is folded into the
+        // cost-cap check (already debited from the balance during development, so it is not re-charged).
+        var rndSpend = new Dictionary<string, long>(System.StringComparer.Ordinal);
+        foreach (var d in rnd.Developments)
+        {
+            rndSpend[d.TeamId] = d.BudgetSpent;
+        }
+
+        foreach (var d in winter.Developments)
+        {
+            rndSpend[d.TeamId] = rndSpend.GetValueOrDefault(d.TeamId) + d.BudgetSpent;
+        }
+
+        var settlement = EconomyLedger.SettleSeason(winter.Carset, result, rndSpend);
         var banked = BankLedger.SettleSeason(settlement.Carset);
         var enforcement = BankEnforcement.Enforce(banked.Carset, banked.Missed);
         var penalties = settlement.Penalties.Concat(enforcement.PointsPenalties).ToList();

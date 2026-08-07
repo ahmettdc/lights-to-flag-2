@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using LTF.Domain.Rnd;
+
 namespace LTF.Domain.Racing;
 
 /// <summary>
@@ -29,6 +32,12 @@ public sealed record RegulationSet
 {
     /// <summary>The rule era this set describes. Default <see cref="RegulationEra.DrsEra"/>.</summary>
     public RegulationEra Era { get; init; } = RegulationEra.DrsEra;
+
+    /// <summary>The FIA development freezes in force this season (Ri3 / ADR-0010): the car axes whose R&amp;D is
+    /// restricted, each with how hard (<see cref="DevelopmentFreezeMode"/>). Empty by default — the inert case,
+    /// where every axis develops freely and the carset is byte-identical to before. Evolves season-to-season
+    /// through the regulation ballot (Ri4).</summary>
+    public IReadOnlyList<AxisFreeze> DevelopmentFreezes { get; init; } = [];
 
     // ---- 2026: energy management (read only when Era is ActiveAero2026) ----
 

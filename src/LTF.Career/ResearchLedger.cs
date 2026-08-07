@@ -27,6 +27,7 @@ public static class ResearchLedger
             return new ResearchOutcome { Carset = carset };
         }
 
+        var frozen = MidSeasonFrozen(carset.Regulations);
         var root = new DeterministicRandom(seed);
         var developments = new List<TeamDevelopment>(carset.Teams.Count);
         var teams = new List<Team>(carset.Teams.Count);
@@ -34,7 +35,7 @@ public static class ResearchLedger
         {
             var (developed, development) = Develop(
                 carset.TechTree, rules, team, root.Fork(Salt(team.Id)), Rate(rules, team),
-                ConceptFor(directives, team.Id), CapFor(directives, team.Id));
+                ConceptFor(directives, team.Id), CapFor(directives, team.Id), frozen);
             teams.Add(developed);
             developments.Add(development);
         }
@@ -59,6 +60,7 @@ public static class ResearchLedger
             return new ResearchOutcome { Carset = carset };
         }
 
+        var frozen = MidSeasonFrozen(carset.Regulations);
         var root = new DeterministicRandom(Mix(seed, roundIndex));
         var developments = new List<TeamDevelopment>(carset.Teams.Count);
         var teams = new List<Team>(carset.Teams.Count);
@@ -67,7 +69,40 @@ public static class ResearchLedger
             var stepRate = StepRate(Rate(rules, team), roundIndex, roundCount);
             var (developed, development) = Develop(
                 carset.TechTree, rules, team, root.Fork(Salt(team.Id)), stepRate,
-                ConceptFor(directives, team.Id), CapFor(directives, team.Id));
+                ConceptFor(directives, team.Id), CapFor(directives, team.Id), frozen);
+            teams.Add(developed);
+            developments.Add(development);
+        }
+
+        return new ResearchOutcome { Carset = carset with { Teams = teams }, Developments = developments };
+    }
+
+    /// <summary>
+    /// Develop the axes a regulation freezes to "in-season only" over the winter (Ri3): at a season boundary
+    /// these axes — held frozen through the season — get one season's worth of development in a single pulse,
+    /// while fully-frozen axes stay frozen and unrestricted axes are left untouched (they already developed
+    /// in-season). Deterministic (seeded). Inert — returns the same carset — when nothing is frozen
+    /// in-season-only, so a career with no such freeze rolls over byte-identically.
+    /// </summary>
+    public static ResearchOutcome DevelopWinter(Carset carset, int seed, IDevelopmentDirectives? directives = null)
+    {
+        var rules = carset.Rules.Research;
+        var winter = WinterAxes(carset.Regulations);
+        if (winter.Count == 0 || carset.TechTree.Nodes.Count == 0 || rules.BaseProgressPerSeason <= 0)
+        {
+            return new ResearchOutcome { Carset = carset };
+        }
+
+        // Develop only the in-season-only axes: everything else is "frozen" for this boundary pulse.
+        var frozen = AllAxesExcept(winter);
+        var root = new DeterministicRandom(seed);
+        var developments = new List<TeamDevelopment>(carset.Teams.Count);
+        var teams = new List<Team>(carset.Teams.Count);
+        foreach (var team in carset.Teams)
+        {
+            var (developed, development) = Develop(
+                carset.TechTree, rules, team, root.Fork(Salt(team.Id)), Rate(rules, team),
+                ConceptFor(directives, team.Id), CapFor(directives, team.Id), frozen);
             teams.Add(developed);
             developments.Add(development);
         }
@@ -77,7 +112,7 @@ public static class ResearchLedger
 
     private static (Team Team, TeamDevelopment Development) Develop(
         TechTree tree, ResearchRules rules, Team team, IRandom rng, int rate,
-        ConceptDirection concept, long budgetCap)
+        ConceptDirection concept, long budgetCap, IReadOnlySet<CarAxis> frozen)
     {
         var car = team.Car;
         var balance = team.Finances.Balance;
@@ -87,10 +122,17 @@ public static class ResearchLedger
         var approved = new List<string>();
         var abandoned = 0;
 
-        // 1. Advance existing projects; resolve those that reach validation.
+        // 1. Advance existing projects; resolve those that reach validation. A frozen axis is held in place —
+        //    its project neither progresses nor resolves this pass (an FIA development freeze, Ri3).
         var active = new List<DevelopmentProject>();
         foreach (var project in team.Research.ActiveProjects)
         {
+            if (frozen.Contains(project.TargetAxis))
+            {
+                active.Add(project);
+                continue;
+            }
+
             var advanced = Advance(project, rate, rules);
             if (advanced.State != ValidationState.DataReview)
             {
@@ -134,8 +176,8 @@ public static class ResearchLedger
                 break;
             }
 
-            if (unlocked.Contains(node.Id) || activeIds.Contains(node.Id) || abandonedIds.Contains(node.Id)
-                || !AllMet(node, unlocked))
+            if (frozen.Contains(node.Category) || unlocked.Contains(node.Id) || activeIds.Contains(node.Id)
+                || abandonedIds.Contains(node.Id) || !AllMet(node, unlocked))
             {
                 continue;
             }
@@ -240,6 +282,37 @@ public static class ResearchLedger
 
     private static long CapFor(IDevelopmentDirectives? directives, string teamId) =>
         directives?.BudgetCapFor(teamId) ?? long.MaxValue;
+
+    private static readonly IReadOnlySet<CarAxis> NoAxes = new HashSet<CarAxis>();
+
+    // The axes frozen for in-season development — both InSeasonOnly and Full stop developing during the season.
+    // Empty (the shared NoAxes) when no freeze is authored, so development is byte-identical to before.
+    private static IReadOnlySet<CarAxis> MidSeasonFrozen(RegulationSet regs) =>
+        regs.DevelopmentFreezes.Count == 0 ? NoAxes : regs.DevelopmentFreezes.Select(f => f.Axis).ToHashSet();
+
+    // The axes that develop over the winter — the InSeasonOnly ones: frozen in-season, developed at the boundary.
+    private static IReadOnlySet<CarAxis> WinterAxes(RegulationSet regs) =>
+        regs.DevelopmentFreezes.Count == 0
+            ? NoAxes
+            : regs.DevelopmentFreezes
+                .Where(f => f.Mode == DevelopmentFreezeMode.InSeasonOnly)
+                .Select(f => f.Axis)
+                .ToHashSet();
+
+    // Every car axis except those to keep — the "skip" set for a pulse that develops only `keep`.
+    private static IReadOnlySet<CarAxis> AllAxesExcept(IReadOnlySet<CarAxis> keep)
+    {
+        var set = new HashSet<CarAxis>();
+        foreach (var axis in Enum.GetValues<CarAxis>())
+        {
+            if (!keep.Contains(axis))
+            {
+                set.Add(axis);
+            }
+        }
+
+        return set;
+    }
 
     // Nodes in the order to consider starting them: plain catalog order for a neutral concept, else
     // concept-aligned nodes first. The sort is stable, so ties keep catalog order and a neutral concept

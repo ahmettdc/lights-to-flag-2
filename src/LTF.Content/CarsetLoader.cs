@@ -270,7 +270,30 @@ public static class CarsetLoader
             LowDragLapGainSeconds = r.LowDragLapGainSeconds ?? d.LowDragLapGainSeconds,
             HighDownforceLapGainSeconds = r.HighDownforceLapGainSeconds ?? d.HighDownforceLapGainSeconds,
             LowDragTopSpeedKph = r.LowDragTopSpeedKph ?? d.LowDragTopSpeedKph,
+            DevelopmentFreezes = MapFreezes(r.DevelopmentFreezes),
         };
+    }
+
+    // FIA development freezes (Ri3): absent → empty (inert, byte-identical). Each entry names a car axis and how
+    // hard it is frozen; an unknown axis or mode is a structural error (mirrors the other enums).
+    private static IReadOnlyList<AxisFreeze> MapFreezes(List<AxisFreezeJson>? freezes)
+    {
+        if (freezes is null || freezes.Count == 0)
+        {
+            return [];
+        }
+
+        var mapped = new List<AxisFreeze>(freezes.Count);
+        foreach (var f in freezes)
+        {
+            mapped.Add(new AxisFreeze
+            {
+                Axis = ReqEnum<CarAxis>(f.Axis, "regulations.developmentFreezes.axis"),
+                Mode = ReqEnum<DevelopmentFreezeMode>(f.Mode, "regulations.developmentFreezes.mode"),
+            });
+        }
+
+        return mapped;
     }
 
     private static TyreSpec MapTyre(TyreJson t, string p) => new()
