@@ -23,7 +23,7 @@ public partial class App : Application
             var catalog = CarsetCatalog.Discover();
             var saves = new SaveStore(catalog, AppPaths.SavesDir);
             var settings = new SettingsStore(AppPaths.SettingsFile);
-            var notifications = new SampleNotificationSource();
+            var notifications = new CareerNotificationSource();
             var services = new AppServices(catalog, saves, settings, notifications);
             var root = new RootViewModel(services, quit: () => desktop.Shutdown());
 

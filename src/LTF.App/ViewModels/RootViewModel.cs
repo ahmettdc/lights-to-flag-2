@@ -68,6 +68,12 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         _live = live;
         _services.Saves.Save(live.SaveSession);
 
+        // Start the career's inbox feed fresh; Continue appends dated items to it (M21e).
+        if (_services.Notifications is IMutableNotificationSource feed)
+        {
+            feed.Reset();
+        }
+
         var navigation = new NavigationService();
         _navigation = navigation;
         navigation.Register(NavKey.Settings, () => new SettingsViewModel(
@@ -87,15 +93,18 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         navigation.Register(NavKey.Drivers, () => new DriversViewModel(live.Current));
         navigation.Register(NavKey.Database, () => new DatabaseViewModel(live.Current));
 
+        // The top-bar Continue stays enabled through a Rev-15 pause so it can acknowledge it; whether it
+        // advances or acknowledges is decided in ContinueCareerStep.
         var shell = new ShellViewModel(
             navigation, new SessionSnapshot(live.Session), _services.Notifications,
-            host: this, onContinue: ContinueCareerStep, canContinue: () => live.CanContinue);
+            host: this, onContinue: ContinueCareerStep, canContinue: () => !live.SeasonComplete);
         _shell = shell;
         Content = shell;
     }
 
-    // One Football-Manager "Continue": advance the live career, autosave, then refresh the top bar and
-    // re-render the open screen from the new state (re-navigating the current key rebuilds its view-model).
+    // One Football-Manager "Continue": if the career is paused on an action-required item, this click
+    // acknowledges it (Rev 15); otherwise it advances the career, appends the step's dated news to the inbox
+    // and autosaves. Either way it refreshes the top bar and re-renders the open screen from the new state.
     private void ContinueCareerStep()
     {
         if (_live is null)
@@ -103,11 +112,26 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
             return;
         }
 
-        _live.Continue();
-
-        if (_services.Settings.Load().Autosave)
+        if (_live.PendingAction)
         {
-            _services.Saves.Save(_live.SaveSession);
+            _live.Acknowledge();
+        }
+        else
+        {
+            _live.Continue();
+
+            if (_services.Notifications is IMutableNotificationSource feed)
+            {
+                foreach (var item in _live.LastStepNews)
+                {
+                    feed.Append(item);
+                }
+            }
+
+            if (_services.Settings.Load().Autosave)
+            {
+                _services.Saves.Save(_live.SaveSession);
+            }
         }
 
         _shell?.TopBar.Refresh(new SessionSnapshot(_live.Session));

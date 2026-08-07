@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using LTF.App.Notifications;
 using LTF.Career;
 using LTF.Domain;
 using LTF.Domain.Racing;
@@ -74,44 +75,73 @@ public sealed class LiveCareer
     /// save format is unchanged and a load reconstructs.</summary>
     public ShellSession SaveSession => new(SeasonStart, Clock, Seed);
 
-    /// <summary>Whether a Continue has anywhere left to go this season.</summary>
-    public bool CanContinue => !Clock.SeasonComplete;
+    /// <summary>Whether a plain <see cref="Continue"/> can advance now: the season isn't over and no
+    /// action-required item is pending (Rev 15). Clear a pending item with <see cref="Acknowledge"/>.</summary>
+    public bool CanContinue => !Clock.SeasonComplete && !PendingAction;
+
+    /// <summary>True once the season's events are exhausted (Continue has nowhere left to go).</summary>
+    public bool SeasonComplete => Clock.SeasonComplete;
+
+    /// <summary>Set when the last step surfaced an action-required event (a contract deadline): Continue
+    /// pauses until it is acknowledged (Rev 15). Transient — never persisted.</summary>
+    public bool PendingAction { get; private set; }
+
+    /// <summary>The dated notifications the last <see cref="Continue"/> raised, for the inbox feed.</summary>
+    public IReadOnlyList<Notification> LastStepNews { get; private set; } = [];
+
+    /// <summary>Acknowledge a pending action so Continue can advance again (Rev 15).</summary>
+    public void Acknowledge()
+    {
+        PendingAction = false;
+        LastStepNews = [];
+    }
 
     /// <summary>Advance one Football-Manager "Continue": jump the clock to the next event's date and dispatch
-    /// every event falling on it — running the race for a round weekend and folding it into the standings.</summary>
+    /// every event falling on it — running the race for a round weekend, folding it into the standings, and
+    /// raising a dated inbox item per event. Halts (sets <see cref="PendingAction"/>) when an event needs the
+    /// player to act. No-op while a pending action is unacknowledged or the season is complete.</summary>
     public void Continue()
     {
-        if (Clock.SeasonComplete)
+        if (!CanContinue)
         {
             return;
         }
 
         Clock = Clock.ContinueToNextEvent();
 
+        var news = new List<Notification>();
         foreach (var todaysEvent in Clock.Today)
         {
-            if (todaysEvent.Kind == CalendarEventKind.RaceWeekend)
+            switch (todaysEvent.Kind)
             {
-                RunRound(todaysEvent.Round);
-            }
+                case CalendarEventKind.RaceWeekend when _roundByNumber.TryGetValue(todaysEvent.Round, out var round):
+                    var result = RunRound(round, todaysEvent.Round);
+                    news.Add(CareerNews.ForRace(Clock.Date, round, result, Current));
+                    break;
 
-            // Other event kinds are inert in M21d — the dated inbox + Rev-15 halt (M21e) and the
-            // season-boundary rollover (M21f) hang the rest of the dispatch off this loop.
+                case CalendarEventKind.ContractDeadline:
+                    news.Add(CareerNews.ForContractDeadline(Clock.Date, todaysEvent, Current));
+                    break;
+
+                case CalendarEventKind.BoardReview:
+                    news.Add(CareerNews.ForBoardReview(Clock.Date));
+                    break;
+
+                // TestDay / RegulationAnnouncement / TransferWindow raise no inbox item in M21.
+            }
         }
 
         Standings = ChampionshipStandings.From(SeasonStart, _results);
+        LastStepNews = news;
+        PendingAction = news.Any(n => n.RequiresAction);
     }
 
-    private void RunRound(int roundNumber)
+    private RaceResult RunRound(CalendarRound round, int roundNumber)
     {
-        if (!_roundByNumber.TryGetValue(roundNumber, out var round))
-        {
-            return;
-        }
-
         var penalty = _penaltyByRound.GetValueOrDefault(roundNumber, NoPenalty);
         var outcome = SeasonSimulator.RunRound(Current, round, SeasonSimulator.RoundSeed(Seed, roundNumber), penalty);
         _results.Add(outcome.Result);
+        return outcome.Result;
     }
 
     /// <summary>Rebuild results + standings for the current date: re-run every round already in the past from
