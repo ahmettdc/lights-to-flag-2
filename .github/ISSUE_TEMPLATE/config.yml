@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "📋 v0.9 — Bilinen sınırlar (önce buraya bak)"
+    url: "https://github.com/ahmettdc/lights-to-flag-2/releases/tag/v0.9.0"
+    about: "Açmadan önce: v0.9'da bilerek olmayan şeyler (öğretici, macOS, installer, ses, sürücü kariyeri…)."
+  - name: "📝 Serbest biçim geri-bildirim şablonu (Markdown)"
+    url: "https://github.com/ahmettdc/lights-to-flag-2/blob/main/docs/feedback/hata-raporu-sablonu.md"
+    about: "GitHub issue yerine tek bir Markdown dosyası doldurup doğrudan iletmek için."

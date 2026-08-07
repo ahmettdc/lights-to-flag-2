@@ -1,0 +1,50 @@
+name: "🟡 Eksik · 🟠 Denge · 💬 Öneri"
+description: "Olması gereken bir şey yok, denge/zorluk yanlış, ya da bir fikrin var"
+title: "[Öneri]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Çökme veya yanlış davranış için **🔴 Hata bildirimi**ni kullan. Bu form eksik özellik, denge/zorluk ayarı,
+        UI cilası ve yeni fikirler içindir. (v0.9'da bilerek olmayan şeyler için Release notları → Known limitations'a bak.)
+  - type: dropdown
+    id: kind
+    attributes:
+      label: "Tip"
+      options:
+        - "🟡 Eksik (olması gereken bir şey yok)"
+        - "🟠 Denge (çalışıyor ama sayı/zorluk yanlış)"
+        - "🔵 UI/UX cila (kozmetik / kafa karıştırıcı akış)"
+        - "💬 Öneri / yeni fikir"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Alan"
+      options:
+        - "Ana menü & kariyer kurulumu"
+        - "Genel bakış & pano"
+        - "Yarış hafta sonu & canlı yarış"
+        - "Yönetim (R&D / Cars & PU / Staff / Finance / Board)"
+        - "Records / istatistik"
+        - "Kaydet-yükle / sezon dönüşü / inbox"
+        - "Motor / determinizm / denge"
+        - "Genel UI / metin / performans / ayarlar"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: "Açıklama"
+      description: "Ne eksik/yanlış ve ne olmasını beklerdin?"
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: "Neden / fayda"
+      description: "Bu neden önemli, oyunu nasıl iyileştirir?"
+    validations:
+      required: false

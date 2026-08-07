@@ -1,0 +1,99 @@
+name: "🔴 Hata bildirimi"
+description: "Oyunda yanlış çalışan veya çöken bir şey bildir"
+title: "[Hata]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Teşekkürler! Açmadan önce lütfen **Release notları → Known limitations**'a bir bak — bazı şeyler v0.9'da
+        bilerek yok (öğretici, macOS, installer, ses, sürücü kariyeri…). Yarış/sonuç hatasında
+        **carset + oyun-içi tarih + kayıt dosyası** vermen, aynı durumu birebir tekrar üretmemi sağlar.
+  - type: input
+    id: version
+    attributes:
+      label: "Sürüm"
+      value: "0.9.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Alan"
+      description: "Sorunun olduğu bölüm"
+      options:
+        - "Ana menü & kariyer kurulumu (Main Menu / New Career / Load / Quick Race)"
+        - "Genel bakış & pano (Paddock Hub / Standings / Calendar / Database / Drivers)"
+        - "Yarış hafta sonu & canlı yarış (Race Weekend / Qualifying / Pit Wall)"
+        - "Yönetim (R&D & Fac. / Cars & PU / Staff / Finance / Board & Spon.)"
+        - "Records / istatistik"
+        - "Kaydet-yükle / sezon dönüşü / inbox"
+        - "Motor / determinizm / denge (sayılar yanlış geliyor)"
+        - "Genel UI / metin / performans / çökme / ayarlar"
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "Önem"
+      options:
+        - "S1 — Kritik (çökme / veri kaybı / ilerleme durur)"
+        - "S2 — Yüksek"
+        - "S3 — Orta"
+        - "S4 — Düşük / kozmetik"
+    validations:
+      required: true
+  - type: dropdown
+    id: carset
+    attributes:
+      label: "Carset (senaryo)"
+      options:
+        - "Global Prix Series"
+        - "Global Prix 2026 — Active Aero Era"
+        - "İkisi de / emin değilim"
+    validations:
+      required: false
+  - type: input
+    id: ingame-date
+    attributes:
+      label: "Oyun-içi tarih / round"
+      description: "Repro için, örn. 14 Haz 2027 · Round 8"
+    validations:
+      required: false
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Adımlar"
+      description: "Sorunu nasıl ürettin?"
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Beklenen"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Gerçekleşen"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: "Bağlam & ekler"
+      description: 'Kayıt dosyası (%AppData%\LightsToFlag2\saves\...), ekran görüntüsü/video, notlar. Dosyaları bu alana sürükle-bırak ile ekleyebilirsin.'
+    validations:
+      required: false
+  - type: checkboxes
+    id: known
+    attributes:
+      label: "Onay"
+      options:
+        - label: "Bunun bilinen/kasıtlı bir eksik olmadığını kontrol ettim (Release notları → Known limitations)."
+          required: true
