@@ -64,7 +64,7 @@ public static class SeasonSimulator
             circuit, grid, carset.Rules, carset.Balance, roundSeed,
             regulations: carset.Regulations, format: format, startingCompounds: startingCompounds);
 
-        return new RoundOutcome(result, quali.PoleCompetitorId);
+        return new RoundOutcome(result, quali.PoleCompetitorId, quali);
     }
 
     // Build the per-driver starting-compound map for one round from the carset's player strategies (M23b).

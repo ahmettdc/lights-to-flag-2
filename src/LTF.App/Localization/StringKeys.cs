@@ -192,6 +192,8 @@ public static class StringKeys
     public const string RaceWeekendStrategy = "raceWeekend.strategy";
     public const string RaceWeekendStartTyre = "raceWeekend.startTyre";
     public const string RaceWeekendStartRace = "raceWeekend.startRace";
+    public const string RaceWeekendTabRace = "raceWeekend.tabRace";
+    public const string RaceWeekendTabQualifying = "raceWeekend.tabQualifying";
 
     // Cars & Power Unit screen (M22).
     public const string CarsPerformance = "cars.performance";

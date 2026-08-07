@@ -233,4 +233,51 @@ public class Phase5RaceWeekendTests
         Assert.Single(reloaded.Carset.PlayerRaceStrategies);
         Assert.Equal(TyreCompound.Hard, reloaded.Carset.PlayerRaceStrategies[0].Compound);
     }
+
+    // --- Qualifying tab (M23d) ---
+
+    [Fact]
+    public void The_qualifying_grid_reconstructs_parallel_to_the_results()
+    {
+        var live = AfterFirstRace();
+        Assert.Equal(live.Results.Count, live.Qualifying.Count);
+        Assert.NotEmpty(live.Qualifying[0].Grid);
+
+        var vm = new RaceWeekendViewModel(live);
+        Assert.NotEmpty(vm.QualifyingGrid);
+        for (var i = 0; i < vm.QualifyingGrid.Count; i++)
+        {
+            Assert.Equal(i + 1, vm.QualifyingGrid[i].GridPosition); // grid in starting order, pole first
+            Assert.False(string.IsNullOrWhiteSpace(vm.QualifyingGrid[i].Driver));
+        }
+    }
+
+    [Fact]
+    public void A_resumed_career_reconstructs_the_same_qualifying_grids()
+    {
+        var session = SessionLoader.LoadFlagship();
+        var live = new LiveCareer(session);
+        for (var i = 0; i < 8 && live.CanContinue; i++)
+        {
+            live.Continue();
+        }
+
+        // The load path: rebuild from (season-start carset, seed, the reached date), no persisted quali.
+        var resumed = new LiveCareer(session with { Clock = session.Clock with { Date = live.Clock.Date } });
+
+        Assert.Equal(live.Qualifying.Count, resumed.Qualifying.Count);
+        for (var i = 0; i < live.Qualifying.Count; i++)
+        {
+            Assert.Equal(
+                live.Qualifying[i].Grid.Select(e => (e.GridPosition, e.CompetitorId, e.Part, e.BestLap)),
+                resumed.Qualifying[i].Grid.Select(e => (e.GridPosition, e.CompetitorId, e.Part, e.BestLap)));
+        }
+    }
+
+    [Fact]
+    public void A_career_with_no_race_has_an_empty_qualifying_grid()
+    {
+        var vm = new RaceWeekendViewModel(new LiveCareer(SessionLoader.LoadFlagship()));
+        Assert.Empty(vm.QualifyingGrid);
+    }
 }

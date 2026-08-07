@@ -97,7 +97,10 @@
                  Foreground="{DynamicResource BrushTextDim}" HorizontalAlignment="Center" />
     </StackPanel>
 
-    <Grid IsVisible="{Binding HasRace}" Margin="12" RowDefinitions="Auto,*">
+    <TabControl IsVisible="{Binding HasRace}" Margin="12,8,12,12">
+
+    <TabItem Header="{loc:Tr raceWeekend.tabRace}">
+    <Grid Margin="0,10,0,0" RowDefinitions="Auto,*">
 
       <!-- Top strip: round + lap/flag + replay controls -->
       <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
@@ -220,6 +223,47 @@
       </Grid>
 
     </Grid>
+    </TabItem>
+
+    <!-- Qualifying tab (M23d): the grid this round set out from — reconstructed, not re-run. -->
+    <TabItem Header="{loc:Tr raceWeekend.tabQualifying}">
+      <Border Classes="card" Margin="0,10,0,0">
+        <DockPanel LastChildFill="True">
+          <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid ColumnDefinitions="44,*,48,96,190">
+              <TextBlock Grid.Column="0" Classes="colHead" Text="POS" />
+              <TextBlock Grid.Column="1" Classes="colHead" Text="DRIVER" Margin="11,0,0,0" />
+              <TextBlock Grid.Column="2" Classes="colHead" Text="PART" />
+              <TextBlock Grid.Column="3" Classes="colHead" Text="BEST" />
+              <TextBlock Grid.Column="4" Classes="colHead" Text="SECTORS" />
+            </Grid>
+          </Border>
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding QualifyingGrid}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="screens:QualifyingRowViewModel">
+                  <Grid Height="30" ColumnDefinitions="44,*,48,96,190" Margin="12,0" Background="Transparent">
+                    <TextBlock Grid.Column="0" Text="{Binding GridPosition}" Classes="num" FontWeight="Bold" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                      <Border Width="3" Height="16" CornerRadius="1.5" Background="{Binding Accent}" />
+                      <TextBlock Text="{Binding Driver}" Classes="cell" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="2" Text="{Binding Part}" Classes="num" FontSize="11"
+                               Foreground="{DynamicResource BrushTextDim}" />
+                    <TextBlock Grid.Column="3" Text="{Binding BestLap}" Classes="num"
+                               Foreground="{DynamicResource BrushStatusGood}" />
+                    <TextBlock Grid.Column="4" Text="{Binding Sectors}" Classes="num" FontSize="11"
+                               Foreground="{DynamicResource BrushTextDim}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+    </TabItem>
+
+    </TabControl>
 
     </Panel>
   </DockPanel>

@@ -5,6 +5,7 @@ using LTF.Career;
 using LTF.Domain;
 using LTF.Domain.Racing;
 using LTF.Domain.Rnd;
+using LTF.Simulation.Qualifying;
 using LTF.Simulation.Racing;
 
 namespace LTF.App.Session;
@@ -37,6 +38,7 @@ public sealed class LiveCareer
     private const int WinterSeedSalt = 0x7157;
 
     private readonly List<RaceResult> _results = new();
+    private readonly List<QualifyingResult> _qualifying = new();
     private readonly Dictionary<int, IReadOnlyDictionary<string, int>> _penaltyByRound = new();
     private readonly Dictionary<int, CalendarRound> _roundByNumber = new();
     private readonly Dictionary<int, int> _indexByRound = new();
@@ -69,6 +71,11 @@ public sealed class LiveCareer
     public Standings Standings { get; private set; }
 
     public IReadOnlyList<RaceResult> Results => _results;
+
+    /// <summary>The qualifying grid for each run round (M23d), parallel to <see cref="Results"/>. Rebuilt by
+    /// <see cref="Reconstruct"/> from <c>(SeasonStart, Seed, Date)</c> like the results — never persisted, so
+    /// the race-weekend screen can show a qualifying tab without changing the save format.</summary>
+    public IReadOnlyList<QualifyingResult> Qualifying => _qualifying;
 
     /// <summary>The session as it stands now (current carset + clock), for the screens/top bar.</summary>
     public ShellSession Session => new(Current, Clock, Seed);
@@ -170,6 +177,7 @@ public sealed class LiveCareer
         var penalty = _penaltyByRound.GetValueOrDefault(round.Round, NoPenalty);
         var outcome = SeasonSimulator.RunRound(Current, round, SeasonSimulator.RoundSeed(Seed, round.Round), penalty);
         _results.Add(outcome.Result);
+        _qualifying.Add(outcome.Qualifying);
 
         System.DateOnly? nextDate = roundIndex + 1 < SeasonStart.Calendar.Count
             ? SeasonStart.Calendar[roundIndex + 1].Date
@@ -258,6 +266,7 @@ public sealed class LiveCareer
         Clock = CareerClock.Start(next);
         RebuildRoundMaps();
         _results.Clear();
+        _qualifying.Clear();
         Standings = ChampionshipStandings.Empty(next);
 
         // The new-season item, plus one action-required enforcement item per defaulting team (the player, in
@@ -304,6 +313,7 @@ public sealed class LiveCareer
     private void Reconstruct()
     {
         _results.Clear();
+        _qualifying.Clear();
         _progression = new RndProgression(Seed, PlayerDirective());
         Current = SeasonStart;
 

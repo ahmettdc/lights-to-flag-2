@@ -9,6 +9,7 @@ using LTF.App.Mvvm;
 using LTF.App.Session;
 using LTF.Domain;
 using LTF.Domain.Common;
+using LTF.Simulation.Qualifying;
 using LTF.Simulation.Racing;
 
 namespace LTF.App.ViewModels.Screens;
@@ -60,6 +61,7 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
         {
             HeaderText = "No race has run yet this season";
             Classification = [];
+            QualifyingGrid = [];
             return;
         }
 
@@ -81,6 +83,9 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
                 e.Points > 0 ? e.Points.ToString(CultureInfo.InvariantCulture) : ""))
             .ToList();
 
+        // Qualifying grid for this round (M23d): reconstructed alongside the results, parallel to live.Results.
+        QualifyingGrid = BuildQualifying(live.Qualifying[count - 1]);
+
         SetLap(1);
     }
 
@@ -95,6 +100,10 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
 
     /// <summary>The final classification (id → names joined); shown once the replay reaches the flag.</summary>
     public IReadOnlyList<RaceResultRowViewModel> Classification { get; }
+
+    /// <summary>The qualifying grid for this round (M23d): position, driver, the part their time was set in,
+    /// their grid-deciding lap and its sector split. Empty until a race has run.</summary>
+    public IReadOnlyList<QualifyingRowViewModel> QualifyingGrid { get; } = [];
 
     // The host's "advance the career" step (M23b), invoked by Start Race; null on a read-only screen.
     private readonly Action? _startRace;
@@ -242,6 +251,34 @@ public sealed partial class RaceWeekendViewModel : ViewModelBase
             .ToList();
     }
 
+    private IReadOnlyList<QualifyingRowViewModel> BuildQualifying(QualifyingResult quali) =>
+        quali.Grid
+            .Select(e => new QualifyingRowViewModel(
+                e.GridPosition,
+                Name(e.CompetitorId),
+                TeamName(e.CompetitorId),
+                Accent(e.CompetitorId),
+                string.Create(CultureInfo.InvariantCulture, $"Q{e.Part}"),
+                LapTime(e.BestLap),
+                e.BestSectors.Total > 0
+                    ? string.Create(CultureInfo.InvariantCulture,
+                        $"{e.BestSectors.Sector1:0.000}   {e.BestSectors.Sector2:0.000}   {e.BestSectors.Sector3:0.000}")
+                    : "—"))
+            .ToList();
+
+    // Format a lap time in seconds as M:SS.mmm (e.g. 80.5 → "1:20.500"); an empty/zero time shows a dash.
+    private static string LapTime(double seconds)
+    {
+        if (seconds <= 0)
+        {
+            return "—";
+        }
+
+        var minutes = (int)(seconds / 60);
+        var rest = seconds - (minutes * 60);
+        return string.Create(CultureInfo.InvariantCulture, $"{minutes}:{rest:00.000}");
+    }
+
     private string Name(string id) => _driverName.GetValueOrDefault(id, id);
 
     private string TeamName(string id) =>
@@ -325,6 +362,10 @@ public sealed record RaceEventRowViewModel(int Lap, string Text, IBrush Brush);
 
 /// <summary>One line of the final classification on the race-weekend screen (M23).</summary>
 public sealed record RaceResultRowViewModel(int Position, string Driver, string Team, IBrush Accent, string Status, string Points);
+
+/// <summary>One row of the qualifying-grid tab on the race-weekend screen (M23d).</summary>
+public sealed record QualifyingRowViewModel(
+    int GridPosition, string Driver, string Team, IBrush Accent, string Part, string BestLap, string Sectors);
 
 /// <summary>
 /// One driver's pre-race strategy row (M23b): the starting compound the player picks for the upcoming round.
