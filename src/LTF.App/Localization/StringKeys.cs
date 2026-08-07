@@ -183,6 +183,7 @@ public static class StringKeys
     public const string RndNoProjectsBody = "rnd.noProjectsBody";
     public const string RndSteerConcept = "rnd.steerConcept";
     public const string RndApplyConcept = "rnd.applyConcept";
+    public const string RndFreezes = "rnd.freezes";
 
     // Cars & Power Unit screen (M22).
     public const string CarsPerformance = "cars.performance";

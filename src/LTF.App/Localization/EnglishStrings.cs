@@ -172,6 +172,7 @@ public static class EnglishStrings
         [StringKeys.RndNoProjectsBody] = "The team is running no development projects.",
         [StringKeys.RndSteerConcept] = "STEER CONCEPT",
         [StringKeys.RndApplyConcept] = "Apply Concept",
+        [StringKeys.RndFreezes] = "FIA DEVELOPMENT FREEZE",
 
         [StringKeys.CarsPerformance] = "CAR PERFORMANCE",
         [StringKeys.CarsOverall] = "OVERALL",

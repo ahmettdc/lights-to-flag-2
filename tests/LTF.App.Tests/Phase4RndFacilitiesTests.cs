@@ -142,6 +142,38 @@ public class Phase4RndFacilitiesTests
         Assert.NotEqual(aeroCar, powerCar); // the concept lean steers which nodes the season develops
     }
 
+    // --- FIA development-freeze badges (Ri5) ---
+
+    [Fact]
+    public void The_screen_projects_active_development_freezes()
+    {
+        var carset = Flagship();
+        var frozen = carset with
+        {
+            Regulations = carset.Regulations with
+            {
+                DevelopmentFreezes =
+                [
+                    new AxisFreeze { Axis = CarAxis.PowerUnit, Mode = DevelopmentFreezeMode.Full },
+                    new AxisFreeze { Axis = CarAxis.MechanicalGrip, Mode = DevelopmentFreezeMode.InSeasonOnly },
+                ],
+            },
+        };
+
+        var vm = new RndFacilitiesViewModel(frozen);
+
+        Assert.True(vm.HasFreezes);
+        Assert.Equal(2, vm.Freezes.Count);
+        Assert.Contains(vm.Freezes, f => f.Mode.Contains("full", System.StringComparison.Ordinal));
+        Assert.Contains(vm.Freezes, f => f.Mode.Contains("in-season", System.StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void A_freeze_free_screen_shows_no_freezes()
+    {
+        Assert.False(new RndFacilitiesViewModel(Flagship()).HasFreezes);
+    }
+
     private static Car DevelopUnderConcept(ShellSession session, int aeroLean, int powertrainLean)
     {
         var carset = session.Carset;

@@ -74,6 +74,15 @@ public sealed partial class RndFacilitiesViewModel : ViewModelBase
                 StateBrush(p.State)))
             .ToList();
         HasProjects = Projects.Count > 0;
+
+        // FIA development freezes in force (Ri5): the axes whose R&D the regulations restrict, and how hard.
+        Freezes = carset.Regulations.DevelopmentFreezes
+            .Select(f => new FreezeRowViewModel(
+                Spaced(f.Axis.ToString()),
+                f.Mode == DevelopmentFreezeMode.Full ? "Frozen (full)" : "Frozen (in-season)",
+                f.Mode == DevelopmentFreezeMode.Full ? ScreenBrushes.Bad : ScreenBrushes.Warn))
+            .ToList();
+        HasFreezes = Freezes.Count > 0;
     }
 
     public bool HasTeam { get; }
@@ -99,6 +108,11 @@ public sealed partial class RndFacilitiesViewModel : ViewModelBase
     public bool HasProjects { get; }
 
     public bool NoProjects => !HasProjects;
+
+    /// <summary>The FIA development freezes in force this season (Ri5); empty when nothing is frozen.</summary>
+    public IReadOnlyList<FreezeRowViewModel> Freezes { get; }
+
+    public bool HasFreezes { get; }
 
     // --- Concept steer (Ri2) ---
 
@@ -176,3 +190,6 @@ public sealed record FacilityRowViewModel(string Name, int Level, double BarWidt
 /// <summary>One in-flight development project on the R&amp;D screen (M22d).</summary>
 public sealed record ProjectRowViewModel(
     string Axis, string NodeId, string State, int Progress, double ProgressBarWidth, string Gain, IBrush StateBrush);
+
+/// <summary>One FIA development freeze on the R&amp;D screen (Ri5): the frozen axis and how hard.</summary>
+public sealed record FreezeRowViewModel(string Axis, string Mode, IBrush Brush);

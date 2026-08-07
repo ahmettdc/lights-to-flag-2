@@ -129,6 +129,24 @@
                 <Button Content="{loc:Tr rnd.applyConcept}" Command="{Binding ApplyConceptCommand}"
                         HorizontalAlignment="Right" Margin="0,4,0,0" Padding="12,4" FontSize="11" />
               </StackPanel>
+
+              <!-- FIA development freezes (Ri5): which axes the regulations have frozen, and how hard. -->
+              <StackPanel IsVisible="{Binding HasFreezes}" Margin="0,6,0,0" Spacing="2">
+                <Border Height="1" Background="{DynamicResource BrushDivider}" Margin="0,2,0,6" />
+                <TextBlock Classes="cardHeader" Text="{loc:Tr rnd.freezes}" Margin="0,0,0,2" />
+                <ItemsControl ItemsSource="{Binding Freezes}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="screens:FreezeRowViewModel">
+                      <Grid ColumnDefinitions="*,Auto" Height="24">
+                        <TextBlock Text="{Binding Axis}" Classes="label"
+                                   Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Text="{Binding Mode}" Classes="value" FontSize="11"
+                                   Foreground="{Binding Brush}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
             </StackPanel>
           </DockPanel>
         </Border>
