@@ -67,6 +67,44 @@ public sealed record EconomyRules
 }
 
 /// <summary>
+/// The series' banking rules (ADR-0029): the interest the bank quotes, how far a team may borrow, and the
+/// enforcement terms on default. Every field defaults to zero/off, so a carset with no <c>bank</c> block
+/// offers no credit and moves no money — the inert default (<see cref="IsActive"/> false). Amounts derived
+/// from these are whole units of the carset's currency; percentages are whole ints (no floats, deterministic).
+/// </summary>
+public sealed record BankRules
+{
+    /// <summary>Base annual interest rate (percent) the best-credit team is quoted, before any risk premium.</summary>
+    public int BaseRatePercent { get; init; }
+
+    /// <summary>Extra interest (percent) a worst-credit team pays on top of the base rate; the premium scales
+    /// from this (at credit 0) down to 0 (at credit 100).</summary>
+    public int MaxRiskPremiumPercent { get; init; }
+
+    /// <summary>Borrowing capacity as a percent of a team's serviceable annual revenue (prize + TV + sponsor),
+    /// before the credit-score multiplier. 0 (default) disables borrowing.</summary>
+    public int MaxLoanToRevenuePercent { get; init; }
+
+    /// <summary>Late-payment penalty added to the outstanding balance on a missed instalment, as a percent of
+    /// the missed payment.</summary>
+    public int LatePenaltyPercent { get; init; }
+
+    /// <summary>Missed payments (on a single loan) before the bank forces an asset sale — icra step 2.</summary>
+    public int AssetSeizureAfterMisses { get; init; } = 2;
+
+    /// <summary>Missed payments (on a single loan) before the terminal administrative penalty — icra step 3.
+    /// The career always continues (no firing); the penalty is a constructor points deduction + heavy
+    /// liquidation.</summary>
+    public int InsolvencyAfterMisses { get; init; } = 4;
+
+    /// <summary>Constructor points docked at the terminal insolvency step.</summary>
+    public int InsolvencyPointsPenalty { get; init; }
+
+    /// <summary>Whether the bank offers credit at all (any borrowing capacity configured).</summary>
+    public bool IsActive => MaxLoanToRevenuePercent > 0;
+}
+
+/// <summary>
 /// Series regulations for a carset. The engine reads all of it; a rule that exists here
 /// has a corresponding effect in the simulation or season logic (acceptance criterion).
 /// </summary>
@@ -110,6 +148,10 @@ public sealed record RulesSet
     /// <summary>The series' economic rules — prize money, TV income, baseline costs (M13). Empty by
     /// default, so a carset with no economy moves no money.</summary>
     public EconomyRules Economy { get; init; } = new();
+
+    /// <summary>The series' banking rules — loans, interest and credit (ADR-0029). Inert by default
+    /// (<see cref="BankRules.IsActive"/> false), so a carset with no bank block offers no credit.</summary>
+    public BankRules Bank { get; init; } = new();
 
     /// <summary>The series' R&amp;D tuning — development speed, facility/staff scaling, validation (M14).
     /// Neutral by default, so a carset with no research rules does no development.</summary>
