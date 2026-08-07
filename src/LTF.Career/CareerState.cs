@@ -228,6 +228,15 @@ public sealed record CareerState
     /// was never driven live saves byte-identically.</summary>
     public IReadOnlyList<RaceCommand> PlayerRaceCommands { get; init; } = [];
 
+    /// <summary>The archived record of every completed season (M24); empty until the career crosses a season
+    /// boundary, so a fresh career saves byte-identically. Authoritative when present — the archive accumulates on
+    /// the carset and is never reconstructed. Value-typed, so it round-trips a save byte-stably.</summary>
+    public IReadOnlyList<SeasonRecord> SeasonHistory { get; init; } = [];
+
+    /// <summary>The fastest race lap ever set at each circuit over the career (M24); empty until a season
+    /// completes. Authoritative when present. Value-typed, so it round-trips a save byte-stably.</summary>
+    public IReadOnlyList<TrackRecord> TrackRecords { get; init; } = [];
+
     /// <summary>Snapshot a carset's mutable progress at a given game date and seed.</summary>
     public static CareerState Capture(Carset carset, DateOnly date, int seed)
     {
@@ -294,6 +303,11 @@ public sealed record CareerState
             PlayerRaceStrategies = carset.PlayerRaceStrategies,
             // Player race commands (M23h): default-empty, so a career never driven live is byte-identical.
             PlayerRaceCommands = carset.PlayerRaceCommands,
+            // Season archive + track records (M24): default-empty, so a career that has completed no season is
+            // byte-identical. Accumulated on the carset (never reconstructed), so they are captured as-is and
+            // restored authoritatively. Value-typed, so they round-trip a save byte-stably.
+            SeasonHistory = carset.SeasonHistory,
+            TrackRecords = carset.TrackRecords,
         };
     }
 
@@ -456,6 +470,10 @@ public sealed record CareerState
             PlayerRaceCommands = PlayerRaceCommands.Count == 0
                 ? carset.PlayerRaceCommands
                 : PlayerRaceCommands,
+            // Restore the season archive + track records (M24); empty leaves the carset's own (none) untouched —
+            // byte-identical for a career that has completed no season.
+            SeasonHistory = SeasonHistory.Count == 0 ? carset.SeasonHistory : SeasonHistory,
+            TrackRecords = TrackRecords.Count == 0 ? carset.TrackRecords : TrackRecords,
         };
     }
 
