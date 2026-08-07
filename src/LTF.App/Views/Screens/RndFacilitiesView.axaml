@@ -109,6 +109,26 @@
                 <TextBlock Classes="label" Text="{loc:Tr rnd.nodesUnlocked}" />
                 <TextBlock Grid.Column="1" Classes="value" Text="{Binding NodesText}" />
               </Grid>
+
+              <!-- Concept steer (Ri2): adjust the aero/powertrain lean the live R&D develops toward. -->
+              <StackPanel IsVisible="{Binding CanSteerConcept}" Spacing="2" Margin="0,6,0,0">
+                <Border Height="1" Background="{DynamicResource BrushDivider}" Margin="0,2,0,6" />
+                <TextBlock Classes="cardHeader" Text="{loc:Tr rnd.steerConcept}" Margin="0,0,0,2" />
+                <Grid ColumnDefinitions="76,*,30" Height="30">
+                  <TextBlock Classes="label" Text="Aero" />
+                  <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AeroLeanValue}"
+                          VerticalAlignment="Center" Margin="4,0" />
+                  <TextBlock Grid.Column="2" Classes="value" FontSize="11" Text="{Binding AeroLean}" />
+                </Grid>
+                <Grid ColumnDefinitions="76,*,30" Height="30">
+                  <TextBlock Classes="label" Text="Powertrain" />
+                  <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding PowertrainLeanValue}"
+                          VerticalAlignment="Center" Margin="4,0" />
+                  <TextBlock Grid.Column="2" Classes="value" FontSize="11" Text="{Binding PowertrainLean}" />
+                </Grid>
+                <Button Content="{loc:Tr rnd.applyConcept}" Command="{Binding ApplyConceptCommand}"
+                        HorizontalAlignment="Right" Margin="0,4,0,0" Padding="12,4" FontSize="11" />
+              </StackPanel>
             </StackPanel>
           </DockPanel>
         </Border>

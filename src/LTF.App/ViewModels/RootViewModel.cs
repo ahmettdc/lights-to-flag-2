@@ -11,6 +11,7 @@ using LTF.App.ViewModels.Screens;
 using LTF.App.ViewModels.Settings;
 using LTF.Career;
 using LTF.Domain;
+using LTF.Domain.Rnd;
 
 namespace LTF.App.ViewModels;
 
@@ -98,7 +99,7 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         // Management screens (M22). Read-only projections over the live career; a Continue rebuilds them.
         // Finance also carries the first player mutation — taking a loan (M22c).
         navigation.Register(NavKey.Finance, () => new FinanceViewModel(live.Current, live.Standings, borrow: BorrowLoan));
-        navigation.Register(NavKey.RndFacilities, () => new RndFacilitiesViewModel(live.Current));
+        navigation.Register(NavKey.RndFacilities, () => new RndFacilitiesViewModel(live.Current, setConcept: SetConcept));
         navigation.Register(NavKey.CarsPowerUnit, () => new CarsPowerUnitViewModel(live.Current));
         navigation.Register(NavKey.BoardSponsors, () => new BoardSponsorsViewModel(live.Current));
         navigation.Register(NavKey.Staff, () => new StaffViewModel(live.Current, hire: HireStaff, release: ReleaseStaff));
@@ -207,6 +208,37 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         }
 
         _live.ApplyToSeasonStart(carset => StaffLedger.Release(carset, carset.PlayerTeamId, staffId));
+        CommitCareerMutation();
+    }
+
+    // Steer the player team's car concept (Ri2) — the aero/powertrain lean the live per-round R&D (Model B)
+    // develops that season toward. Lands on the season-start carset like the other mutations; concept never
+    // feeds the race sim, so it re-steers the reconstructed season without touching past results.
+    private void SetConcept(int aeroLean, int powertrainLean)
+    {
+        if (_live is null)
+        {
+            return;
+        }
+
+        _live.ApplyToSeasonStart(carset =>
+        {
+            var team = carset.PlayerTeam();
+            if (team is null)
+            {
+                return carset;
+            }
+
+            var research = team.Research with
+            {
+                Concept = new ConceptDirection { AeroLean = aeroLean, PowertrainLean = powertrainLean },
+            };
+            var teams = carset.Teams
+                .Select(t => string.CompareOrdinal(t.Id, team.Id) == 0 ? team with { Research = research } : t)
+                .ToList();
+            return carset with { Teams = teams };
+        });
+
         CommitCareerMutation();
     }
 

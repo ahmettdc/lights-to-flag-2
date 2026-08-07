@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Avalonia.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using LTF.App.Converters;
 using LTF.App.Mvvm;
 using LTF.Domain;
@@ -13,14 +16,19 @@ namespace LTF.App.ViewModels.Screens;
 /// <summary>
 /// The R&amp;D and facilities screen (M22d): the player team's development infrastructure (the ten
 /// facilities and their levels) and its research state (regulation readiness, the car-concept lean, the
-/// in-flight development projects and how much of the tech tree is unlocked). Read-only projection over the
-/// current carset; a Continue rebuilds it. Setting the concept and running development are deferred (the
-/// live per-round R&amp;D seam is a separate milestone).
+/// in-flight development projects and how much of the tech tree is unlocked). Projects a read-only view of the
+/// current carset (a Continue rebuilds it) and, from Ri2, lets the player <em>steer</em> the car concept: the
+/// aero/powertrain lean sliders write <see cref="ConceptDirection"/> onto the season-start carset through the
+/// supplied callback, and the live per-round R&amp;D (Model B) develops that season toward the chosen lean.
 /// </summary>
-public sealed class RndFacilitiesViewModel : ViewModelBase
+public sealed partial class RndFacilitiesViewModel : ViewModelBase
 {
-    public RndFacilitiesViewModel(Carset carset)
+    private readonly Action<int, int>? _setConcept;
+
+    public RndFacilitiesViewModel(Carset carset, Action<int, int>? setConcept = null)
     {
+        _setConcept = setConcept;
+
         var team = carset.PlayerTeam();
         HasTeam = team is not null;
 
@@ -47,6 +55,9 @@ public sealed class RndFacilitiesViewModel : ViewModelBase
 
         AeroLeanText = LeanText(research.Concept.AeroLean, "Low drag", "High downforce");
         PowertrainLeanText = LeanText(research.Concept.PowertrainLean, "Efficiency", "Peak power");
+        _aeroLeanValue = research.Concept.AeroLean;
+        _powertrainLeanValue = research.Concept.PowertrainLean;
+        CanSteerConcept = _setConcept is not null && HasTeam;
 
         var unlocked = research.UnlockedNodeIds.Count;
         var total = carset.TechTree.Nodes.Count;
@@ -88,6 +99,32 @@ public sealed class RndFacilitiesViewModel : ViewModelBase
     public bool HasProjects { get; }
 
     public bool NoProjects => !HasProjects;
+
+    // --- Concept steer (Ri2) ---
+
+    /// <summary>Whether the concept-steer panel is offered (a wired callback + a player team).</summary>
+    public bool CanSteerConcept { get; }
+
+    [ObservableProperty]
+    private double _aeroLeanValue;
+
+    [ObservableProperty]
+    private double _powertrainLeanValue;
+
+    /// <summary>The aero lean the slider currently sits on (−100 low drag … +100 high downforce).</summary>
+    public int AeroLean => (int)AeroLeanValue;
+
+    /// <summary>The powertrain lean the slider currently sits on (−100 efficiency … +100 peak power).</summary>
+    public int PowertrainLean => (int)PowertrainLeanValue;
+
+    partial void OnAeroLeanValueChanged(double value) => OnPropertyChanged(nameof(AeroLean));
+
+    partial void OnPowertrainLeanValueChanged(double value) => OnPropertyChanged(nameof(PowertrainLean));
+
+    // Land the chosen lean on the season-start carset; the live R&D (Model B) then develops that season toward
+    // it. Concept never feeds the race sim, so this is reconstruction-neutral (it re-steers the whole season).
+    [RelayCommand(CanExecute = nameof(CanSteerConcept))]
+    private void ApplyConcept() => _setConcept?.Invoke(AeroLean, PowertrainLean);
 
     private static FacilityRowViewModel Facility(string name, LTF.Domain.Common.FacilityLevel level) =>
         new(name, level.Value, 96.0 * level.Value / 5.0);

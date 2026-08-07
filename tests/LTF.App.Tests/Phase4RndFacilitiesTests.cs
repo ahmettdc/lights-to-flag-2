@@ -12,6 +12,8 @@ using LTF.App.ViewModels;
 using LTF.App.ViewModels.Screens;
 using LTF.App.Views.Screens;
 using LTF.Domain;
+using LTF.Domain.Racing;
+using LTF.Domain.Rnd;
 using Xunit;
 
 namespace LTF.App.Tests;
@@ -67,5 +69,105 @@ public class Phase4RndFacilitiesTests
 
         shell.Navigation.Navigate(NavKey.RndFacilities);
         Assert.IsType<RndFacilitiesViewModel>(shell.Navigation.CurrentScreen);
+    }
+
+    // --- Concept steer (Ri2) ---
+
+    [Fact]
+    public void The_concept_sliders_project_the_saved_lean()
+    {
+        var carset = Flagship();
+        var vm = new RndFacilitiesViewModel(carset, setConcept: (_, _) => { });
+
+        var concept = carset.PlayerTeam()!.Research.Concept;
+        Assert.Equal(concept.AeroLean, vm.AeroLean);
+        Assert.Equal(concept.PowertrainLean, vm.PowertrainLean);
+    }
+
+    [Fact]
+    public void Apply_concept_invokes_the_callback_with_the_slider_values()
+    {
+        (int Aero, int Powertrain)? applied = null;
+        var vm = new RndFacilitiesViewModel(Flagship(), setConcept: (a, p) => applied = (a, p));
+
+        Assert.True(vm.CanSteerConcept);
+        vm.AeroLeanValue = 55;
+        vm.PowertrainLeanValue = -30;
+        vm.ApplyConceptCommand.Execute(null);
+
+        Assert.Equal((55, -30), applied);
+    }
+
+    [Fact]
+    public void A_read_only_rnd_screen_offers_no_concept_steer()
+    {
+        var vm = new RndFacilitiesViewModel(Flagship()); // no callback
+
+        Assert.False(vm.CanSteerConcept);
+        Assert.False(vm.ApplyConceptCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void Steering_the_concept_through_the_shell_persists_it()
+    {
+        var catalog = CarsetCatalog.Discover();
+        var dir = Directory.CreateTempSubdirectory().FullName;
+        var saves = new SaveStore(catalog, dir);
+        var settings = new SettingsStore(Path.Combine(dir, "settings.json"));
+        var root = new RootViewModel(new AppServices(catalog, saves, settings, new CareerNotificationSource()));
+
+        root.EnterCareer(SessionLoader.LoadFlagship());
+        var shell = (ShellViewModel)root.Content!;
+        shell.Navigation.Navigate(NavKey.RndFacilities);
+        var vm = (RndFacilitiesViewModel)shell.Navigation.CurrentScreen!;
+
+        Assert.True(vm.CanSteerConcept);
+        vm.AeroLeanValue = 60;
+        vm.PowertrainLeanValue = -40;
+        vm.ApplyConceptCommand.Execute(null);
+
+        var reloaded = saves.Load(saves.MostRecent()!);
+        var concept = reloaded.Carset.PlayerTeam()!.Research.Concept;
+        Assert.Equal(60, concept.AeroLean);
+        Assert.Equal(-40, concept.PowertrainLean);
+    }
+
+    [Fact]
+    public void Opposite_concepts_develop_the_car_differently_over_a_season()
+    {
+        var session = SessionLoader.LoadFlagship();
+        var aeroCar = DevelopUnderConcept(session, aeroLean: 100, powertrainLean: -100);
+        var powerCar = DevelopUnderConcept(session, aeroLean: -100, powertrainLean: 100);
+
+        Assert.NotEqual(aeroCar, powerCar); // the concept lean steers which nodes the season develops
+    }
+
+    private static Car DevelopUnderConcept(ShellSession session, int aeroLean, int powertrainLean)
+    {
+        var carset = session.Carset;
+        var team = carset.PlayerTeam()!;
+        var research = team.Research with
+        {
+            Concept = new ConceptDirection { AeroLean = aeroLean, PowertrainLean = powertrainLean },
+        };
+        var teams = carset.Teams
+            .Select(t => string.CompareOrdinal(t.Id, team.Id) == 0 ? team with { Research = research } : t)
+            .ToList();
+        var live = new LiveCareer(new ShellSession(carset with { Teams = teams }, session.Clock, session.Seed));
+
+        var guard = 0;
+        while (!live.SeasonComplete && guard++ < 1000)
+        {
+            if (live.PendingAction)
+            {
+                live.Acknowledge();
+            }
+            else
+            {
+                live.Continue();
+            }
+        }
+
+        return live.Current.PlayerTeam()!.Car;
     }
 }
