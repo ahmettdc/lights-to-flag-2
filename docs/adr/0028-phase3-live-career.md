@@ -86,8 +86,16 @@ mevcut motor fonksiyonları çağrılır, bu yüzden golden yolu kımıldamaz.
   board **canlı evriliyor** ve ödenmeyen bir kredi eylem-gerektiren icra gelen-kutusu öğesi doğurup
   Continue'yu durduruyor (Rev 15; ADR-0029). Settle edilen finans/board yeni `SeasonStart`'a gömülüp
   mevcut `CareerState` yakalamasıyla bütün olarak round-trip ettiğinden golden + byte-özdeşlik korunur.
-- Ertelenen: sezon-içi R&D/test-günü carset evrimi (`Current` şimdilik `SeasonStart`'a eşit); ADR-0021
-  paddock **diyalog/müzakere** paneli ve Database **transfer/scout** eylemleri (M22); hava/lojistik/
-  viraj sayısı ve sürücü "Adaptation" (domain modeli yok); çok-yıllı takvim (devrilen sezon aynı
+- **Model B — canlı sezon-içi R&D (Ri1–Ri5):** `RollToNextSeason` (+ canlı `Continue` + `Reconstruct`) artık
+  R&D'yi `RndProgression` ile tur-tur ipliyor — araç sezon **içinde** gelişir, `Current` `SeasonStart`'tan
+  sapar. Kayıt formatı **değişmez**: evrilen araç deterministik olduğundan persist edilmez, `(SeasonStart,
+  seed, Date)`'ten yeniden kurulur; canlı = reconstruct = `SeasonSimulator.RunProgressed` (üç-yol paritesi
+  testli). Boş-tech-tree inert → byte-özdeş, golden dokunulmaz. Oyuncu R&D **konsept lean**'ini R&D ekranından
+  ayarlar (`ApplyToSeasonStart`; sezon-kapsamlı — o sezonun gelişimini yeniden türetir). **FIA gelişim-dondurma
+  rejimi** ayrı bir ADR'de (0030): sezon-sınırı `DevelopWinter` kış-darbesi + regülasyon-ballot ile dinamik.
+  Not: R&D node-başlatma canlı `Balance`'a kapılı olduğundan sezon-içi kredi/konsept **sezon-kapsamlı** davranır
+  (mid-season karar o sezonu deterministik yeniden türetir; flagship 300M'de retroaktiflik tetiklenmez).
+- Ertelenen: ADR-0021 paddock **diyalog/müzakere** paneli ve Database **transfer/scout** eylemleri (M22);
+  hava/lojistik/viraj sayısı ve sürücü "Adaptation" (domain modeli yok); çok-yıllı takvim (devrilen sezon aynı
   tarihleri kullanır); sezon-sınırında-tam-kayıt anındaki devir-RNG'sinin sezon-indeksi bağımlılığı
   (küçük, bilinen sınır; golden/byte-özdeşlik yollarını etkilemez); canlı Race-Weekend UI (M23).
