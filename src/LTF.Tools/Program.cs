@@ -244,6 +244,21 @@ static int Sweep(string[] args)
             $"ages {world.YoungestAge}–{world.OldestAge}, seats {(world.AllSeatsFilled ? "all filled" : "SHORT")}."));
     }
 
+    // Banking summary (ADR-0029) — only when the carset configures an active bank. The borrower draws the
+    // full headroom and the sweep tracks the loan across the seasons.
+    if (carset.Rules.Bank.IsActive)
+    {
+        var bank = BankSweep.Run(carset, seasons, seed, amount: long.MaxValue / 4, termSeasons: 5);
+        var teamNames = carset.Teams.ToDictionary(t => t.Id, t => t.Name, StringComparer.Ordinal);
+        var borrowerName = teamNames.TryGetValue(bank.BorrowerTeamId, out var bn) ? bn : bank.BorrowerTeamId;
+
+        Console.WriteLine();
+        Console.WriteLine(string.Create(CultureInfo.InvariantCulture,
+            $"Banking: {Clip(borrowerName, 24)} drew {bank.AmountBorrowed:N0} at {bank.FrozenRatePercent}%, " +
+            $"peak debt {bank.PeakDebt:N0}, {bank.SeasonsMissed} missed, {bank.Seizures} seizure(s), " +
+            $"{bank.PointsDocked} points docked; repaid: {(bank.LoanRepaid ? "yes" : "no")} over {bank.Seasons} seasons."));
+    }
+
     return 0;
 }
 
