@@ -73,6 +73,10 @@
     <DataTemplate DataType="{x:Type screens:StaffViewModel}">
       <views:StaffView />
     </DataTemplate>
+    <!-- Race weekend (M23): live timing tower replaying the round's recorded telemetry. -->
+    <DataTemplate DataType="{x:Type screens:RaceWeekendViewModel}">
+      <views:RaceWeekendView />
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

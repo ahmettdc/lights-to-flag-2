@@ -90,11 +90,15 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
             live.Session,
             live.Standings,
             _services.Notifications,
-            goToRaceWeekend: () => navigation.Navigate(NavKey.Calendar)));
+            goToRaceWeekend: () => navigation.Navigate(NavKey.RaceWeekend)));
         navigation.Register(NavKey.Standings, () => new StandingsViewModel(live.Current, live.Standings));
         navigation.Register(NavKey.Calendar, () => new CalendarViewModel(live.Current, live.Clock));
         navigation.Register(NavKey.Drivers, () => new DriversViewModel(live.Current));
         navigation.Register(NavKey.Database, () => new DatabaseViewModel(live.Current));
+
+        // Race weekend (M23): a live timing tower replaying the last round's recorded telemetry. Pure
+        // playback of the deterministic RaceResult — no re-simulation — so the golden race is untouched.
+        navigation.Register(NavKey.RaceWeekend, () => new RaceWeekendViewModel(live));
 
         // Management screens (M22). Read-only projections over the live career; a Continue rebuilds them.
         // Finance also carries the first player mutation — taking a loan (M22c).

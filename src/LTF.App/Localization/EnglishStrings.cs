@@ -173,6 +173,10 @@ public static class EnglishStrings
         [StringKeys.RndSteerConcept] = "STEER CONCEPT",
         [StringKeys.RndApplyConcept] = "Apply Concept",
         [StringKeys.RndFreezes] = "FIA DEVELOPMENT FREEZE",
+        [StringKeys.RaceWeekendNoRace] = "No race has run yet this season.",
+        [StringKeys.RaceWeekendTower] = "TIMING TOWER",
+        [StringKeys.RaceWeekendEvents] = "RACE EVENTS",
+        [StringKeys.RaceWeekendClassification] = "FINAL CLASSIFICATION",
 
         [StringKeys.CarsPerformance] = "CAR PERFORMANCE",
         [StringKeys.CarsOverall] = "OVERALL",

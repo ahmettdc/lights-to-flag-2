@@ -1,0 +1,190 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.RaceWeekendView"
+             x:DataType="screens:RaceWeekendViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.cardHeader">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.6" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.colHead">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextDim}" />
+    </Style>
+    <Style Selector="TextBlock.cell">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.num">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource BrushStatCell}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+    <Style Selector="Button.ctrl">
+      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel Background="{DynamicResource BrushAppBackground}" LastChildFill="True">
+
+    <Border DockPanel.Dock="Top" Height="32" Background="{DynamicResource BrushChrome}"
+            BorderBrush="{DynamicResource BrushDivider}" BorderThickness="0,0,0,1" Padding="14,0">
+      <TextBlock Text="{loc:Tr nav.raceWeekend}" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold" LetterSpacing="2"
+                 Foreground="{DynamicResource BrushTextPrimary}" />
+    </Border>
+
+    <!-- Empty state -->
+    <StackPanel IsVisible="{Binding NoRace}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
+      <TextBlock Text="{loc:Tr raceWeekend.noRace}" FontSize="14" Foreground="{DynamicResource BrushTextSecondary}" />
+      <TextBlock Text="Continue to the next round to see the race unfold." FontSize="11"
+                 Foreground="{DynamicResource BrushTextDim}" HorizontalAlignment="Center" />
+    </StackPanel>
+
+    <Grid IsVisible="{Binding HasRace}" Margin="12" RowDefinitions="Auto,*">
+
+      <!-- Top strip: round + lap/flag + replay controls -->
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+          <TextBlock Text="{Binding HeaderText}" FontFamily="{DynamicResource FontNumeric}" FontSize="13"
+                     FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+          <Border Background="{DynamicResource BrushStatCell}" BorderBrush="{DynamicResource BrushCardBorder}"
+                  BorderThickness="1" CornerRadius="4" Padding="8,3">
+            <TextBlock Text="{Binding LapText}" Classes="num" FontWeight="Bold" />
+          </Border>
+          <TextBlock Text="{Binding FlagText}" Classes="cardHeader" Foreground="{DynamicResource BrushAccent}" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Button Classes="ctrl" Content="⏮" Command="{Binding RestartCommand}" />
+          <Button Classes="ctrl" Content="‹" Command="{Binding StepBackCommand}" />
+          <Button Classes="ctrl" Content="▶" Command="{Binding TogglePlayCommand}" IsVisible="{Binding !IsPlaying}" />
+          <Button Classes="ctrl" Content="⏸" Command="{Binding TogglePlayCommand}" IsVisible="{Binding IsPlaying}" />
+          <Button Classes="ctrl" Content="›" Command="{Binding StepForwardCommand}" />
+          <Button Classes="ctrl" Content="⏭" Command="{Binding SkipToEndCommand}" />
+          <Slider Minimum="1" Maximum="6" Value="{Binding Speed}" Width="90" VerticalAlignment="Center" />
+        </StackPanel>
+      </Grid>
+
+      <Grid Grid.Row="1" ColumnDefinitions="*,300">
+
+        <!-- Timing tower (during replay) / final classification (at the flag) -->
+        <Panel Grid.Column="0" Margin="0,0,6,0">
+
+          <Border Classes="card" IsVisible="{Binding !RaceOver}">
+            <DockPanel LastChildFill="True">
+              <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+                <Grid ColumnDefinitions="30,*,64,52,50,34">
+                  <TextBlock Grid.Column="0" Classes="colHead" Text="P" />
+                  <TextBlock Grid.Column="1" Classes="colHead" Text="DRIVER" Margin="8,0,0,0" />
+                  <TextBlock Grid.Column="2" Classes="colHead" Text="GAP" />
+                  <TextBlock Grid.Column="3" Classes="colHead" Text="INT" />
+                  <TextBlock Grid.Column="4" Classes="colHead" Text="TYRE" />
+                  <TextBlock Grid.Column="5" Classes="colHead" Text="PIT" />
+                </Grid>
+              </Border>
+              <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Tower}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="screens:TimingRowViewModel">
+                      <Grid Height="30" ColumnDefinitions="30,*,64,52,50,34" Margin="12,0" Background="Transparent">
+                        <TextBlock Grid.Column="0" Text="{Binding Position}" Classes="num" FontWeight="Bold" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="8,0,0,0" VerticalAlignment="Center">
+                          <Border Width="3" Height="16" CornerRadius="1.5" Background="{Binding Accent}" />
+                          <TextBlock Text="{Binding Driver}" Classes="cell" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="{Binding Gap}" Classes="num" FontSize="11"
+                                   Foreground="{DynamicResource BrushTextSecondary}" />
+                        <TextBlock Grid.Column="3" Text="{Binding Interval}" Classes="num" FontSize="11"
+                                   Foreground="{DynamicResource BrushTextDim}" />
+                        <TextBlock Grid.Column="4" Text="{Binding Tyre}" Classes="num" FontSize="11"
+                                   Foreground="{DynamicResource BrushStatusGood}" />
+                        <TextBlock Grid.Column="5" Text="{Binding PitStops}" Classes="num" FontSize="11"
+                                   Foreground="{DynamicResource BrushTextDim}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </DockPanel>
+          </Border>
+
+          <Border Classes="card" IsVisible="{Binding RaceOver}">
+            <DockPanel LastChildFill="True">
+              <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+                <TextBlock Classes="cardHeader" Text="{loc:Tr raceWeekend.classification}" />
+              </Border>
+              <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Classification}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="screens:RaceResultRowViewModel">
+                      <Grid Height="30" ColumnDefinitions="30,*,150,40" Margin="12,0" Background="Transparent">
+                        <TextBlock Grid.Column="0" Text="{Binding Position}" Classes="num" FontWeight="Bold" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                          <Border Width="3" Height="16" CornerRadius="1.5" Background="{Binding Accent}" />
+                          <TextBlock Text="{Binding Driver}" Classes="cell" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="2" Text="{Binding Status}" Classes="num" FontSize="11"
+                                   Foreground="{DynamicResource BrushTextSecondary}" />
+                        <TextBlock Grid.Column="3" Text="{Binding Points}" Classes="num" FontWeight="Bold"
+                                   TextAlignment="Right" Foreground="{DynamicResource BrushAccent}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </DockPanel>
+          </Border>
+
+        </Panel>
+
+        <!-- Event feed -->
+        <Border Grid.Column="1" Classes="card" Margin="6,0,0,0">
+          <DockPanel LastChildFill="True">
+            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+              <TextBlock Classes="cardHeader" Text="{loc:Tr raceWeekend.events}" />
+            </Border>
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding Feed}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="screens:RaceEventRowViewModel">
+                    <Grid Height="30" ColumnDefinitions="Auto,*" Margin="12,0" Background="Transparent">
+                      <Border Grid.Column="0" Width="6" Height="6" CornerRadius="3" VerticalAlignment="Center"
+                              Margin="0,0,8,0" Background="{Binding Brush}" />
+                      <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="11"
+                                 Foreground="{DynamicResource BrushTextSecondary}" TextTrimming="CharacterEllipsis"
+                                 VerticalAlignment="Center" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </DockPanel>
+        </Border>
+
+      </Grid>
+
+    </Grid>
+  </DockPanel>
+
+</UserControl>

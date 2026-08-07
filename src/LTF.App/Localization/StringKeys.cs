@@ -185,6 +185,11 @@ public static class StringKeys
     public const string RndApplyConcept = "rnd.applyConcept";
     public const string RndFreezes = "rnd.freezes";
 
+    public const string RaceWeekendNoRace = "raceWeekend.noRace";
+    public const string RaceWeekendTower = "raceWeekend.tower";
+    public const string RaceWeekendEvents = "raceWeekend.events";
+    public const string RaceWeekendClassification = "raceWeekend.classification";
+
     // Cars & Power Unit screen (M22).
     public const string CarsPerformance = "cars.performance";
     public const string CarsOverall = "cars.overall";
