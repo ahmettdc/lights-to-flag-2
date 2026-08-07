@@ -93,6 +93,9 @@ public sealed partial class RootViewModel : ViewModelBase, IAppShellController
         navigation.Register(NavKey.Drivers, () => new DriversViewModel(live.Current));
         navigation.Register(NavKey.Database, () => new DatabaseViewModel(live.Current));
 
+        // Management screens (M22). Read-only projections over the live career; a Continue rebuilds them.
+        navigation.Register(NavKey.Finance, () => new FinanceViewModel(live.Current, live.Standings));
+
         // The career is endless (Continue rolls into the next season at a boundary) and the button also
         // acknowledges a Rev-15 pause, so it stays enabled unless an action is pending; ContinueCareerStep
         // decides whether a click advances, rolls over or acknowledges.

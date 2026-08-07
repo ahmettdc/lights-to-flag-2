@@ -1,0 +1,224 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:screens="using:LTF.App.ViewModels.Screens"
+             xmlns:loc="using:LTF.App.Localization"
+             x:Class="LTF.App.Views.Screens.FinanceView"
+             x:DataType="screens:FinanceViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.cardHeader">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.6" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextMuted}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.value">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.colHead">
+      <Setter Property="FontFamily" Value="{DynamicResource FontNumeric}" />
+      <Setter Property="FontSize" Value="9" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="LetterSpacing" Value="1.2" />
+      <Setter Property="Foreground" Value="{DynamicResource BrushTextDim}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="{DynamicResource BrushStatCell}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel Background="{DynamicResource BrushAppBackground}" LastChildFill="True">
+
+    <!-- Screen header strip -->
+    <Border DockPanel.Dock="Top" Height="32" Background="{DynamicResource BrushChrome}"
+            BorderBrush="{DynamicResource BrushDivider}" BorderThickness="0,0,0,1" Padding="14,0">
+      <TextBlock Text="{loc:Tr nav.finance}" VerticalAlignment="Center"
+                 FontFamily="{DynamicResource FontNumeric}" FontSize="11" FontWeight="Bold" LetterSpacing="2"
+                 Foreground="{DynamicResource BrushTextPrimary}" />
+    </Border>
+
+    <Grid Margin="12" ColumnDefinitions="*,*">
+
+      <!-- Left column: finances + sponsors -->
+      <Grid Grid.Column="0" Margin="0,0,6,0" RowDefinitions="Auto,*">
+
+        <Border Grid.Row="0" Classes="card" Margin="0,0,0,12">
+          <DockPanel LastChildFill="True">
+            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+              <TextBlock Classes="cardHeader" Text="{loc:Tr finance.finances}" />
+            </Border>
+            <StackPanel Margin="14,8">
+              <Grid ColumnDefinitions="*,Auto" Height="30">
+                <TextBlock Classes="label" Text="{loc:Tr finance.balance}" />
+                <TextBlock Grid.Column="1" Classes="value" Text="{Binding BalanceText}" Foreground="{Binding BalanceBrush}" />
+              </Grid>
+              <Grid ColumnDefinitions="*,Auto" Height="30">
+                <TextBlock Classes="label" Text="{loc:Tr finance.seasonBudget}" />
+                <TextBlock Grid.Column="1" Classes="value" Text="{Binding SeasonBudgetText}" />
+              </Grid>
+              <Grid ColumnDefinitions="*,Auto" Height="30">
+                <TextBlock Classes="label" Text="{loc:Tr finance.prizeMoney}" />
+                <TextBlock Grid.Column="1" Classes="value" Text="{Binding PrizeMoneyText}" />
+              </Grid>
+              <Grid ColumnDefinitions="*,Auto" Height="30">
+                <TextBlock Classes="label" Text="{loc:Tr finance.sponsorIncome}" />
+                <TextBlock Grid.Column="1" Classes="value" Text="{Binding SponsorIncomeText}" />
+              </Grid>
+              <Grid ColumnDefinitions="*,Auto" Height="30">
+                <TextBlock Classes="label" Text="{loc:Tr finance.costCap}" />
+                <TextBlock Grid.Column="1" Classes="value" Text="{Binding CostCapText}" />
+              </Grid>
+              <Border Height="1" Background="{DynamicResource BrushDivider}" Margin="0,5" />
+              <Grid ColumnDefinitions="*,Auto" Height="30">
+                <TextBlock Classes="label" Text="{loc:Tr finance.totalDebt}"
+                           Foreground="{DynamicResource BrushTextSecondary}" />
+                <TextBlock Grid.Column="1" Classes="value" Text="{Binding TotalDebtText}" />
+              </Grid>
+            </StackPanel>
+          </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1" Classes="card">
+          <DockPanel LastChildFill="True">
+            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+              <TextBlock Classes="cardHeader" Text="{loc:Tr finance.sponsors}" />
+            </Border>
+            <TextBlock DockPanel.Dock="Top" Text="{loc:Tr finance.noSponsors}" Margin="14,12" FontSize="12"
+                       Foreground="{DynamicResource BrushTextDim}" IsVisible="{Binding NoSponsors}" />
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding Sponsors}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="screens:SponsorRowViewModel">
+                    <Grid Height="32" ColumnDefinitions="Auto,*,Auto" Margin="14,0" Background="Transparent">
+                      <Border Grid.Column="0" Width="4" Height="16" CornerRadius="2" Margin="0,0,11,0"
+                              VerticalAlignment="Center" Background="{Binding Accent}" />
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Tier}" FontSize="9" LetterSpacing="1"
+                                   Foreground="{DynamicResource BrushTextDim}" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="2" Text="{Binding Fee}" FontFamily="{DynamicResource FontNumeric}"
+                                 FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </DockPanel>
+        </Border>
+
+      </Grid>
+
+      <!-- Right column: credit + loans -->
+      <Grid Grid.Column="1" Margin="6,0,0,0" RowDefinitions="Auto,*">
+
+        <Border Grid.Row="0" Classes="card" Margin="0,0,0,12">
+          <DockPanel LastChildFill="True">
+            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+              <TextBlock Classes="cardHeader" Text="{loc:Tr finance.credit}" />
+            </Border>
+            <StackPanel Margin="14,10">
+              <Grid ColumnDefinitions="Auto,*">
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="{loc:Tr finance.creditScore}" Classes="colHead" />
+                  <TextBlock Text="{Binding CreditScore}" FontFamily="{DynamicResource FontNumeric}" FontSize="34"
+                             FontWeight="Bold" Foreground="{Binding CreditScoreBrush}" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding CreditTierText}" VerticalAlignment="Bottom"
+                           TextAlignment="Right" FontFamily="{DynamicResource FontNumeric}" FontSize="13"
+                           FontWeight="Bold" LetterSpacing="1.5" Foreground="{Binding CreditScoreBrush}" />
+              </Grid>
+              <TextBlock Text="{loc:Tr finance.noBank}" Margin="0,10,0,0" FontSize="12" TextWrapping="Wrap"
+                         Foreground="{DynamicResource BrushTextDim}" IsVisible="{Binding NoBank}" />
+              <StackPanel IsVisible="{Binding BankActive}" Margin="0,8,0,0">
+                <Grid ColumnDefinitions="*,Auto" Height="30">
+                  <TextBlock Classes="label" Text="{loc:Tr finance.offeredRate}" />
+                  <TextBlock Grid.Column="1" Classes="value" Text="{Binding OfferedRateText}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Height="30">
+                  <TextBlock Classes="label" Text="{loc:Tr finance.creditLimit}" />
+                  <TextBlock Grid.Column="1" Classes="value" Text="{Binding CreditLimitText}" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto" Height="30">
+                  <TextBlock Classes="label" Text="{loc:Tr finance.headroom}"
+                             Foreground="{DynamicResource BrushTextSecondary}" />
+                  <TextBlock Grid.Column="1" Classes="value" Text="{Binding HeadroomText}" Foreground="{DynamicResource BrushStatusGood}" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1" Classes="card">
+          <DockPanel LastChildFill="True">
+            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="12,8">
+              <TextBlock Classes="cardHeader" Text="{loc:Tr finance.loans}" />
+            </Border>
+
+            <!-- Empty state -->
+            <StackPanel DockPanel.Dock="Top" Margin="14,16" IsVisible="{Binding NoLoans}">
+              <TextBlock Text="{loc:Tr finance.noLoans}" FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" />
+              <TextBlock Text="{loc:Tr finance.noLoansBody}" FontSize="11" Margin="0,3,0,0"
+                         Foreground="{DynamicResource BrushTextDim}" />
+            </StackPanel>
+
+            <!-- Column headers -->
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,80,44,44,80" Margin="14,4" IsVisible="{Binding HasLoans}">
+              <TextBlock Grid.Column="0" Classes="colHead" Text="{loc:Tr finance.colLender}" />
+              <TextBlock Grid.Column="1" Classes="colHead" Text="{loc:Tr finance.colOutstanding}" TextAlignment="Right" />
+              <TextBlock Grid.Column="2" Classes="colHead" Text="{loc:Tr finance.colRate}" TextAlignment="Right" />
+              <TextBlock Grid.Column="3" Classes="colHead" Text="{loc:Tr finance.colLeft}" TextAlignment="Right" />
+              <TextBlock Grid.Column="4" Classes="colHead" Text="{loc:Tr finance.colNext}" TextAlignment="Right" />
+            </Grid>
+
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding Loans}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="screens:LoanRowViewModel">
+                    <Grid Height="34" ColumnDefinitions="*,80,44,44,80" Margin="14,0" Background="Transparent">
+                      <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal" Spacing="6">
+                        <Border Width="6" Height="6" CornerRadius="3" VerticalAlignment="Center"
+                                Background="{Binding StatusBrush}" />
+                        <TextBlock Text="{Binding Lender}" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <TextBlock Grid.Column="1" Text="{Binding Outstanding}" FontFamily="{DynamicResource FontNumeric}"
+                                 FontSize="12" TextAlignment="Right" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="2" Text="{Binding Rate}" FontFamily="{DynamicResource FontNumeric}"
+                                 FontSize="12" TextAlignment="Right" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="3" Text="{Binding SeasonsRemaining}" FontFamily="{DynamicResource FontNumeric}"
+                                 FontSize="12" TextAlignment="Right" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="4" Text="{Binding Instalment}" FontFamily="{DynamicResource FontNumeric}"
+                                 FontSize="12" TextAlignment="Right" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </DockPanel>
+        </Border>
+
+      </Grid>
+
+    </Grid>
+  </DockPanel>
+
+</UserControl>

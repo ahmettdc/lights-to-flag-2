@@ -57,6 +57,10 @@
     <DataTemplate DataType="{x:Type screens:PaddockHubViewModel}">
       <views:PaddockHubView />
     </DataTemplate>
+    <!-- Management screens (M22). -->
+    <DataTemplate DataType="{x:Type screens:FinanceViewModel}">
+      <views:FinanceView />
+    </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Resources>

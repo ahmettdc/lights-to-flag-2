@@ -141,4 +141,29 @@ public static class StringKeys
     public const string PaddockDialogue = "paddock.dialogue";
     public const string PaddockDialogueEmpty = "paddock.dialogueEmpty";
     public const string PaddockDialogueEmptyBody = "paddock.dialogueEmptyBody";
+
+    // Finance screen (M22).
+    public const string FinanceFinances = "finance.finances";
+    public const string FinanceBalance = "finance.balance";
+    public const string FinanceSeasonBudget = "finance.seasonBudget";
+    public const string FinancePrizeMoney = "finance.prizeMoney";
+    public const string FinanceSponsorIncome = "finance.sponsorIncome";
+    public const string FinanceCostCap = "finance.costCap";
+    public const string FinanceTotalDebt = "finance.totalDebt";
+    public const string FinanceCredit = "finance.credit";
+    public const string FinanceCreditScore = "finance.creditScore";
+    public const string FinanceOfferedRate = "finance.offeredRate";
+    public const string FinanceCreditLimit = "finance.creditLimit";
+    public const string FinanceHeadroom = "finance.headroom";
+    public const string FinanceNoBank = "finance.noBank";
+    public const string FinanceLoans = "finance.loans";
+    public const string FinanceNoLoans = "finance.noLoans";
+    public const string FinanceNoLoansBody = "finance.noLoansBody";
+    public const string FinanceColLender = "finance.colLender";
+    public const string FinanceColOutstanding = "finance.colOutstanding";
+    public const string FinanceColRate = "finance.colRate";
+    public const string FinanceColLeft = "finance.colLeft";
+    public const string FinanceColNext = "finance.colNext";
+    public const string FinanceSponsors = "finance.sponsors";
+    public const string FinanceNoSponsors = "finance.noSponsors";
 }
