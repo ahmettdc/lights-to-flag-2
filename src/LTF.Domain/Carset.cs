@@ -87,6 +87,17 @@ public sealed record Carset
     /// Cleared at a season boundary.</summary>
     public IReadOnlyList<RaceCommand> PlayerRaceCommands { get; init; } = [];
 
+    /// <summary>The archived record of every completed season (M24): year, champions and the final tables. Empty on
+    /// a fresh carset, which keeps a career byte-identical. Unlike the per-round results — discarded at rollover —
+    /// this <em>accumulates</em> across the career (<c>SeasonArchive.Append</c> adds one entry at each season
+    /// boundary) and is never cleared or reconstructed; it rides season-start → live and persists in the save.</summary>
+    public IReadOnlyList<SeasonRecord> SeasonHistory { get; init; } = [];
+
+    /// <summary>The fastest race lap ever set at each circuit over the career (M24). Empty on a fresh carset
+    /// (byte-identical); <c>SeasonArchive.Append</c> updates it at each season boundary, keeping the quicker lap.
+    /// Like <see cref="SeasonHistory"/> it accumulates and persists, and is never reconstructed.</summary>
+    public IReadOnlyList<TrackRecord> TrackRecords { get; init; } = [];
+
     /// <summary>The team the player runs (M17), or null when none is designated (<see cref="PlayerTeamId"/>
     /// empty) or the id matches no team — the all-AI default that keeps a career byte-identical.</summary>
     public Team? PlayerTeam()
