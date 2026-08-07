@@ -129,4 +129,55 @@ public class Phase5RecordsTests
         shell.Navigation.Navigate(NavKey.Records);
         Assert.IsType<RecordsViewModel>(shell.Navigation.CurrentScreen);
     }
+
+    // --- All-time records + hall of fame (M24e) ---
+
+    [Fact]
+    public void The_all_time_boards_rank_each_cumulative_stat()
+    {
+        var vm = new RecordsViewModel(AfterFirstSeason());
+
+        Assert.NotEmpty(vm.AllTimeBoards);
+        Assert.Contains(vm.AllTimeBoards, b => b.Title == "MOST WINS");
+        Assert.All(vm.AllTimeBoards, board =>
+        {
+            Assert.True(board.Entries.Count <= 5); // a top-five leaderboard
+            var values = board.Entries.Select(e => double.Parse(e.Value, CultureInfo.InvariantCulture)).ToList();
+            for (var i = 1; i < values.Count; i++)
+            {
+                Assert.True(values[i] <= values[i - 1]); // ranked best-first
+            }
+        });
+    }
+
+    [Fact]
+    public void The_hall_of_fame_lists_the_season_champions()
+    {
+        var live = AfterFirstSeason();
+        var vm = new RecordsViewModel(live);
+
+        Assert.True(vm.HasHistory);
+        Assert.Equal(live.Current.SeasonHistory.Count, vm.HallOfFame.Count);
+        Assert.All(vm.HallOfFame, c =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(c.Year));
+            Assert.False(string.IsNullOrWhiteSpace(c.DriverChampion));
+            Assert.False(string.IsNullOrWhiteSpace(c.ConstructorChampion));
+        });
+
+        // Every circuit raced this season carries a lap record, formatted M:SS.mmm.
+        Assert.NotEmpty(vm.TrackRecords);
+        Assert.All(vm.TrackRecords, t => Assert.Contains(":", t.LapTime));
+    }
+
+    [Fact]
+    public void A_fresh_career_has_an_empty_hall_of_fame()
+    {
+        var vm = new RecordsViewModel(new LiveCareer(SessionLoader.LoadFlagship()));
+
+        Assert.False(vm.HasHistory);
+        Assert.Empty(vm.HallOfFame);
+        Assert.Empty(vm.TrackRecords);
+        Assert.NotEmpty(vm.AllTimeBoards); // the boards still list the field, on zero
+    }
 }

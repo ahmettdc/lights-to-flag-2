@@ -101,14 +101,121 @@
                    FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
       </TabItem>
 
+      <!-- All-time record boards (M24e): the top of each cumulative tally. -->
       <TabItem Header="{loc:Tr records.tabAllTime}">
-        <TextBlock Text="{loc:Tr records.comingSoon}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                   FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+        <ScrollViewer Margin="0,10,0,0" HorizontalScrollBarVisibility="Disabled">
+          <ItemsControl ItemsSource="{Binding AllTimeBoards}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="4" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="screens:RecordBoardViewModel">
+                <Border Classes="card" Margin="0,0,8,8">
+                  <DockPanel LastChildFill="True">
+                    <Border DockPanel.Dock="Top" Background="{DynamicResource BrushChrome}"
+                            BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="10,7">
+                      <TextBlock Text="{Binding Title}" Classes="colHead" />
+                    </Border>
+                    <ItemsControl ItemsSource="{Binding Entries}" Margin="0,3,0,5">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="screens:RecordEntryViewModel">
+                          <Grid ColumnDefinitions="20,*,Auto" Height="26" Margin="10,0">
+                            <TextBlock Grid.Column="0" Text="{Binding Rank}" Classes="num" TextAlignment="Left"
+                                       FontSize="11" Foreground="{DynamicResource BrushTextDim}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                              <Border Width="3" Height="13" Background="{Binding Accent}" />
+                              <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center"
+                                         Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="{Binding Value}" Classes="num" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushTextPrimary}" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
       </TabItem>
 
+      <!-- Hall of fame (M24e): the season champions roll + track records; empty until a season completes. -->
       <TabItem Header="{loc:Tr records.tabHallOfFame}">
-        <TextBlock Text="{loc:Tr records.comingSoon}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                   FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+        <Panel Margin="0,10,0,0">
+          <TextBlock Text="{loc:Tr records.emptyHistory}" IsVisible="{Binding !HasHistory}"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     FontSize="12" Foreground="{DynamicResource BrushTextDim}" />
+
+          <Grid IsVisible="{Binding HasHistory}" ColumnDefinitions="1.3*,*">
+
+            <Border Grid.Column="0" Classes="card" Margin="0,0,6,0">
+              <DockPanel LastChildFill="True">
+                <Border DockPanel.Dock="Top" Background="{DynamicResource BrushChrome}"
+                        BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="14,8">
+                  <Grid ColumnDefinitions="56,*,*">
+                    <TextBlock Grid.Column="0" Classes="colHead" Text="{loc:Tr records.colYear}" />
+                    <TextBlock Grid.Column="1" Classes="colHead" Text="{loc:Tr records.colChampion}" />
+                    <TextBlock Grid.Column="2" Classes="colHead" Text="{loc:Tr records.colConstructor}" />
+                  </Grid>
+                </Border>
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                  <ItemsControl ItemsSource="{Binding HallOfFame}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="screens:SeasonChampionViewModel">
+                        <Grid ColumnDefinitions="56,*,*" Height="30" Margin="14,0" Background="Transparent">
+                          <TextBlock Grid.Column="0" Text="{Binding Year}" Classes="num" TextAlignment="Left"
+                                     FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Border Width="3" Height="15" Background="{Binding Accent}" />
+                            <TextBlock Text="{Binding DriverChampion}" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <TextBlock Grid.Column="2" Text="{Binding ConstructorChampion}" FontSize="11"
+                                     VerticalAlignment="Center" Foreground="{DynamicResource BrushTextMuted}"
+                                     TextTrimming="CharacterEllipsis" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </DockPanel>
+            </Border>
+
+            <Border Grid.Column="1" Classes="card" Margin="6,0,0,0">
+              <DockPanel LastChildFill="True">
+                <Border DockPanel.Dock="Top" Background="{DynamicResource BrushChrome}"
+                        BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="14,8">
+                  <TextBlock Classes="colHead" Text="{loc:Tr records.trackRecords}" />
+                </Border>
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                  <ItemsControl ItemsSource="{Binding TrackRecords}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="screens:TrackRecordViewModel">
+                        <Grid ColumnDefinitions="*,74,44" Height="32" Margin="14,0" Background="Transparent">
+                          <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Circuit}" FontSize="12"
+                                       Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding Driver}" FontFamily="{DynamicResource FontNumeric}" FontSize="10"
+                                       Foreground="{DynamicResource BrushTextDim}" TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+                          <TextBlock Grid.Column="1" Text="{Binding LapTime}" Classes="num" TextAlignment="Right"
+                                     Foreground="{DynamicResource BrushStatusGood}" />
+                          <TextBlock Grid.Column="2" Text="{Binding Year}" Classes="num" TextAlignment="Right"
+                                     FontSize="11" Foreground="{DynamicResource BrushTextDim}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </DockPanel>
+            </Border>
+
+          </Grid>
+        </Panel>
       </TabItem>
 
     </TabControl>

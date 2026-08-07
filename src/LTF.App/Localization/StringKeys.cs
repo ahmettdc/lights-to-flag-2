@@ -217,6 +217,15 @@ public static class StringKeys
     public const string RecordsColTitles = "records.colTitles";
     public const string RecordsColPoints = "records.colPoints";
     public const string RecordsComingSoon = "records.comingSoon";
+    public const string RecordsChampions = "records.champions";
+    public const string RecordsTrackRecords = "records.trackRecords";
+    public const string RecordsColYear = "records.colYear";
+    public const string RecordsColChampion = "records.colChampion";
+    public const string RecordsColConstructor = "records.colConstructor";
+    public const string RecordsColCircuit = "records.colCircuit";
+    public const string RecordsColLap = "records.colLap";
+    public const string RecordsColHolder = "records.colHolder";
+    public const string RecordsEmptyHistory = "records.emptyHistory";
 
     // Cars & Power Unit screen (M22).
     public const string CarsPerformance = "cars.performance";

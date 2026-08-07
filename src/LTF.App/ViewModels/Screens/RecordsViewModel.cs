@@ -22,6 +22,8 @@ public sealed partial class RecordsViewModel : ViewModelBase
     {
         var carset = live.Current;
 
+        var driverName = carset.Drivers.ToDictionary(d => d.Id, d => d.FullName, StringComparer.Ordinal);
+        var circuitName = carset.Circuits.ToDictionary(c => c.Id, c => c.Name, StringComparer.Ordinal);
         var teamName = new Dictionary<string, string>(StringComparer.Ordinal);
         var teamOfDriver = new Dictionary<string, string>(StringComparer.Ordinal);
         var teamAccent = new Dictionary<string, IBrush>(StringComparer.Ordinal);
@@ -36,6 +38,11 @@ public sealed partial class RecordsViewModel : ViewModelBase
             }
         }
 
+        IBrush AccentOf(string driverId) =>
+            teamOfDriver.TryGetValue(driverId, out var teamId)
+                ? teamAccent.GetValueOrDefault(teamId, ScreenBrushes.Faint)
+                : ScreenBrushes.Faint;
+
         // Career profiles (PROFILES): every driver's accumulated record, ranked by career points then wins.
         Profiles = carset.Drivers
             .OrderByDescending(d => d.Career.Points)
@@ -45,13 +52,64 @@ public sealed partial class RecordsViewModel : ViewModelBase
             {
                 var teamId = teamOfDriver.GetValueOrDefault(d.Id, "");
                 var teamLabel = teamId.Length > 0 ? teamName.GetValueOrDefault(teamId, "") : "Free agent";
-                var accent = teamId.Length > 0
-                    ? teamAccent.GetValueOrDefault(teamId, ScreenBrushes.Faint)
-                    : ScreenBrushes.Faint;
-                return new CareerProfileRowViewModel(i + 1, d, teamLabel, accent);
+                return new CareerProfileRowViewModel(i + 1, d, teamLabel, AccentOf(d.Id));
             })
             .ToList();
         _selectedProfile = Profiles.FirstOrDefault();
+
+        // All-time record boards (ALL-TIME): the top of each cumulative tally, drivers then teams.
+        RecordBoardViewModel DriverBoard(string title, Func<DriverCareer, double> stat) => new(
+            title,
+            carset.Drivers
+                .OrderByDescending(d => stat(d.Career))
+                .ThenBy(d => d.FullName, StringComparer.Ordinal)
+                .Take(5)
+                .Select((d, i) => new RecordEntryViewModel(
+                    Ordinal(i), d.FullName, AccentOf(d.Id), stat(d.Career).ToString("0", CultureInfo.InvariantCulture)))
+                .ToList());
+
+        RecordBoardViewModel TeamBoard(string title, Func<Team, double> stat) => new(
+            title,
+            carset.Teams
+                .Select((t, i) => (Team: t, Accent: ScreenBrushes.TeamAccent(i)))
+                .OrderByDescending(x => stat(x.Team))
+                .ThenBy(x => x.Team.Name, StringComparer.Ordinal)
+                .Take(5)
+                .Select((x, i) => new RecordEntryViewModel(
+                    Ordinal(i), x.Team.Name, x.Accent, stat(x.Team).ToString("0", CultureInfo.InvariantCulture)))
+                .ToList());
+
+        AllTimeBoards = new[]
+        {
+            DriverBoard("MOST CHAMPIONSHIPS", c => c.Championships),
+            DriverBoard("MOST WINS", c => c.Wins),
+            DriverBoard("MOST POLES", c => c.Poles),
+            DriverBoard("MOST PODIUMS", c => c.Podiums),
+            DriverBoard("MOST POINTS", c => c.Points),
+            DriverBoard("MOST FASTEST LAPS", c => c.FastestLaps),
+            TeamBoard("CONSTRUCTORS' TITLES", t => t.ChampionshipsWon),
+            TeamBoard("TEAM RACE WINS", t => t.RaceWins),
+        };
+
+        // Hall of fame (HALL OF FAME): the season champions roll, most recent first, plus the track records.
+        HallOfFame = carset.SeasonHistory
+            .Reverse()
+            .Select(s => new SeasonChampionViewModel(
+                s.Year.ToString(CultureInfo.InvariantCulture),
+                driverName.GetValueOrDefault(s.DriversChampionId, s.DriversChampionId),
+                AccentOf(s.DriversChampionId),
+                teamName.GetValueOrDefault(s.ConstructorsChampionId, s.ConstructorsChampionId)))
+            .ToList();
+
+        TrackRecords = carset.TrackRecords
+            .Select(t => new TrackRecordViewModel(
+                circuitName.GetValueOrDefault(t.CircuitId, t.CircuitId),
+                driverName.GetValueOrDefault(t.DriverId, t.DriverId),
+                FormatLap(t.BestLapSeconds),
+                t.Year.ToString(CultureInfo.InvariantCulture)))
+            .ToList();
+
+        HasHistory = carset.SeasonHistory.Count > 0;
     }
 
     /// <summary>Every driver's career record, ranked (PROFILES tab).</summary>
@@ -63,7 +121,47 @@ public sealed partial class RecordsViewModel : ViewModelBase
 
     /// <summary>The full profile card for the selected driver (the shared driver/team detail panel).</summary>
     public EntityDetailViewModel? ProfileDetail => SelectedProfile?.Detail;
+
+    /// <summary>The all-time record leaderboards (ALL-TIME tab): the top of each cumulative tally.</summary>
+    public IReadOnlyList<RecordBoardViewModel> AllTimeBoards { get; }
+
+    /// <summary>The season champions roll, most recent first (HALL OF FAME tab).</summary>
+    public IReadOnlyList<SeasonChampionViewModel> HallOfFame { get; }
+
+    /// <summary>The fastest race lap ever set at each circuit (HALL OF FAME tab).</summary>
+    public IReadOnlyList<TrackRecordViewModel> TrackRecords { get; }
+
+    /// <summary>True once at least one season has completed — the hall of fame has content.</summary>
+    public bool HasHistory { get; }
+
+    // "1"…"5" for a leaderboard row (the display rank).
+    private static string Ordinal(int index) => (index + 1).ToString(CultureInfo.InvariantCulture);
+
+    // A lap time in seconds as M:SS.mmm (e.g. 80.5 → "1:20.500"); an empty/zero time shows a dash.
+    private static string FormatLap(double seconds)
+    {
+        if (seconds <= 0)
+        {
+            return "—";
+        }
+
+        var minutes = (int)(seconds / 60);
+        var rest = seconds - (minutes * 60);
+        return string.Create(CultureInfo.InvariantCulture, $"{minutes}:{rest:00.000}");
+    }
 }
+
+/// <summary>One all-time record leaderboard (M24): a titled top-five of a cumulative tally.</summary>
+public sealed record RecordBoardViewModel(string Title, IReadOnlyList<RecordEntryViewModel> Entries);
+
+/// <summary>One row on a record leaderboard (M24): rank, name, team accent and the tally value.</summary>
+public sealed record RecordEntryViewModel(string Rank, string Name, IBrush Accent, string Value);
+
+/// <summary>One year's champions in the hall of fame (M24): the season year and its two champions.</summary>
+public sealed record SeasonChampionViewModel(string Year, string DriverChampion, IBrush Accent, string ConstructorChampion);
+
+/// <summary>One circuit's lap record (M24): circuit, holder, the lap time and the year it was set.</summary>
+public sealed record TrackRecordViewModel(string Circuit, string Driver, string LapTime, string Year);
 
 /// <summary>One driver's row in the career-profiles table (M24): rank, name, team accent, the headline career
 /// tallies, and the profile card the detail panel shows when the row is selected.</summary>
